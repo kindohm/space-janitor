@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Coquette - Spaceship</title>
+    
+   <link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css'>
+
+    <style>body{ font-family: Ubuntu, Helvetica, Arial, sans-serif;}</style>
+  </head>
+  <body>
+    <p>Right/left arrow to rotate. Up arrow to thrust.</p>
+
+    <canvas id="canvas"></canvas>
+  </body>
+  <script type="text/javascript" src="js/sylvester.js"></script>
+  <script type="text/javascript" src="js/coquette.js"></script>
+  <script type="text/javascript" src="js/maths.js"></script>
+  <script type="text/javascript" src="js/settings.js"></script>
+  <script type="text/javascript" src="js/player.js"></script>
+  <script type="text/javascript" src="js/game.js"></script>
+  <script type="text/javascript">
+    window.addEventListener('load', function() {
+      var game = new Game("canvas", 600, 400);
+      game.init();
+    });
+  </script>
+</html>
