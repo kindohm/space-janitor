@@ -100,21 +100,8 @@
       context.translate(-(this.pos.x), -(this.pos.y));
       context.restore();      
 
-      // 2) draw the in-memory canvas sprite      
+      // 2) an on-the-fly path drawing
       var offset = 50;
-      context.save();
-      context.translate(this.pos.x + offset, this.pos.y);
-      context.rotate(this.rAngle);
-
-      context.drawImage(this.inMemorySprite, -this.halfSize.x, -this.halfSize.y,
-        this.size.x, this.size.y);
-
-      context.rotate(-this.Angle);
-      context.translate(-(this.pos.x + offset), -(this.pos.y));
-      context.restore();      
-
-      // 3) an on-the-fly path drawing
-      var offset = 100;
       context.save();
       context.translate(this.pos.x + offset, this.pos.y);
       context.rotate(this.rAngle);
@@ -134,6 +121,18 @@
       context.translate(-(this.pos.x + offset), -(this.pos.y));
       context.restore();      
 
+      // 3) draw the in-memory canvas sprite      
+      var offset = 100;
+      context.save();
+      context.translate(this.pos.x + offset, this.pos.y);
+      context.rotate(this.rAngle);
+
+      context.drawImage(this.inMemorySprite, -this.halfSize.x, -this.halfSize.y,
+        this.size.x, this.size.y);
+
+      context.rotate(-this.Angle);
+      context.translate(-(this.pos.x + offset), -(this.pos.y));
+      context.restore();      
     },
 
     handleKeyboard: function(){
