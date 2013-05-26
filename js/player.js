@@ -59,7 +59,6 @@
         this.pos.x = this.maxPos.x;
       }
 
-
     },
 
     draw: function(){
@@ -67,8 +66,7 @@
       var context = this.game.coquette.renderer.getCtx();
 
       context.save();
-      context.translate(this.pos.x + this.halfSize.x, 
-        this.pos.y + this.halfSize.y);
+      context.translate(this.pos.x, this.pos.y);
       context.rotate(this.rAngle);
       context.drawImage(this.sprite, -this.halfSize.x, -this.halfSize.y,
         this.size.x, this.size.y);
@@ -113,8 +111,6 @@
       this.thrust.x = this.thrust.y = this.thrustScale = 0;
       this.thrusting = false;
     },
-
-
 
   };
 
