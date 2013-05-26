@@ -1,4 +1,5 @@
-space-janitor
+Space Janitor
 =============
 
-A JavaScript Asteroids video game clone for browsers.
+A clone of the popular Asteroids video game, written in JavaScript for
+web browsers.
