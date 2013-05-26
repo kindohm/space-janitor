@@ -22,6 +22,13 @@
       self.spriteReady = true;
     };
     this.sprite.src = 'sprites/player.png';
+
+    this.sprite2 = new Image();
+    this.sprite2.src = 'sprites/player-no-anti-alias.png';
+
+    this.inMemorySprite = this.getSprite();
+
+    console.log(this.inMemorySprite);
   }
 
   Player.prototype = {
@@ -61,6 +68,28 @@
 
     },
 
+    getSprite: function(){
+
+      var canvas = document.createElement('canvas');
+      document.body.appendChild(canvas);
+      canvas.width = 20;
+      canvas.height = 30;
+      var context = canvas.getContext('2d');
+      context.beginPath();
+      context.moveTo(0,0);
+      context.lineTo(this.halfSize.x,this.size.y);
+      context.lineTo(this.size.x, 0);
+      context.lineTo(this.halfSize.x,7);
+      context.lineTo(0, 0);
+      context.closePath();
+      context.strokeStyle = '#ccc';
+      context.lineWidth = 1;
+      context.stroke();
+
+
+      return canvas;
+    },
+
     draw: function(){
 
       var context = this.game.coquette.renderer.getCtx();
@@ -68,11 +97,51 @@
       context.save();
       context.translate(this.pos.x, this.pos.y);
       context.rotate(this.rAngle);
+      
+      //draw sprite
       context.drawImage(this.sprite, -this.halfSize.x, -this.halfSize.y,
         this.size.x, this.size.y);
+
       context.rotate(-this.Angle);
       context.translate(-(this.pos.x), -(this.pos.y));
       context.restore();      
+
+
+      //draw path nearby
+      var offset = 100;
+      context.save();
+      context.translate(this.pos.x + offset, this.pos.y);
+      context.rotate(this.rAngle);
+
+      context.beginPath();
+      context.moveTo(-this.halfSize.x,-this.halfSize.y);
+      context.lineTo(0,this.halfSize.y);
+      context.lineTo(this.halfSize.x, -this.halfSize.y);
+      context.lineTo(0,-7);
+      context.lineTo(-this.halfSize.x, -this.halfSize.y);
+      context.closePath();
+      context.strokeStyle = '#ccc';
+      context.lineWidth = 1;
+      context.stroke();
+
+      context.rotate(-this.Angle);
+      context.translate(-(this.pos.x + offset), -(this.pos.y));
+      context.restore();      
+
+      //in-memory sprite
+      
+      var offset = 50;
+      context.save();
+      context.translate(this.pos.x + offset, this.pos.y);
+      context.rotate(this.rAngle);
+
+      context.drawImage(this.inMemorySprite, -this.halfSize.x, -this.halfSize.y,
+        this.size.x, this.size.y);
+
+      context.rotate(-this.Angle);
+      context.translate(-(this.pos.x + offset), -(this.pos.y));
+      context.restore();      
+
     },
 
     handleKeyboard: function(){
