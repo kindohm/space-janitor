@@ -21,7 +21,7 @@
     this.sprite.onload = function(){
       self.spriteReady = true;
     };
-    this.sprite.src = '/apps/coquette-spaceship/sprites/player.png';
+    this.sprite.src = 'sprites/player.png';
   }
 
   Player.prototype = {
