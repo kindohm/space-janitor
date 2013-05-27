@@ -91,7 +91,7 @@
       }
 
       if(this.game.coquette.inputter.state(this.game.coquette.inputter.SPACE)) {
-        this.shoot(0);
+        this.shoot();
       }
     },
 
