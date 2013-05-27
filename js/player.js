@@ -18,20 +18,22 @@
     };
 
     this.inMemorySprite = this.getSprite();
+
+    this.bulletTicksLeft = game.settings.BULLET_DELAY_TICKS;
   }
 
   Player.prototype = {
 
-    size:         {x: 20, y: 30},
-    halfSize:     {x: 10, y: 15},
-    vel:          {x: 0,  y: 0},
-    spriteReady:  false,
-    angle:        180,
-    rAngle:       3.14,
-    angleVector:  {x: 0, y: 0}, 
-    thrust:       {x: 0, y: 0},
-    thrusting:    false,
-    thrustScale:  0,
+    size: {x: 20, y: 30},
+    halfSize: {x: 10, y: 15},
+    vel: {x: 0,  y: 0},
+    angle: 180,
+    rAngle: 3.14,
+    angleVector: {x: 0, y: 0}, 
+    thrust: {x: 0, y: 0},
+    thrusting: false,
+    thrustScale: 0,
+    shotTicksLeft: 0,
 
     update: function (){
 
@@ -54,6 +56,8 @@
       } else if (this.pos.x < -this.size.x) {
         this.pos.x = this.maxPos.x;
       }
+
+      this.shotTicksLeft = Math.max(0, this.shotTicksLeft - 1);
 
     },
 
@@ -78,9 +82,7 @@
       return canvas;
     },
 
-    draw: function(){
-
-      var context = this.game.coquette.renderer.getCtx();
+    draw: function(context){
 
       context.save();
       context.translate(this.pos.x, this.pos.y);
@@ -109,6 +111,10 @@
       if(this.game.coquette.inputter.state(this.game.coquette.inputter.RIGHT_ARROW)) {
         this.rotate('right');
       }
+
+      if(this.game.coquette.inputter.state(this.game.coquette.inputter.SPACE)) {
+        this.shoot(0);
+      }
     },
 
     rotate: function(direction){      
@@ -130,6 +136,36 @@
       this.thrust.x = this.thrust.y = this.thrustScale = 0;
       this.thrusting = false;
     },
+
+    shoot: function(){
+
+      if (this.shotTicksLeft === 0){
+
+        // get ship's direction vector
+        var vector = this.game.maths.angleToVector(this.angle);
+
+        // calculate bullet origin position relative to ship's center
+        var bulletPos = {
+          x: vector.x * this.halfSize.x,
+          y: vector.y * this.halfSize.y
+        };
+
+        // calculate bullet velocity vector
+        var bulletVel = {
+          x: vector.x * this.game.settings.BULLET_VELOCITY,
+          y: vector.y * this.game.settings.BULLET_VELOCITY
+        };
+
+        // create bullet entity
+        this.game.coquette.entities.create(Bullet, 
+          {
+            pos: {x:this.pos.x + bulletPos.x, y:this.pos.y + bulletPos.y}, 
+            vel: bulletVel
+          });
+
+        this.shotTicksLeft = this.game.settings.BULLET_DELAY_TICKS;
+      }
+    }
 
   };
 
