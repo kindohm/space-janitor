@@ -6,6 +6,7 @@
     this.width = width;
     this.height = height;
     this.settings = new Settings();
+    this.spriteFactory = new SpriteFactory(this);
   };
 
   Game.prototype = {

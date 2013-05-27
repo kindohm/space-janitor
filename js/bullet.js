@@ -5,7 +5,18 @@
     this.game = game;
     this.pos = settings.pos;
     this.vel = settings.vel;
-    this.sprite = this.getSprite();
+    this.sprite = game.spriteFactory.getBulletSprite();
+    
+    this.size = {
+      x:this.game.settings.BULLET_SIZE_X,
+      y:this.game.settings.BULLET_SIZE_Y
+    };
+    
+    this.halfSize = {
+      x: this.size.x / 2,
+      y: this.size.y / 2
+    };
+
   };
 
   Bullet.prototype = {
@@ -28,21 +39,7 @@
     draw: function(context) {
       context.drawImage(this.sprite, this.pos.x - this.halfSize.x, 
         this.pos.y - this.halfSize.y, this.size.x, this.size.y);
-    },
-
-    getSprite: function(){
-
-      var canvas = document.createElement('canvas');
-      canvas.width = this.size.x;
-      canvas.height = this.size.y;
-
-      var context = canvas.getContext('2d');
-      context.fillStyle = '#ffff00';
-      context.fillRect(0,0,this.size.x, this.size.y);
-      return canvas;
-    },
-
-
+    }
   };
 
   exports.Bullet = Bullet;

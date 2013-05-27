@@ -17,8 +17,7 @@
       y: this.size.y / 2
     };
 
-    this.inMemorySprite = this.getSprite();
-
+    this.sprite = game.spriteFactory.getPlayerSprite();
     this.bulletTicksLeft = game.settings.BULLET_DELAY_TICKS;
   }
 
@@ -61,34 +60,13 @@
 
     },
 
-    getSprite: function(){
-
-      var canvas = document.createElement('canvas');
-      canvas.width = 20;
-      canvas.height = 30;
-      
-      var context = canvas.getContext('2d');
-      context.beginPath();
-      context.moveTo(0,0);
-      context.lineTo(this.halfSize.x,this.size.y);
-      context.lineTo(this.size.x, 0);
-      context.lineTo(this.halfSize.x,7);
-      context.lineTo(0, 0);
-      context.closePath();
-      context.strokeStyle = '#ccc';
-      context.lineWidth = 1;
-      context.stroke();
-
-      return canvas;
-    },
-
     draw: function(context){
 
       context.save();
       context.translate(this.pos.x, this.pos.y);
       context.rotate(this.rAngle);
 
-      context.drawImage(this.inMemorySprite, -this.halfSize.x, -this.halfSize.y,
+      context.drawImage(this.sprite, -this.halfSize.x, -this.halfSize.y,
         this.size.x, this.size.y);
 
       context.rotate(-this.Angle);
