@@ -41,7 +41,7 @@
         context.lineTo(0, 0);
         context.closePath();
         context.strokeStyle = '#ccc';
-        context.lineWidth = 1;
+        context.lineWidth = 2;
         context.stroke();
 
         cache.put(this.getPlayerSprite, canvas);

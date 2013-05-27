@@ -37,7 +37,7 @@
 
       // display some player info on the screen
       context.fillStyle = "#ccc";
-      context.font = 'normal 12px Ubuntu';
+      context.font = "normal 9px 'Press Start 2P'";
       context.fillText("Pos: " + this.player.pos.x.toFixed(2) + ', ' + this.player.pos.y.toFixed(2), 10, 20);      
       context.fillText("Vel: " + this.player.vel.x.toFixed(2) + ', ' + this.player.vel.y.toFixed(2), 10, 40);      
       context.fillText("Thrust: " + this.player.thrust.x.toFixed(3) + ', ' + this.player.thrust.y.toFixed(3), 10, 60);      

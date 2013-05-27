@@ -1,15 +1,24 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Space Janitor</title>
-    
-   <link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css'>
-
-    <style>body{ font-family: Ubuntu, Helvetica, Arial, sans-serif;}</style>
+    <title>Space Janitor</title>    
+    <link href="http://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet" type="text/css" />
+    <link href="css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="css/space-janitor.css" rel="stylesheet" type="text/css" />
   </head>
   <body>
-    <p>Right/left arrow to rotate. Up arrow to thrust.</p>
-    <canvas id="canvas"></canvas>
+    <div class="container game-container">
+      <h1>Space Janitor</h1>
+      <p>Right/left arrows: rotate</p>
+      <p>Up arrow: thrust</p>
+      <p>Space: shoot</p>
+      <canvas id="canvas"></canvas>
+      <p class="backstory">After centuries of abuse and neglect, space has become littered with debris from failed space missions, canisters of unwanted, spent nuclear fuel, and rains of small planetary bodies that threaten earth. There is one astronaut who is up to the challenge of clearing this debris and cleaning the realm of space: The Space Janitor.</p>
+
+      <p>Follow game development at 
+        <a href="http://kindohm.com/blog/2013/05/27/space-janitor-bullets.html">kindohm.com</a>.</p>
+      <p>Source: <a href="https://github.com/kindohm/space-janitor">github.com/kindohm/space-janitor</a></p>
+    </div>
   </body>
   <script type="text/javascript" src="js/jshashtable-2.1.js"></script>
   <script type="text/javascript" src="js/sylvester.js"></script>
@@ -22,7 +31,7 @@
   <script type="text/javascript" src="js/game.js"></script>
   <script type="text/javascript">
     window.addEventListener('load', function() {
-      var game = new Game("canvas", 600, 400);
+      var game = new Game("canvas", 800, 450);
       game.init();
     });
   </script>

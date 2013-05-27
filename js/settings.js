@@ -10,8 +10,8 @@
     PLAYER_SIZE_Y:        30,
     BULLET_VELOCITY:      5.0,
     BULLET_DELAY_TICKS:   35, 
-    BULLET_SIZE_X:        3,
-    BULLET_SIZE_Y:        3,
+    BULLET_SIZE_X:        4,
+    BULLET_SIZE_Y:        4,
   };
 
   exports.Settings = Settings;
