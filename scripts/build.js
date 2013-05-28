@@ -8,8 +8,8 @@ var packer = require( 'node.packer' ),
 var input = [
   src + 'settings.js',
   src + 'spritefactory.js',
-  src + 'player.js',
   src + 'bullet.js',
+  src + 'player.js',
   src + 'game.js'
 ];
 
