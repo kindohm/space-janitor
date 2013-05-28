@@ -2,7 +2,7 @@ Space Janitor
 =============
 
 A clone of the popular Asteroids video game, written in JavaScript for
-web browsers. Implemented with https://github.com/maryrosecook/coquette.
+web browsers. Implemented with Coquette: https://github.com/maryrosecook/coquette.
 
 Back-Story
 ==========
