@@ -1,10 +1,12 @@
 ;(function(exports){
 
+  var Bullet = exports.Bullet;
+  
   function Player(game, settings){
 
     var self = this;
-    this.pos = settings.pos;
-    this.maxPos = settings.maxPos;
+    this.pos = { x: settings.pos.x, y: settings.pos.y };
+    this.maxPos = { x: settings.maxPos.x, y: settings.maxPos.y };
     this.game = game;
 
     this.size = { 

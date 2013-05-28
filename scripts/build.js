@@ -1,3 +1,4 @@
+var fs = require('fs');
 
 var packer = require( 'node.packer' ),
     path   = __dirname + '/../',
@@ -12,6 +13,11 @@ var input = [
   src + 'game.js'
 ];
 
+fs.createReadStream('node_modules/coquette/coquette.js')
+  .pipe(fs.createWriteStream(out + 'coquette.js'));
+
+fs.createReadStream('node_modules/coquette/coquette-min.js')
+  .pipe(fs.createWriteStream(out + 'coquette-min.js'));
 
 packer({
   log: true,
