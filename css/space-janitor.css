@@ -1,4 +1,22 @@
-body{ font-family: 'Press Start 2P', cursive; }
-.game-container{max-width: 800px;}
-.backstory{margin-top: 20px;}
-p{font-size: 12px;}
+body{ 
+	font-family: 'Press Start 2P', Helvetica, Arial, cursive; 
+	color: #ccc;
+	background: #000;
+}
+
+#canvas{
+	border: solid 1px #333;
+	margin-top: 10px;
+}
+
+.game-container{
+	max-width: 800px;
+}
+
+.backstory{
+	margin-top: 20px;
+}
+
+p{
+	font-size: 12px;
+}
