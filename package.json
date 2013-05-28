@@ -5,10 +5,14 @@
   "version": "0.1.0",
   "scripts": {
     "test": "node node_modules/jasmine-node/bin/jasmine-node spec/",
-    "packit": "node scripts/pack.js"
+    "build": "node scripts/build.js"
   },
   "devDependencies": {
     "node.packer": "2.0.0",
     "jasmine-node": "1.7.1"
+  },
+  "repository" : { 
+    "type" : "git", 
+    "url" : "http://github.com/kindohm/space-janitor.git"
   }
 }
