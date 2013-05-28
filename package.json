@@ -1,0 +1,14 @@
+{
+  "name": "space-janitor",
+  "description": "A javascript game, implemented with Coquette.",
+  "author": "Mike Hodnick <mike.hodnick@gmail.com> (http://kindohm.com/)",
+  "version": "0.1.0",
+  "scripts": {
+    "test": "node node_modules/jasmine-node/bin/jasmine-node spec/",
+    "packit": "node scripts/pack.js"
+  },
+  "devDependencies": {
+    "node.packer": "2.0.0",
+    "jasmine-node": "1.7.1"
+  }
+}
