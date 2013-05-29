@@ -55,7 +55,7 @@ describe('player', function() {
         x: 800,
         y: 600
       },
-      thrustEffect: MockThrustEffect
+      ThrustEffect: MockThrustEffect
     };
 
   describe('init', function(){

@@ -21,13 +21,12 @@
 
     this.sprite = game.spriteFactory.getPlayerSprite();
     this.bulletTicksLeft = game.settings.BULLET_DELAY_TICKS;
-    this.thrustEffectTicksLeft = game.settings.THRUST_EFFECT_TICKS;
     
-    if (settings.thrustEffect != undefined){
-      this.thrustEffect = new settings.thrustEffect();
+    if (settings.ThrustEffect != undefined){
+      this.thrustEffect = new settings.ThrustEffect(game);
     }
     else{
-      this.thrustEffect = new exports.ThrustEffect();
+      this.thrustEffect = new exports.ThrustEffect(game);
     }
 
   }
@@ -45,7 +44,6 @@
     thrusting: false,
     thrustScale: 0,
     shotTicksLeft: 0,
-    thrustEffectTicksLeft: 0,
 
     update: function (){
 
@@ -70,25 +68,7 @@
       }
 
       this.shotTicksLeft = Math.max(0, this.shotTicksLeft - 1);
-
-      this.thrustEffectTicksLeft = Math.max(0, this.thrustEffectTicksLeft - 1);
-      if (this.thrustEffectTicksLeft === 0 && this.thrusting){
-        var vector = this.game.maths.angleToVector(this.angle + 180);
-        var effectPos = {
-          x: this.pos.x + vector.x * this.halfSize.x,
-          y: this.pos.y + vector.y * this.halfSize.y
-        };
-        var vel = {
-          x: vector.x * this.game.settings.THRUST_EFFECT_VEL,
-          y: vector.y * this.game.settings.THRUST_EFFECT_VEL
-        };
-        this.thrustEffect.add(effectPos, vel);
-        this.thrustEffectTicksLeft = this.game.settings.THRUST_EFFECT_TICKS;
-      }
-
-      this.thrustEffect.update();
-
-
+      this.thrustEffect.update(this);
     },
 
     draw: function(context){
