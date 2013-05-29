@@ -62,14 +62,13 @@
         context.lineTo(0, 0);
         context.closePath();
         context.strokeStyle = '#ccc';
-        context.lineWidth = 2;
+        context.lineWidth = 1;
         context.stroke();
 
         cache.put(this.getPlayerSprite, canvas);
       }
       return cache.get(this.getPlayerSprite);
     },
-
 
   };
 
@@ -142,6 +141,7 @@
   };
 
   ThrustBubble.prototype = {
+
     radius: 1,
     radiusGrowth: .2,
     ticksLeft: 30,
@@ -158,12 +158,12 @@
 
     draw: function(context){
 
+      var side = this.radius * 2;
       context.beginPath();
       context.rect(this.pos.x - this.radius, this.pos.y - this.radius,
-        this.radius * 2, this.radius * 2);
+        side, side);
       context.closePath();
       context.lineWidth = 1;
-
       var ratio = this.ticksLeft / this.totalTicks;
       context.strokeStyle = 'rgba(' + this.colorBase + ',' + ratio.toString() + ')';
       context.stroke();

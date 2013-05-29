@@ -41,14 +41,13 @@
         context.lineTo(0, 0);
         context.closePath();
         context.strokeStyle = '#ccc';
-        context.lineWidth = 2;
+        context.lineWidth = 1;
         context.stroke();
 
         cache.put(this.getPlayerSprite, canvas);
       }
       return cache.get(this.getPlayerSprite);
     },
-
 
   };
 
