@@ -5,13 +5,15 @@
   Settings.prototype = {
 
     PLAYER_ROTATE_DELTA:  5,
-    PLAYER_THRUST_DELTA:  0.05,
+    PLAYER_THRUST_DELTA:  0.03,
     PLAYER_SIZE_X:        20,
     PLAYER_SIZE_Y:        30,
     BULLET_VELOCITY:      5.0,
     BULLET_DELAY_TICKS:   35, 
     BULLET_SIZE_X:        4,
     BULLET_SIZE_Y:        4,
+    THRUST_EFFECT_TICKS:  8,
+    THRUST_EFFECT_VEL:    1.0, 
   };
 
   exports.Settings = Settings;
@@ -79,8 +81,14 @@
   var Bullet = function(game, settings){
     var self = this;
     this.game = game;
-    this.pos = settings.pos;
-    this.vel = settings.vel;
+    this.pos = {
+      x: settings.pos.x,
+      y: settings.pos.y
+    };
+    this.vel = {
+      x: settings.vel.x,
+      y: settings.vel.y
+    };
     this.sprite = game.spriteFactory.getBulletSprite();
     
     this.size = {
@@ -101,13 +109,12 @@
     halfSize: { x:1, y:1 },
 
     update: function() {
-
       this.pos.x += this.vel.x;
       this.pos.y += this.vel.y;
 
       // destory the bullet if it reaches the screen bounds
       if (this.pos.y <= 0 || this.pos.y >= this.game.height ||
-        this.pos.x <= 0 || this.pos.y >= this.game.width){
+        this.pos.x <= 0 || this.pos.x >= this.game.width){
         this.game.coquette.entities.destroy(this);
       }
     },
@@ -123,7 +130,86 @@
 })(this);
 ;(function(exports){
 
+  var ThrustBubble = function(pos, direction){
+    this.pos = {
+      x: pos.x,
+      y: pos.y
+    };
+    this.vel = {
+      x: direction.x,
+      y: direction.y
+    };
+  };
+
+  ThrustBubble.prototype = {
+    radius: 1,
+    radiusGrowth: .2,
+    ticksLeft: 30,
+    totalTicks: 30,
+    pos: null,
+    colorBase: '204,204,204',
+
+    update: function(){
+      this.radius += this.radiusGrowth;
+      this.ticksLeft--;
+      this.pos.x += this.vel.x;
+      this.pos.y += this.vel.y;
+    },
+
+    draw: function(context){
+
+      context.beginPath();
+      //context.arc(this.pos.x, this.pos.y, this.radius, 0, 2 * Math.PI, false);
+      context.rect(this.pos.x - this.radius, this.pos.y - this.radius,
+        this.radius * 2, this.radius * 2);
+      context.closePath();
+      context.lineWidth = 1;
+
+      var ratio = this.ticksLeft / this.totalTicks;
+      context.strokeStyle = 'rgba(' + this.colorBase + ',' + ratio.toString() + ')';
+      context.stroke();
+    }
+  };
+
+  var ThrustEffect = function(){
+    this.effects = [];
+  };
+
+  ThrustEffect.prototype = {
+
+    add: function(pos, direction){
+      var bubble = new ThrustBubble(pos, direction);
+      this.effects.push(bubble);
+    },
+
+    update: function(){
+
+      // remove old effects
+      for(var i = this.effects.length - 1; i >= 0; i--){
+        if (this.effects[i].ticksLeft === 0){
+          this.effects.splice(i, 1);
+        } else {
+          this.effects[i].update();
+        }
+      }
+    },
+
+    draw: function(context){
+      for(var i = 0; i < this.effects.length; i++){
+        this.effects[i].draw(context);
+      }
+    }
+
+  };
+
+  exports.ThrustEffect = ThrustEffect;
+
+
+})(this);
+;(function(exports){
+
   var Bullet = exports.Bullet;
+  var ThrustEffect = exports.ThrustEffect;
   
   function Player(game, settings){
 
@@ -144,10 +230,13 @@
 
     this.sprite = game.spriteFactory.getPlayerSprite();
     this.bulletTicksLeft = game.settings.BULLET_DELAY_TICKS;
+    this.thrustEffectTicksLeft = game.settings.THRUST_EFFECT_TICKS;
+    this.thrustEffect = new ThrustEffect();
   }
 
   Player.prototype = {
 
+    thrustEffect: null,
     size: {x: 20, y: 30},
     halfSize: {x: 10, y: 15},
     vel: {x: 0,  y: 0},
@@ -158,6 +247,7 @@
     thrusting: false,
     thrustScale: 0,
     shotTicksLeft: 0,
+    thrustEffectTicksLeft: 0,
 
     update: function (){
 
@@ -183,6 +273,24 @@
 
       this.shotTicksLeft = Math.max(0, this.shotTicksLeft - 1);
 
+      this.thrustEffectTicksLeft = Math.max(0, this.thrustEffectTicksLeft - 1);
+      if (this.thrustEffectTicksLeft === 0 && this.thrusting){
+        var vector = this.game.maths.angleToVector(this.angle + 180);
+        var effectPos = {
+          x: this.pos.x + vector.x * this.halfSize.x,
+          y: this.pos.y + vector.y * this.halfSize.y
+        };
+        var vel = {
+          x: vector.x * this.game.settings.THRUST_EFFECT_VEL,
+          y: vector.y * this.game.settings.THRUST_EFFECT_VEL
+        };
+        this.thrustEffect.add(effectPos, vel);
+        this.thrustEffectTicksLeft = this.game.settings.THRUST_EFFECT_TICKS;
+      }
+
+      this.thrustEffect.update();
+
+
     },
 
     draw: function(context){
@@ -196,7 +304,9 @@
 
       context.rotate(-this.Angle);
       context.translate(-(this.pos.x), -(this.pos.y));
-      context.restore();      
+      context.restore();
+
+      this.thrustEffect.draw(context);
     },
 
     handleKeyboard: function(){

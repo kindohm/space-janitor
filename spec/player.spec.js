@@ -9,6 +9,11 @@ var MockSettings = function(){
   this.PLAYER_ROTATE_DELTA = 2;
 };
 
+var MockThrustEffect = function() {
+  this.update = function(){};
+  this.draw = function(){};
+};
+
 var MockSpriteFactory = function() {
   this.getPlayerSprite = function(){
     return 0;
@@ -49,7 +54,8 @@ describe('player', function() {
       maxPos: {
         x: 800,
         y: 600
-      }
+      },
+      thrustEffect: MockThrustEffect
     };
 
   describe('init', function(){

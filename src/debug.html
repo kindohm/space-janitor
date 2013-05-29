@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Space Janitor</title>    
+    <link href="http://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet" type="text/css" />
+    <link href="css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="css/space-janitor.css" rel="stylesheet" type="text/css" />
+  </head>
+  <body>
+    <div class="container game-container">
+      <h1>Space Janitor</h1>
+      <p>Right/left arrows: rotate</p>
+      <p>Up arrow: thrust</p>
+      <p>Space: shoot</p>
+      <canvas id="canvas"></canvas>
+      <p class="backstory">After centuries of abuse and neglect, space has become littered with debris from failed space missions, canisters of unwanted, spent nuclear fuel, and rains of small planetary bodies that threaten earth. There is one astronaut who is up to the challenge of clearing this debris and cleaning the realm of space: The Space Janitor.</p>
+
+      <p>Follow game development at 
+        <a href="http://kindohm.com/blog/2013/05/27/space-janitor-bullets.html">kindohm.com</a>.</p>
+      <p>Built with <a href="http://coquette.maryrosecook.com/">Coquette</a>.</p>
+      <p>Source: <a href="https://github.com/kindohm/space-janitor">github.com/kindohm/space-janitor</a></p>
+    </div>
+  </body>
+
+
+  <script type="text/javascript" src="../js/jshashtable-2.1.js"></script>
+  <script type="text/javascript" src="../js/sylvester.js"></script>
+  <script type="text/javascript" src="../js/coquette.js"></script>
+  <script type="text/javascript" src="../js/maths.js"></script>
+  <script type="text/javascript" src="settings.js"></script>
+  <script type="text/javascript" src="spritefactory.js"></script>
+  <script type="text/javascript" src="bullet.js"></script>
+  <script type="text/javascript" src="thrusteffect.js"></script>
+  <script type="text/javascript" src="player.js"></script>
+  <script type="text/javascript" src="game.js"></script>
+  <script type="text/javascript">
+    window.addEventListener('load', function() {
+      var game = new Game("canvas", 800, 450);
+      game.init();
+    });
+  </script>
+</html>
