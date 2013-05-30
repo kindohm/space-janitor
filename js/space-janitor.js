@@ -7,13 +7,17 @@
     PLAYER_ROTATE_DELTA:  5,
     PLAYER_THRUST_DELTA:  0.03,
     PLAYER_SIZE:          30,
-    PLAYER_LINE_WIDTH:    1, 
+    PLAYER_LINE_WIDTH:    2, 
     BULLET_VELOCITY:      5.0,
     BULLET_DELAY_TICKS:   35, 
     BULLET_SIZE_X:        4,
     BULLET_SIZE_Y:        4,
     THRUST_EFFECT_TICKS:  8,
     THRUST_EFFECT_VEL:    1.0, 
+    ASTEROID_LINE_WIDTH:  2,
+    ASTEROID_SIZE_LARGE:  100,
+    ASTEROID_SIZE_MEDIUM: 50, 
+    ASTEROID_SIZE_SMALL:  25
   };
 
   exports.Settings = Settings;
@@ -92,6 +96,12 @@
     draw: function(context) {
       context.drawImage(this.sprite, this.pos.x, 
         this.pos.y, this.size.x, this.size.y);
+    },
+
+    collision: function(other, type){
+      if (other instanceof Asteroid){
+        this.game.coquette.entities.destroy(this);
+      }
     }
   };
 
@@ -197,6 +207,88 @@
 })(this);
 ;(function(exports){
 
+  var Asteroid = function(game, settings){
+
+    this.game = game;
+    this.boundingBox = settings.boundingBox;
+    
+    this.pos = {
+      x: settings.pos.x,
+      y: settings.pos.y
+    };
+    
+    this.vel = {
+      x: settings.vel.x,
+      y: settings.vel.y
+    };
+
+    this.size = {
+      x: settings.size.x,
+      y: settings.size.y
+    };
+
+    this.maxPos = {
+      x: settings.maxPos.x,
+      y: settings.maxPos.y
+    };
+
+  };
+
+  Asteroid.prototype = {
+
+    update: function(){
+      this.pos.x += this.vel.x;
+      this.pos.y += this.vel.y;
+
+      this.wrap();
+    },
+
+    wrap: function(){
+      if (this.pos.y > this.maxPos.y) {
+        this.pos.y = -this.size.y;
+      } else if (this.pos.y < -this.size.y) {
+        this.pos.y = this.maxPos.y;
+      }
+
+      if (this.pos.x > this.maxPos.x) {
+        this.pos.x = -this.size.x;
+      } else if (this.pos.x < -this.size.x) {
+        this.pos.x = this.maxPos.x;
+      }
+    },
+
+    draw: function(context){
+      context.beginPath();
+      if (this.boundingBox == this.game.coquette.collider.RECTANGLE){
+        context.rect(this.pos.x, this.pos.y, this.size.x, this.size.y);
+      }
+      else{
+        context.arc(this.pos.x + this.size.x/2, this.pos.y + this.size.y/2,
+          this.size.x/2, 0, Math.PI * 2, false);
+       }
+
+      context.lineWidth = this.game.settings.ASTEROID_LINE_WIDTH;
+      context.strokeStyle = '#ccc';
+      context.stroke();
+
+    },
+
+    collision: function(other, type){
+      if (type === this.game.coquette.collider.INITIAL){
+        if (other instanceof Bullet){
+          this.game.coquette.entities.destroy(this);
+          this.game.asteroidKilled(this);
+        }
+      }
+    }
+
+  };
+
+  exports.Asteroid = Asteroid;
+
+})(this);
+;(function(exports){
+
   var Bullet = exports.Bullet;
 
   function Player(game, settings){
@@ -214,6 +306,11 @@
     this.halfSize = {
       x: this.size.x / 2,
       y: this.size.y / 2
+    };
+
+    this.vel = { 
+      x: 0,
+      y: 0
     };
 
     this.bulletTicksLeft = game.settings.BULLET_DELAY_TICKS;
@@ -372,8 +469,12 @@
     },
 
     collision: function(other, type){
+      this.colliding = true;
       if (type === this.game.coquette.collider.INITIAL){
-        this.colliding = true;
+        if (other instanceof Asteroid){
+          this.game.coquette.entities.destroy(this);
+          this.game.playerKilled(this);
+        }
       }
     },
 
@@ -405,20 +506,10 @@
     showBoundingBoxes: false,
 
     init: function() {
-
-      var self = this;
-      this.coquette.entities.create(Player, {
-        pos: { 
-          x: this.width / 2, 
-          y: this.height / 2 
-        },
-        maxPos: { 
-          x: this.width, 
-          y: this.height 
-        }
-      }, function(player) {
-        self.player = player;
-      });
+      this.spawnPlayer();
+      this.deployAsteroid();
+      this.deployAsteroid();
+      this.deployAsteroid();
 
     },
 
@@ -459,6 +550,59 @@
       }
 
     },
+
+    deployAsteroid: function(){
+
+      var direction = this.maths.plusMinus();
+
+      this.coquette.entities.create(Asteroid, {
+        pos: {
+          x: direction === 1 ? this.maths.getRandomInt(-this.settings.ASTEROID_SIZE_LARGE,200) : this.maths.getRandomInt(this.width - 200,this.width + this.settings.ASTEROID_SIZE_LARGE), 
+          y: this.height
+        },
+        vel: {
+          x: direction === 1 ? this.maths.getRandomInt(0,30) * .01 : this.maths.getRandomInt(-30,0) * .01,
+          y: this.maths.getRandomInt(50,200) * .01 * this.maths.plusMinus()
+        },
+        maxPos:{
+          x: this.width,
+          y: this.height
+        },
+        size: {
+          x: this.settings.ASTEROID_SIZE_LARGE,
+          y: this.settings.ASTEROID_SIZE_LARGE
+        },
+        boundingBox: this.maths.plusMinus() === 1 ? this.coquette.collider.RECTANGLE : this.coquette.collider.CIRCLE
+      });
+    },
+
+    spawnPlayer: function(){
+      var self = this;
+      self.coquette.entities.create(Player, {
+        pos: { 
+          x: self.width / 2, 
+          y: self.height / 2 
+        },
+        maxPos: { 
+          x: self.width, 
+          y: self.height 
+        }
+      }, function(player) {
+        self.player = player;
+      });
+
+    },
+
+    asteroidKilled: function(asteroid){
+      this.deployAsteroid();
+    },
+
+    playerKilled: function(player){
+      var self = this;
+      setTimeout(function(){
+        self.spawnPlayer();
+      }, 2000);
+    }
 
   };
 
