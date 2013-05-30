@@ -10,6 +10,7 @@ var input = [
   src + 'spritefactory.js',
   src + 'bullet.js',
   src + 'thrusteffect.js',
+  src + 'explosioneffect.js',
   src + 'asteroid.js',
   src + 'player.js',
   src + 'game.js'
