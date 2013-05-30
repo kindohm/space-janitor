@@ -10,8 +10,8 @@
     this.game = game;
 
     this.size = { 
-      x: game.settings.PLAYER_SIZE_X,
-      y: game.settings.PLAYER_SIZE_Y 
+      x: game.settings.PLAYER_SIZE,
+      y: game.settings.PLAYER_SIZE 
     };
 
     this.halfSize = {
@@ -19,7 +19,6 @@
       y: this.size.y / 2
     };
 
-    this.sprite = game.spriteFactory.getPlayerSprite();
     this.bulletTicksLeft = game.settings.BULLET_DELAY_TICKS;
     
     if (settings.ThrustEffect != undefined){
@@ -29,10 +28,12 @@
       this.thrustEffect = new exports.ThrustEffect(game);
     }
 
+    this.boundingBox = this.game.coquette.collider.CIRCLE;
   }
 
   Player.prototype = {
 
+    colliding: false,
     thrustEffect: null,
     size: {x: 20, y: 30},
     halfSize: {x: 10, y: 15},
@@ -74,11 +75,19 @@
     draw: function(context){
 
       context.save();
-      context.translate(this.pos.x, this.pos.y);
+      context.translate(this.pos.x + this.halfSize.x, this.pos.y + this.halfSize.y);
       context.rotate(this.rAngle);
 
-      context.drawImage(this.sprite, -this.halfSize.x, -this.halfSize.y,
-        this.size.x, this.size.y);
+      context.beginPath();
+      context.moveTo(-this.halfSize.x,-this.halfSize.y);
+      context.lineTo(0,this.halfSize.y);
+      context.lineTo(this.halfSize.x, -this.halfSize.y);
+      context.lineTo(0,-this.halfSize.y/2);
+      context.lineTo(-this.halfSize.x,-this.halfSize.y);
+      context.closePath();
+      context.strokeStyle = '#ccc';
+      context.lineWidth = 1;
+      context.stroke();
 
       context.rotate(-this.Angle);
       context.translate(-(this.pos.x), -(this.pos.y));
@@ -156,6 +165,16 @@
 
         this.shotTicksLeft = this.game.settings.BULLET_DELAY_TICKS;
       }
+    },
+
+    collision: function(other, type){
+      if (type === this.game.coquette.collider.INITIAL){
+        this.colliding = true;
+      }
+    },
+
+    uncollision: function(){
+      this.colliding = false;
     }
 
   };

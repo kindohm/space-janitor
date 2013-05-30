@@ -14,6 +14,7 @@
     player: null,
     width: 0,
     height: 0,
+    showBoundingBoxes: true,
 
     init: function() {
 
@@ -31,18 +32,45 @@
         self.player = player;
       });
 
+      this.coquette.entities.create(Simple, {
+        isBox: false,
+        vel: {x:0,y:0},
+        pos: {x:100,y:100},
+        size: {x:100,y:100}
+      });
+
+      this.coquette.entities.create(Simple, {
+        isBox: true,
+        vel: {x:0,y:0},
+        pos: {x:400,y:300},
+        size: {x:100,y:100}
+      });
+
     },
 
     draw: function(context){
+      if (this.showBoundingBoxes){
+        var entities = this.coquette.entities.all();
+        for(var i = 0; i < entities.length; i++){
+          var entity = entities[i];
 
-      // display some player info on the screen
-      context.fillStyle = "#ccc";
-      context.font = "normal 9px 'Press Start 2P'";
-      context.fillText("Pos: " + this.player.pos.x.toFixed(2) + ', ' + this.player.pos.y.toFixed(2), 10, 20);      
-      context.fillText("Vel: " + this.player.vel.x.toFixed(2) + ', ' + this.player.vel.y.toFixed(2), 10, 40);      
-      context.fillText("Thrust: " + this.player.thrust.x.toFixed(3) + ', ' + this.player.thrust.y.toFixed(3), 10, 60);      
-      context.fillText("Angle (deg): " + this.player.angle.toString(), 10, 80);      
-      context.fillText("Angle (rad): " + this.player.rAngle.toFixed(2), 10, 100);      
+          context.beginPath();
+          if (entity.boundingBox == this.coquette.collider.RECTANGLE){
+            context.rect(entity.pos.x, entity.pos.y, entity.size.x, entity.size.y);
+          }
+          else{
+            context.arc(entity.pos.x + entity.size.x/2, entity.pos.y + entity.size.y/2,
+              entity.size.x/2, 0, Math.PI * 2, false);
+           }
+
+          context.lineWidth = entity.colliding ? 2 : 1;
+          context.strokeStyle = entity.colliding ? '#00ff00' : '#FF006E';
+          context.stroke();
+
+
+        }
+      }
+
     }
 
   };
