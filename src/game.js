@@ -62,17 +62,27 @@
 
     },
 
-    deployAsteroid: function(){
+    deployAsteroid: function(size, pos, boundingBox){
 
       var direction = this.maths.plusMinus();
+      size = size === undefined ? this.settings.ASTEROID_SIZE_LARGE : size;
+      boundingBox = boundingBox === undefined ? this.maths.plusMinus() === 1 ? 
+        this.coquette.collider.RECTANGLE : this.coquette.collider.CIRCLE : boundingBox;
+
+      if (pos === undefined){
+        pos = {
+          x: direction === 1 ? 
+            this.maths.getRandomInt(-this.settings.ASTEROID_SIZE_LARGE,200) : 
+              this.maths.getRandomInt(this.width - 200,this.width + this.settings.ASTEROID_SIZE_LARGE), 
+          y: this.height
+        };
+      }
 
       this.coquette.entities.create(Asteroid, {
-        pos: {
-          x: direction === 1 ? this.maths.getRandomInt(-this.settings.ASTEROID_SIZE_LARGE,200) : this.maths.getRandomInt(this.width - 200,this.width + this.settings.ASTEROID_SIZE_LARGE), 
-          y: this.height
-        },
+        pos: pos,
         vel: {
-          x: direction === 1 ? this.maths.getRandomInt(0,30) * .01 : this.maths.getRandomInt(-30,0) * .01,
+          x: direction === 1 ? this.maths.getRandomInt(0,30) * .01 : 
+            this.maths.getRandomInt(-30,0) * .01,
           y: this.maths.getRandomInt(50,200) * .01 * this.maths.plusMinus()
         },
         maxPos:{
@@ -80,10 +90,11 @@
           y: this.height
         },
         size: {
-          x: this.settings.ASTEROID_SIZE_LARGE,
-          y: this.settings.ASTEROID_SIZE_LARGE
+          x: size,
+          y: size
         },
-        boundingBox: this.maths.plusMinus() === 1 ? this.coquette.collider.RECTANGLE : this.coquette.collider.CIRCLE
+        boundingBox: this.maths.plusMinus() === 1 ? 
+          this.coquette.collider.RECTANGLE : this.coquette.collider.CIRCLE
       });
     },
 
@@ -105,7 +116,20 @@
     },
 
     asteroidKilled: function(asteroid){
-      this.deployAsteroid();
+
+      // split up asteroid into two smaller ones
+      if (asteroid.size.x === this.settings.ASTEROID_SIZE_LARGE){
+        this.deployAsteroid(this.settings.ASTEROID_SIZE_MEDIUM, asteroid.pos);
+        this.deployAsteroid(this.settings.ASTEROID_SIZE_MEDIUM, asteroid.pos);
+      } else if (asteroid.size.x === this.settings.ASTEROID_SIZE_MEDIUM){
+        this.deployAsteroid(this.settings.ASTEROID_SIZE_SMALL, asteroid.pos);
+        this.deployAsteroid(this.settings.ASTEROID_SIZE_SMALL, asteroid.pos);
+      } else {
+        // occasionally deploy a new asteroid if the smallest size was destoryed
+        if (Math.random() > .8) {
+          this.deployAsteroid();
+        }
+      }
     },
 
     playerKilled: function(player){
