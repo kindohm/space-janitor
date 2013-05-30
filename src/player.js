@@ -19,6 +19,11 @@
       y: this.size.y / 2
     };
 
+    this.vel = { 
+      x: 0,
+      y: 0
+    };
+
     this.bulletTicksLeft = game.settings.BULLET_DELAY_TICKS;
     
     if (settings.ThrustEffect != undefined){
@@ -175,8 +180,12 @@
     },
 
     collision: function(other, type){
+      this.colliding = true;
       if (type === this.game.coquette.collider.INITIAL){
-        this.colliding = true;
+        if (other instanceof Asteroid){
+          this.game.coquette.entities.destroy(this);
+          this.game.playerKilled(this);
+        }
       }
     },
 

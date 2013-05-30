@@ -39,6 +39,12 @@
     draw: function(context) {
       context.drawImage(this.sprite, this.pos.x, 
         this.pos.y, this.size.x, this.size.y);
+    },
+
+    collision: function(other, type){
+      if (other instanceof Asteroid){
+        this.game.coquette.entities.destroy(this);
+      }
     }
   };
 

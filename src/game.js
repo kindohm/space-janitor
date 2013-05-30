@@ -17,20 +17,10 @@
     showBoundingBoxes: false,
 
     init: function() {
-
-      var self = this;
-      this.coquette.entities.create(Player, {
-        pos: { 
-          x: this.width / 2, 
-          y: this.height / 2 
-        },
-        maxPos: { 
-          x: this.width, 
-          y: this.height 
-        }
-      }, function(player) {
-        self.player = player;
-      });
+      this.spawnPlayer();
+      this.deployAsteroid();
+      this.deployAsteroid();
+      this.deployAsteroid();
 
     },
 
@@ -71,6 +61,59 @@
       }
 
     },
+
+    deployAsteroid: function(){
+
+      var direction = this.maths.plusMinus();
+
+      this.coquette.entities.create(Asteroid, {
+        pos: {
+          x: direction === 1 ? this.maths.getRandomInt(-this.settings.ASTEROID_SIZE_LARGE,200) : this.maths.getRandomInt(this.width - 200,this.width + this.settings.ASTEROID_SIZE_LARGE), 
+          y: this.height
+        },
+        vel: {
+          x: direction === 1 ? this.maths.getRandomInt(0,30) * .01 : this.maths.getRandomInt(-30,0) * .01,
+          y: this.maths.getRandomInt(50,200) * .01 * this.maths.plusMinus()
+        },
+        maxPos:{
+          x: this.width,
+          y: this.height
+        },
+        size: {
+          x: this.settings.ASTEROID_SIZE_LARGE,
+          y: this.settings.ASTEROID_SIZE_LARGE
+        },
+        boundingBox: this.maths.plusMinus() === 1 ? this.coquette.collider.RECTANGLE : this.coquette.collider.CIRCLE
+      });
+    },
+
+    spawnPlayer: function(){
+      var self = this;
+      self.coquette.entities.create(Player, {
+        pos: { 
+          x: self.width / 2, 
+          y: self.height / 2 
+        },
+        maxPos: { 
+          x: self.width, 
+          y: self.height 
+        }
+      }, function(player) {
+        self.player = player;
+      });
+
+    },
+
+    asteroidKilled: function(asteroid){
+      this.deployAsteroid();
+    },
+
+    playerKilled: function(player){
+      var self = this;
+      setTimeout(function(){
+        self.spawnPlayer();
+      }, 2000);
+    }
 
   };
 
