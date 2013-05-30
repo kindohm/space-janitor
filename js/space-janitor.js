@@ -389,6 +389,11 @@
       y: 0
     };
 
+    this.thrust = {
+      x: 0,
+      y:0
+    };
+
     this.bulletTicksLeft = game.settings.BULLET_DELAY_TICKS;
     
     if (settings.ThrustEffect != undefined){
@@ -399,6 +404,8 @@
     }
 
     this.boundingBox = this.game.coquette.collider.CIRCLE;
+
+
   }
 
   Player.prototype = {
