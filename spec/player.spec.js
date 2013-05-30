@@ -2,8 +2,7 @@ var Bullet = require('../src/Bullet').Bullet;
 var Player = require('../src/Player').Player;
 
 var MockSettings = function(){
-  this.PLAYER_SIZE_X = 50;
-  this.PLAYER_SIZE_Y = 100;
+  this.PLAYER_SIZE = 50;
   this.BULLET_DELAY_TICKS = 1000;
   this.PLAYER_THRUST_DELTA = 43;
   this.PLAYER_ROTATE_DELTA = 2;
@@ -28,6 +27,10 @@ var MockInputter = function(){
 
 var MockCoquette = function(){
   this.inputter = new MockInputter();
+  this.collider = {};
+  this.collider.CIRCLE = 'circle';
+  this.collider.RECTANGLE = 'rectangle';
+
 };
 
 
@@ -111,6 +114,7 @@ describe('player', function() {
       var player = new Player(new MockGame(), settings);
       player.pos.y = settings.maxPos.y;
       player.vel = {x:0,y:1};
+      expect(player.pos.y).toEqual(settings.maxPos.y);
       player.update();
       expect(player.pos.y).toEqual(-player.size.y);
     });
