@@ -57,7 +57,7 @@
       this.pos.y += this.vel.y;
 
       this.wrap();
-      
+
       this.shotTicksLeft = Math.max(0, this.shotTicksLeft - 1);
       this.thrustEffect.update(this);
     },
@@ -90,7 +90,7 @@
       context.lineTo(-this.halfSize.x,-this.halfSize.y);
       context.closePath();
       context.strokeStyle = '#ccc';
-      context.lineWidth = 1;
+      context.lineWidth = this.game.settings.PLAYER_LINE_WIDTH;
       context.stroke();
 
       context.rotate(-this.Angle);

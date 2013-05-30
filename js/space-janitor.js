@@ -6,8 +6,8 @@
 
     PLAYER_ROTATE_DELTA:  5,
     PLAYER_THRUST_DELTA:  0.03,
-    PLAYER_SIZE_X:        20,
-    PLAYER_SIZE_Y:        30,
+    PLAYER_SIZE:          30,
+    PLAYER_LINE_WIDTH:    1, 
     BULLET_VELOCITY:      5.0,
     BULLET_DELAY_TICKS:   35, 
     BULLET_SIZE_X:        4,
@@ -46,30 +46,6 @@
 
     },
 
-    getPlayerSprite: function(){
-
-      if (!cache.containsKey(this.getPlayerSprite)){
-        var canvas = document.createElement('canvas');
-        canvas.width = this.game.settings.PLAYER_SIZE_X;
-        canvas.height = this.game.settings.PLAYER_SIZE_Y;
-        
-        var context = canvas.getContext('2d');
-        context.beginPath();
-        context.moveTo(0,0);
-        context.lineTo(this.game.settings.PLAYER_SIZE_X/2,this.game.settings.PLAYER_SIZE_Y);
-        context.lineTo(this.game.settings.PLAYER_SIZE_X, 0);
-        context.lineTo(this.game.settings.PLAYER_SIZE_X/2,7);
-        context.lineTo(0, 0);
-        context.closePath();
-        context.strokeStyle = '#ccc';
-        context.lineWidth = 1;
-        context.stroke();
-
-        cache.put(this.getPlayerSprite, canvas);
-      }
-      return cache.get(this.getPlayerSprite);
-    },
-
   };
 
   exports.SpriteFactory = SpriteFactory;
@@ -95,11 +71,6 @@
       y:this.game.settings.BULLET_SIZE_Y
     };
     
-    this.halfSize = {
-      x: this.size.x / 2,
-      y: this.size.y / 2
-    };
-
   };
 
   Bullet.prototype = {
@@ -119,8 +90,8 @@
     },
 
     draw: function(context) {
-      context.drawImage(this.sprite, this.pos.x - this.halfSize.x, 
-        this.pos.y - this.halfSize.y, this.size.x, this.size.y);
+      context.drawImage(this.sprite, this.pos.x, 
+        this.pos.y, this.size.x, this.size.y);
     }
   };
 
@@ -191,8 +162,8 @@
       if (this.thrustEffectTicksLeft === 0 && player.thrusting){
         var vector = this.game.maths.angleToVector(player.angle + 180);
         var effectPos = {
-          x: player.pos.x + vector.x * player.halfSize.x,
-          y: player.pos.y + vector.y * player.halfSize.y
+          x: player.pos.x + player.halfSize.x + vector.x * player.halfSize.x,
+          y: player.pos.y + player.halfSize.y + vector.y * player.halfSize.y
         };
         var vel = {
           x: vector.x * this.game.settings.THRUST_EFFECT_VEL,
@@ -236,8 +207,8 @@
     this.game = game;
 
     this.size = { 
-      x: game.settings.PLAYER_SIZE_X,
-      y: game.settings.PLAYER_SIZE_Y 
+      x: game.settings.PLAYER_SIZE,
+      y: game.settings.PLAYER_SIZE 
     };
 
     this.halfSize = {
@@ -245,7 +216,6 @@
       y: this.size.y / 2
     };
 
-    this.sprite = game.spriteFactory.getPlayerSprite();
     this.bulletTicksLeft = game.settings.BULLET_DELAY_TICKS;
     
     if (settings.ThrustEffect != undefined){
@@ -255,10 +225,12 @@
       this.thrustEffect = new exports.ThrustEffect(game);
     }
 
+    this.boundingBox = this.game.coquette.collider.CIRCLE;
   }
 
   Player.prototype = {
 
+    colliding: false,
     thrustEffect: null,
     size: {x: 20, y: 30},
     halfSize: {x: 10, y: 15},
@@ -281,6 +253,13 @@
       this.pos.x += this.vel.x;
       this.pos.y += this.vel.y;
 
+      this.wrap();
+
+      this.shotTicksLeft = Math.max(0, this.shotTicksLeft - 1);
+      this.thrustEffect.update(this);
+    },
+
+    wrap: function(){
       if (this.pos.y > this.maxPos.y) {
         this.pos.y = -this.size.y;
       } else if (this.pos.y < -this.size.y) {
@@ -292,19 +271,24 @@
       } else if (this.pos.x < -this.size.x) {
         this.pos.x = this.maxPos.x;
       }
-
-      this.shotTicksLeft = Math.max(0, this.shotTicksLeft - 1);
-      this.thrustEffect.update(this);
     },
 
     draw: function(context){
 
       context.save();
-      context.translate(this.pos.x, this.pos.y);
+      context.translate(this.pos.x + this.halfSize.x, this.pos.y + this.halfSize.y);
       context.rotate(this.rAngle);
 
-      context.drawImage(this.sprite, -this.halfSize.x, -this.halfSize.y,
-        this.size.x, this.size.y);
+      context.beginPath();
+      context.moveTo(-this.halfSize.x,-this.halfSize.y);
+      context.lineTo(0,this.halfSize.y);
+      context.lineTo(this.halfSize.x, -this.halfSize.y);
+      context.lineTo(0,-this.halfSize.y/2);
+      context.lineTo(-this.halfSize.x,-this.halfSize.y);
+      context.closePath();
+      context.strokeStyle = '#ccc';
+      context.lineWidth = this.game.settings.PLAYER_LINE_WIDTH;
+      context.stroke();
 
       context.rotate(-this.Angle);
       context.translate(-(this.pos.x), -(this.pos.y));
@@ -363,8 +347,8 @@
 
         // calculate bullet origin position relative to ship's center
         var bulletPos = {
-          x: vector.x * this.halfSize.x,
-          y: vector.y * this.halfSize.y
+          x: vector.x * this.halfSize.x + this.halfSize.x + this.pos.x,
+          y: vector.y * this.halfSize.y + this.halfSize.y + this.pos.y
         };
 
         // calculate bullet velocity vector
@@ -376,12 +360,25 @@
         // create bullet entity
         this.game.coquette.entities.create(Bullet, 
           {
-            pos: {x:this.pos.x + bulletPos.x, y:this.pos.y + bulletPos.y}, 
+            pos: {
+              x: bulletPos.x, 
+              y: bulletPos.y
+            }, 
             vel: bulletVel
           });
 
         this.shotTicksLeft = this.game.settings.BULLET_DELAY_TICKS;
       }
+    },
+
+    collision: function(other, type){
+      if (type === this.game.coquette.collider.INITIAL){
+        this.colliding = true;
+      }
+    },
+
+    uncollision: function(){
+      this.colliding = false;
     }
 
   };
@@ -405,6 +402,7 @@
     player: null,
     width: 0,
     height: 0,
+    showBoundingBoxes: false,
 
     init: function() {
 
@@ -424,17 +422,43 @@
 
     },
 
-    draw: function(context){
+    update: function(){
+      this.handleKeyboard();
+    },
 
-      // display some player info on the screen
-      context.fillStyle = "#ccc";
-      context.font = "normal 9px 'Press Start 2P'";
-      context.fillText("Pos: " + this.player.pos.x.toFixed(2) + ', ' + this.player.pos.y.toFixed(2), 10, 20);      
-      context.fillText("Vel: " + this.player.vel.x.toFixed(2) + ', ' + this.player.vel.y.toFixed(2), 10, 40);      
-      context.fillText("Thrust: " + this.player.thrust.x.toFixed(3) + ', ' + this.player.thrust.y.toFixed(3), 10, 60);      
-      context.fillText("Angle (deg): " + this.player.angle.toString(), 10, 80);      
-      context.fillText("Angle (rad): " + this.player.rAngle.toFixed(2), 10, 100);      
-    }
+    draw: function(context){
+      if (this.showBoundingBoxes){
+        var entities = this.coquette.entities.all();
+        for(var i = 0; i < entities.length; i++){
+          var entity = entities[i];
+
+          context.beginPath();
+          if (entity.boundingBox == this.coquette.collider.RECTANGLE){
+            context.rect(entity.pos.x, entity.pos.y, entity.size.x, entity.size.y);
+          }
+          else{
+            context.arc(entity.pos.x + entity.size.x/2, entity.pos.y + entity.size.y/2,
+              entity.size.x/2, 0, Math.PI * 2, false);
+           }
+
+          context.lineWidth = entity.colliding ? 3 : 2;
+          context.strokeStyle = entity.colliding ? '#00ff00' : '#FF006E';
+          context.stroke();
+
+        }
+      }
+
+    },
+
+    handleKeyboard: function(){
+
+      if(this.coquette.inputter.state(this.coquette.inputter.LEFT_ARROW)
+        && this.coquette.inputter.state(this.coquette.inputter.RIGHT_ARROW)) {
+
+        this.showBoundingBoxes = !this.showBoundingBoxes;
+      }
+
+    },
 
   };
 
