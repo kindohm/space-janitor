@@ -14,7 +14,7 @@
     player: null,
     width: 0,
     height: 0,
-    showBoundingBoxes: true,
+    showBoundingBoxes: false,
 
     init: function() {
 
@@ -32,20 +32,10 @@
         self.player = player;
       });
 
-      this.coquette.entities.create(Simple, {
-        isBox: false,
-        vel: {x:0,y:0},
-        pos: {x:100,y:100},
-        size: {x:100,y:100}
-      });
+    },
 
-      this.coquette.entities.create(Simple, {
-        isBox: true,
-        vel: {x:0,y:0},
-        pos: {x:400,y:300},
-        size: {x:100,y:100}
-      });
-
+    update: function(){
+      this.handleKeyboard();
     },
 
     draw: function(context){
@@ -63,15 +53,24 @@
               entity.size.x/2, 0, Math.PI * 2, false);
            }
 
-          context.lineWidth = entity.colliding ? 2 : 1;
+          context.lineWidth = entity.colliding ? 3 : 2;
           context.strokeStyle = entity.colliding ? '#00ff00' : '#FF006E';
           context.stroke();
-
 
         }
       }
 
-    }
+    },
+
+    handleKeyboard: function(){
+
+      if(this.coquette.inputter.state(this.coquette.inputter.LEFT_ARROW)
+        && this.coquette.inputter.state(this.coquette.inputter.RIGHT_ARROW)) {
+
+        this.showBoundingBoxes = !this.showBoundingBoxes;
+      }
+
+    },
 
   };
 

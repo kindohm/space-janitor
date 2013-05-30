@@ -56,6 +56,13 @@
       this.pos.x += this.vel.x;
       this.pos.y += this.vel.y;
 
+      this.wrap();
+      
+      this.shotTicksLeft = Math.max(0, this.shotTicksLeft - 1);
+      this.thrustEffect.update(this);
+    },
+
+    wrap: function(){
       if (this.pos.y > this.maxPos.y) {
         this.pos.y = -this.size.y;
       } else if (this.pos.y < -this.size.y) {
@@ -67,9 +74,6 @@
       } else if (this.pos.x < -this.size.x) {
         this.pos.x = this.maxPos.x;
       }
-
-      this.shotTicksLeft = Math.max(0, this.shotTicksLeft - 1);
-      this.thrustEffect.update(this);
     },
 
     draw: function(context){
@@ -146,8 +150,8 @@
 
         // calculate bullet origin position relative to ship's center
         var bulletPos = {
-          x: vector.x * this.halfSize.x,
-          y: vector.y * this.halfSize.y
+          x: vector.x * this.halfSize.x + this.halfSize.x + this.pos.x,
+          y: vector.y * this.halfSize.y + this.halfSize.y + this.pos.y
         };
 
         // calculate bullet velocity vector
@@ -159,7 +163,10 @@
         // create bullet entity
         this.game.coquette.entities.create(Bullet, 
           {
-            pos: {x:this.pos.x + bulletPos.x, y:this.pos.y + bulletPos.y}, 
+            pos: {
+              x: bulletPos.x, 
+              y: bulletPos.y
+            }, 
             vel: bulletVel
           });
 

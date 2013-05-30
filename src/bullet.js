@@ -18,11 +18,6 @@
       y:this.game.settings.BULLET_SIZE_Y
     };
     
-    this.halfSize = {
-      x: this.size.x / 2,
-      y: this.size.y / 2
-    };
-
   };
 
   Bullet.prototype = {
@@ -42,8 +37,8 @@
     },
 
     draw: function(context) {
-      context.drawImage(this.sprite, this.pos.x - this.halfSize.x, 
-        this.pos.y - this.halfSize.y, this.size.x, this.size.y);
+      context.drawImage(this.sprite, this.pos.x, 
+        this.pos.y, this.size.x, this.size.y);
     }
   };
 
