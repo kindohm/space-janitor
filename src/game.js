@@ -11,6 +11,7 @@
 
   Game.prototype = {
 
+    explosions: [],
     player: null,
     width: 0,
     height: 0,
@@ -26,9 +27,25 @@
 
     update: function(){
       this.handleKeyboard();
+
+      for (var i = 0; i < this.explosions.length; i++){
+        this.explosions[i].update();
+      }
+
+      for (var i = this.explosions.length - 1; i >= 0; i--){
+        if (this.explosions[i].complete){
+          this.explosions.splice(i, 1);
+        }
+      }
+
     },
 
     draw: function(context){
+
+      for (var i = 0; i < this.explosions.length; i++){
+        this.explosions[i].draw(context);
+      }
+
       if (this.showBoundingBoxes){
         var entities = this.coquette.entities.all();
         for(var i = 0; i < entities.length; i++){
@@ -115,6 +132,28 @@
 
     },
 
+    spawnAsteroidExplosion: function(pos){
+      var effect = new ExplosionEffect(this, {
+        numParticles: 50,
+        duration: 50,
+        particleSize: 3,
+        pos: pos
+      });
+
+      this.explosions.push(effect);
+    },
+
+    spawnPlayerExplosion: function(pos){
+      var effect = new ExplosionEffect(this, {
+        numParticles: 100,
+        duration: 75,
+        particleSize: 8,
+        pos: pos
+      });
+
+      this.explosions.push(effect);
+    },
+
     asteroidKilled: function(asteroid){
 
       // split up asteroid into two smaller ones
@@ -130,6 +169,8 @@
           this.deployAsteroid();
         }
       }
+
+      this.spawnAsteroidExplosion(asteroid.pos);
     },
 
     playerKilled: function(player){
@@ -137,6 +178,7 @@
       setTimeout(function(){
         self.spawnPlayer();
       }, 2000);
+      this.spawnPlayerExplosion(player.pos);
     }
 
   };

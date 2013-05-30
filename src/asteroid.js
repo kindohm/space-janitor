@@ -68,7 +68,7 @@
 
     collision: function(other, type){
       if (type === this.game.coquette.collider.INITIAL){
-        if (other instanceof Bullet){
+        if (other instanceof Bullet || other instanceof Player){
           this.game.coquette.entities.destroy(this);
           this.game.asteroidKilled(this);
         }

@@ -91,7 +91,7 @@
       context.moveTo(-this.halfSize.x,-this.halfSize.y);
       context.lineTo(0,this.halfSize.y);
       context.lineTo(this.halfSize.x, -this.halfSize.y);
-      context.lineTo(0,-this.halfSize.y/2);
+      context.lineTo(0,-this.halfSize.y/1.7);
       context.lineTo(-this.halfSize.x,-this.halfSize.y);
       context.closePath();
       context.strokeStyle = '#ccc';
