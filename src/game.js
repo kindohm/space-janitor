@@ -16,18 +16,21 @@
       });
 
     this.messageView = new MessageView(this);
+    this.titleView = new TitleView(this);
+    this.storyView = new StoryView(this);
     this.scoringRules = new ScoringRules(this);
 
   };
 
   Game.prototype = {
 
-    state: 0,
+    state: 5,
     STATE_INTRO: 0,
     STATE_READY: 1,
     STATE_PLAYING: 2,
     STATE_BETWEEN_LEVELS: 3,
     STATE_GAME_OVER: 4,
+    STATE_TITLE: 5,
 
     score: 0,
     lives: 3,
@@ -42,9 +45,8 @@
 
     init: function() {
       this.soundBus = new SoundBus(this.soundsPath);
-      state = this.STATE_INTRO;
-      this.messageView.text = 'Press SPACE to play.';
-      this.messageView.show = true;
+      this.showTitle();
+
       for (var i = 0; i < 5; i++){
         this.deployAsteroid();
       }
@@ -150,7 +152,13 @@
         }
       }
 
-      this.messageView.draw(context);
+      if (this.state === this.STATE_INTRO){
+        this.storyView.draw(context);
+      } else if (this.state === this.STATE_TITLE){
+        this.titleView.draw(context);
+      } else {
+        this.messageView.draw(context);
+      }
 
     },
 
@@ -289,9 +297,24 @@
       this.state = self.STATE_GAME_OVER;
 
       setTimeout(function(){
-        self.messageView.text = 'Press SPACE to play again.';
-        self.state = self.STATE_INTRO;
+        self.showTitle();
       }, 3000);
+    },
+
+    showTitle: function(){
+      var self = this;
+      this.state = self.STATE_TITLE;
+      setTimeout(function(){
+        self.showStory();
+      }, 8000)
+    },
+
+    showStory: function(){
+      var self = this;
+      this.state = this.STATE_INTRO;
+      setTimeout(function(){
+        self.showTitle();
+      }, 15000);
     }
 
   };
