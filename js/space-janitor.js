@@ -114,7 +114,6 @@
 
     this.asteroidExplosionSound = new Howl({
       urls: [
-        soundsPath + 'explosion01.wav', 
         soundsPath + 'explosion01.mp3', 
         soundsPath + 'explosion01.ogg'
       ],
@@ -123,7 +122,6 @@
 
     this.playerExplosionSound = new Howl({
       urls: [
-        soundsPath + 'explosion02.wav', 
         soundsPath + 'explosion02.mp3', 
         soundsPath + 'explosion02.ogg'
       ],
@@ -132,7 +130,6 @@
 
     this.thrustSound = new Howl({
       urls: [
-        soundsPath + 'thrust.wav', 
         soundsPath + 'thrust.mp3', 
         soundsPath + 'thrust.ogg'],
       volume: .5,
@@ -141,7 +138,6 @@
 
     this.gunSound = new Howl({
       urls: [
-        soundsPath + 'gun.wav', 
         soundsPath + 'gun.mp3', 
         soundsPath + 'gun.ogg'],
       volume: 0.5
