@@ -9,6 +9,7 @@ var input = [
   src + 'settings.js',
   src + 'spritefactory.js',
   src + 'bullet.js',
+  src + 'soundbus.js',
   src + 'thrusteffect.js',
   src + 'explosioneffect.js',
   src + 'asteroid.js',

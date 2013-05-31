@@ -5,7 +5,7 @@
   Settings.prototype = {
 
     PLAYER_ROTATE_DELTA:  5,
-    PLAYER_THRUST_DELTA:  0.03,
+    PLAYER_THRUST_DELTA:  0.04,
     PLAYER_SIZE:          30,
     PLAYER_LINE_WIDTH:    2, 
     BULLET_VELOCITY:      5.0,
@@ -107,6 +107,53 @@
 
   exports.Bullet = Bullet;
 
+})(this);
+;(function(exports){
+
+  var SoundBus = function(soundsPath){
+
+    this.asteroidExplosionSound = new Howl({
+      urls: [
+        soundsPath + 'explosion01.wav', 
+        soundsPath + 'explosion01.mp3', 
+        soundsPath + 'explosion01.ogg'
+      ],
+      volume: 0.5
+    });    
+
+    this.playerExplosionSound = new Howl({
+      urls: [
+        soundsPath + 'explosion02.wav', 
+        soundsPath + 'explosion02.mp3', 
+        soundsPath + 'explosion02.ogg'
+      ],
+      volume: 0.9
+    });  
+
+    this.thrustSound = new Howl({
+      urls: [
+        soundsPath + 'thrust.wav', 
+        soundsPath + 'thrust.mp3', 
+        soundsPath + 'thrust.ogg'],
+      volume: .5,
+      loop: true
+    });
+
+    this.gunSound = new Howl({
+      urls: [
+        soundsPath + 'gun.wav', 
+        soundsPath + 'gun.mp3', 
+        soundsPath + 'gun.ogg'],
+      volume: 0.5
+    });    
+
+  };
+
+  SoundBus.prototype = {
+
+  };
+
+  exports.SoundBus = SoundBus;
 })(this);
 ;(function(exports){
 
@@ -308,6 +355,11 @@
       y: settings.maxPos.y
     };
 
+    this.explosionSound = new Howl({
+      urls: [this.game.soundsPath + 'explosion01.wav', this.game.soundsPath + 'explosion01.mp3', this.game.soundsPath + 'explosion01.ogg'],
+      volume: 0.5
+    });    
+
   };
 
   Asteroid.prototype = {
@@ -404,7 +456,6 @@
     }
 
     this.boundingBox = this.game.coquette.collider.CIRCLE;
-
 
   }
 
@@ -510,12 +561,20 @@
       var vector = this.game.maths.angleToVector(this.angle);
       this.thrust.x = vector.x * this.thrustScale;
       this.thrust.y = vector.y * this.thrustScale;
-      this.thrusting = true;
+
+      if (!this.thrusting){
+        this.thrusting = true;
+        this.game.soundBus.thrustSound.play();
+      }
     },
 
     idleThrust: function (){
-      this.thrust.x = this.thrust.y = this.thrustScale = 0;
-      this.thrusting = false;
+      
+      if (this.thrusting){
+        this.thrusting = false;
+        this.thrust.x = this.thrust.y = this.thrustScale = 0;
+        this.game.soundBus.thrustSound.stop();
+      }
     },
 
     shoot: function(){
@@ -547,6 +606,8 @@
             vel: bulletVel
           });
 
+        this.game.soundBus.gunSound.play();
+
         this.shotTicksLeft = this.game.settings.BULLET_DELAY_TICKS;
       }
     },
@@ -556,6 +617,7 @@
       if (type === this.game.coquette.collider.INITIAL){
         if (other instanceof Asteroid){
           this.game.coquette.entities.destroy(this);
+          this.game.soundBus.thrustSound.stop();
           this.game.playerKilled(this);
         }
       }
@@ -588,8 +650,10 @@
     width: 0,
     height: 0,
     showBoundingBoxes: false,
+    soundsPath: 'sounds/',
 
     init: function() {
+      this.soundBus = new SoundBus(this.soundsPath);
       this.spawnPlayer();
       this.deployAsteroid();
       this.deployAsteroid();
@@ -728,6 +792,8 @@
 
     asteroidKilled: function(asteroid){
 
+      this.soundBus.asteroidExplosionSound.play();
+
       // split up asteroid into two smaller ones
       if (asteroid.size.x === this.settings.ASTEROID_SIZE_LARGE){
         this.deployAsteroid(this.settings.ASTEROID_SIZE_MEDIUM, asteroid.pos);
@@ -746,6 +812,7 @@
     },
 
     playerKilled: function(player){
+      this.soundBus.playerExplosionSound.play();
       var self = this;
       setTimeout(function(){
         self.spawnPlayer();

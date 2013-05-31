@@ -45,6 +45,9 @@ var MockGame = function() {
   this.spriteFactory = new MockSpriteFactory();
   this.coquette = new MockCoquette();
   this.maths = new MockMaths();
+  this.soundBus = {};
+  this.soundBus.thrustSound = { play: function(){}, stop: function(){}};
+  this.soundBus.playerExplosionSound = this.soundBus.asteroidExplosionSound = this.soundBus.gunSound = this.soundBus.thrustSound;
 };
 
 describe('player', function() {
