@@ -14,6 +14,8 @@ var input = [
   src + 'explosioneffect.js',
   src + 'asteroid.js',
   src + 'player.js',
+  src + 'gamebar.js',
+  src + 'level.js',
   src + 'game.js'
 ];
 

@@ -37,12 +37,17 @@
   <script type="text/javascript" src="simple.js"></script>
   <script type="text/javascript" src="asteroid.js"></script>
   <script type="text/javascript" src="player.js"></script>
+  <script type="text/javascript" src="level.js"></script>
+  <script type="text/javascript" src="gamebar.js"></script>
   <script type="text/javascript" src="game.js"></script>
   <script type="text/javascript">
     window.addEventListener('load', function() {
       var game = new Game("canvas", 800, 450);
+      window.game = game;
+      game.settings.BULLET_DELAY_TICKS = 10; // super fast for debugging
       game.soundsPath = '../sounds/';
       game.init();
+
     });
   </script>
 </html>

@@ -1,30 +1,50 @@
 ;(function(exports) {
 
   var Game = function(canvasId, width, height) {
+    var self = this;
+
     this.coquette = new Coquette(this, canvasId, width, height, "#000");
     this.maths = new Maths();
     this.width = width;
     this.height = height;
     this.settings = new Settings();
     this.spriteFactory = new SpriteFactory(this);
+
+    this.coquette.entities.create(GameBar,{},
+      function(bar){
+        self.gameBar = bar;
+      });
   };
 
   Game.prototype = {
 
+    gameBar: null,
     explosions: [],
+    level: null,
     player: null,
     width: 0,
     height: 0,
     showBoundingBoxes: false,
     soundsPath: 'sounds/',
+    intermission: false,
 
     init: function() {
       this.soundBus = new SoundBus(this.soundsPath);
       this.spawnPlayer();
-      this.deployAsteroid();
-      this.deployAsteroid();
-      this.deployAsteroid();
+      this.initNextLevel();
+    },
 
+    initNextLevel: function(){
+      var number = this.level === null ? 1 : this.level.number + 1;
+      var asteroidCount = number + 2;
+      this.level = new Level(this, number, asteroidCount);
+      if (this.gameBar != null) {
+        this.gameBar.levelNumber = number;
+      }
+      this.intermission = false;
+      for (var i = 0; i < asteroidCount; i++){
+        this.deployAsteroid();
+      }
     },
 
     update: function(){
@@ -40,6 +60,18 @@
         }
       }
 
+      if (!this.intermission){
+        this.level.update();
+        if (this.level.complete){
+          this.intermission = true;
+          var self = this;
+          setTimeout(function(){
+
+            self.initNextLevel();
+
+          }, 3000);
+        }
+      }
     },
 
     draw: function(context){
@@ -81,12 +113,10 @@
 
     },
 
-    deployAsteroid: function(size, pos, boundingBox){
+    deployAsteroid: function(size, pos){
 
       var direction = this.maths.plusMinus();
       size = size === undefined ? this.settings.ASTEROID_SIZE_LARGE : size;
-      boundingBox = boundingBox === undefined ? this.maths.plusMinus() === 1 ? 
-        this.coquette.collider.RECTANGLE : this.coquette.collider.CIRCLE : boundingBox;
 
       if (pos === undefined){
         pos = {
@@ -112,8 +142,7 @@
           x: size,
           y: size
         },
-        boundingBox: this.maths.plusMinus() === 1 ? 
-          this.coquette.collider.RECTANGLE : this.coquette.collider.CIRCLE
+        boundingBox: this.coquette.collider.RECTANGLE
       });
     },
 
@@ -167,12 +196,7 @@
       } else if (asteroid.size.x === this.settings.ASTEROID_SIZE_MEDIUM){
         this.deployAsteroid(this.settings.ASTEROID_SIZE_SMALL, asteroid.pos);
         this.deployAsteroid(this.settings.ASTEROID_SIZE_SMALL, asteroid.pos);
-      } else {
-        // occasionally deploy a new asteroid if the smallest size was destoryed
-        if (Math.random() > .8) {
-          this.deployAsteroid();
-        }
-      }
+      } 
 
       this.spawnAsteroidExplosion(asteroid.pos);
     },
