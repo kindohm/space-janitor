@@ -5,7 +5,7 @@
   Settings.prototype = {
 
     PLAYER_ROTATE_DELTA:  5,
-    PLAYER_THRUST_DELTA:  0.03,
+    PLAYER_THRUST_DELTA:  0.04,
     PLAYER_SIZE:          30,
     PLAYER_LINE_WIDTH:    2, 
     BULLET_VELOCITY:      5.0,

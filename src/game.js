@@ -16,8 +16,10 @@
     width: 0,
     height: 0,
     showBoundingBoxes: false,
+    soundsPath: 'sounds/',
 
     init: function() {
+      this.soundBus = new SoundBus(this.soundsPath);
       this.spawnPlayer();
       this.deployAsteroid();
       this.deployAsteroid();
@@ -156,6 +158,8 @@
 
     asteroidKilled: function(asteroid){
 
+      this.soundBus.asteroidExplosionSound.play();
+
       // split up asteroid into two smaller ones
       if (asteroid.size.x === this.settings.ASTEROID_SIZE_LARGE){
         this.deployAsteroid(this.settings.ASTEROID_SIZE_MEDIUM, asteroid.pos);
@@ -174,6 +178,7 @@
     },
 
     playerKilled: function(player){
+      this.soundBus.playerExplosionSound.play();
       var self = this;
       setTimeout(function(){
         self.spawnPlayer();

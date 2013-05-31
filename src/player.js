@@ -40,7 +40,6 @@
 
     this.boundingBox = this.game.coquette.collider.CIRCLE;
 
-
   }
 
   Player.prototype = {
@@ -145,12 +144,20 @@
       var vector = this.game.maths.angleToVector(this.angle);
       this.thrust.x = vector.x * this.thrustScale;
       this.thrust.y = vector.y * this.thrustScale;
-      this.thrusting = true;
+
+      if (!this.thrusting){
+        this.thrusting = true;
+        this.game.soundBus.thrustSound.play();
+      }
     },
 
     idleThrust: function (){
-      this.thrust.x = this.thrust.y = this.thrustScale = 0;
-      this.thrusting = false;
+      
+      if (this.thrusting){
+        this.thrusting = false;
+        this.thrust.x = this.thrust.y = this.thrustScale = 0;
+        this.game.soundBus.thrustSound.stop();
+      }
     },
 
     shoot: function(){
@@ -182,6 +189,8 @@
             vel: bulletVel
           });
 
+        this.game.soundBus.gunSound.play();
+
         this.shotTicksLeft = this.game.settings.BULLET_DELAY_TICKS;
       }
     },
@@ -191,6 +200,7 @@
       if (type === this.game.coquette.collider.INITIAL){
         if (other instanceof Asteroid){
           this.game.coquette.entities.destroy(this);
+          this.game.soundBus.thrustSound.stop();
           this.game.playerKilled(this);
         }
       }

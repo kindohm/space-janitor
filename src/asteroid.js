@@ -25,6 +25,11 @@
       y: settings.maxPos.y
     };
 
+    this.explosionSound = new Howl({
+      urls: [this.game.soundsPath + 'explosion01.wav', this.game.soundsPath + 'explosion01.mp3', this.game.soundsPath + 'explosion01.ogg'],
+      volume: 0.5
+    });    
+
   };
 
   Asteroid.prototype = {
