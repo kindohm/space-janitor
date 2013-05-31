@@ -557,7 +557,8 @@
       var vector = this.game.maths.angleToVector(this.angle);
       this.thrust.x = vector.x * this.thrustScale;
       this.thrust.y = vector.y * this.thrustScale;
-
+      this.game.thrusting();
+      
       if (!this.thrusting){
         this.thrusting = true;
         this.game.soundBus.thrustSound.play();
@@ -603,7 +604,7 @@
           });
 
         this.game.soundBus.gunSound.play();
-
+        this.game.shotFired();
         this.shotTicksLeft = this.game.settings.BULLET_DELAY_TICKS;
       }
     },
@@ -660,7 +661,18 @@
       
       context.textAlign = "left"
       context.fillText('Level: ' + this.levelNumber.toString(), 10, 20);
+
+      context.textAlign = "left"
       context.fillText('Lives: ' + this.game.lives.toString(), 150, 20);
+
+      if (this.game.level != null){
+        context.textAlign = "center"
+        var bonus = this.game.scoringRules.pointsForLevel(this.game.level);
+        context.fillText('Level Bonus: ' + bonus.toString(), this.game.width/2, 20);
+      }
+
+      context.textAlign = "right"
+      context.fillText('Score: ' + this.game.score.toString(), this.game.width - 10, 20);
     }
   };
 
@@ -674,6 +686,10 @@
     this.number = number;
     this.asteroidCount = asteroidCount;
     this.complete = false;
+    this.shots = 0;
+    this.asteroidsShot = 0;
+    this.levelBonus = 0;
+    this.thrustTicks = 0;
   };
 
   Level.prototype = {
@@ -717,6 +733,40 @@
   exports.MessageView = MessageView;
 
 })(this);
+;(function(exports){
+
+  var ScoringRules = function(game){
+    this.game = game;
+  };
+
+  ScoringRules.prototype = {
+
+    pointsForAsteroid: function(asteroid){
+      if (asteroid.size.x === this.game.settings.ASTEROID_SIZE_LARGE) {
+        return 100;
+      } else if (asteroid.size.x === this.game.settings.ASTEROID_SIZE_MEDIUM){
+        return 250;
+      } else {
+        return 500;
+      }
+    },
+
+    pointsForLevel: function(level){
+      var base = 500 * level.number + Math.min(100, Math.floor(level.thrustTicks * .03));
+      if (level.shots === 0) return base;
+      var percent = level.asteroidsShot / level.shots;
+      return base + Math.floor(percent * 1000);
+    },
+
+    pointsForCrash: function(){
+      return 500;
+    }
+
+  };
+
+  exports.ScoringRules = ScoringRules;
+
+})(this);
 ;(function(exports) {
 
   var Game = function(canvasId, width, height) {
@@ -735,6 +785,8 @@
       });
 
     this.messageView = new MessageView(this);
+    this.scoringRules = new ScoringRules(this);
+
   };
 
   Game.prototype = {
@@ -746,6 +798,7 @@
     STATE_BETWEEN_LEVELS: 3,
     STATE_GAME_OVER: 4,
 
+    score: 0,
     lives: 3,
     gameBar: null,
     explosions: [],
@@ -778,6 +831,7 @@
       }
 
       var self = this;
+      this.score = 0;
       this.state = this.STATE_READY;
       this.lives = 3;
       this.level = null;
@@ -820,11 +874,13 @@
         }
       }
 
-      if (!this.state == this.STATE_PLAYING){
+      if (this.state == this.STATE_PLAYING){
         this.level.update();
         if (this.level.complete){
           this.state = this.STATE_BETWEEN_LEVELS;
-          this.messageView.text = 'Level ' + this.level.number.toString() + ' complete. Loading next level...';
+          var levelBonus = this.scoringRules.pointsForLevel(this.level);
+          this.score += levelBonus;
+          this.messageView.text = 'Level ' + this.level.number.toString() + ' complete. Bonus: ' + levelBonus.toString() + '. Loading next level...';
           this.messageView.show = true;
           var self = this;
           setTimeout(function(){
@@ -966,8 +1022,17 @@
         this.deployAsteroid(this.settings.ASTEROID_SIZE_SMALL, asteroid.pos);
         this.deployAsteroid(this.settings.ASTEROID_SIZE_SMALL, asteroid.pos);
       } 
-
+      this.level.asteroidsShot++;
+      this.score += this.scoringRules.pointsForAsteroid(asteroid);
       this.spawnAsteroidExplosion(asteroid.pos);
+    },
+
+    shotFired: function(){
+      this.level.shots++;
+    },
+
+    thrusting: function(){
+      this.level.thrustTicks++;
     },
 
     playerKilled: function(player){

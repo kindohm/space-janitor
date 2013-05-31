@@ -16,6 +16,8 @@
       });
 
     this.messageView = new MessageView(this);
+    this.scoringRules = new ScoringRules(this);
+
   };
 
   Game.prototype = {
@@ -27,6 +29,7 @@
     STATE_BETWEEN_LEVELS: 3,
     STATE_GAME_OVER: 4,
 
+    score: 0,
     lives: 3,
     gameBar: null,
     explosions: [],
@@ -59,6 +62,7 @@
       }
 
       var self = this;
+      this.score = 0;
       this.state = this.STATE_READY;
       this.lives = 3;
       this.level = null;
@@ -101,11 +105,13 @@
         }
       }
 
-      if (!this.state == this.STATE_PLAYING){
+      if (this.state == this.STATE_PLAYING){
         this.level.update();
         if (this.level.complete){
           this.state = this.STATE_BETWEEN_LEVELS;
-          this.messageView.text = 'Level ' + this.level.number.toString() + ' complete. Loading next level...';
+          var levelBonus = this.scoringRules.pointsForLevel(this.level);
+          this.score += levelBonus;
+          this.messageView.text = 'Level ' + this.level.number.toString() + ' complete. Bonus: ' + levelBonus.toString() + '. Loading next level...';
           this.messageView.show = true;
           var self = this;
           setTimeout(function(){
@@ -247,8 +253,17 @@
         this.deployAsteroid(this.settings.ASTEROID_SIZE_SMALL, asteroid.pos);
         this.deployAsteroid(this.settings.ASTEROID_SIZE_SMALL, asteroid.pos);
       } 
-
+      this.level.asteroidsShot++;
+      this.score += this.scoringRules.pointsForAsteroid(asteroid);
       this.spawnAsteroidExplosion(asteroid.pos);
+    },
+
+    shotFired: function(){
+      this.level.shots++;
+    },
+
+    thrusting: function(){
+      this.level.thrustTicks++;
     },
 
     playerKilled: function(player){

@@ -144,7 +144,8 @@
       var vector = this.game.maths.angleToVector(this.angle);
       this.thrust.x = vector.x * this.thrustScale;
       this.thrust.y = vector.y * this.thrustScale;
-
+      this.game.thrusting();
+      
       if (!this.thrusting){
         this.thrusting = true;
         this.game.soundBus.thrustSound.play();
@@ -190,7 +191,7 @@
           });
 
         this.game.soundBus.gunSound.play();
-
+        this.game.shotFired();
         this.shotTicksLeft = this.game.settings.BULLET_DELAY_TICKS;
       }
     },

@@ -5,6 +5,10 @@
     this.number = number;
     this.asteroidCount = asteroidCount;
     this.complete = false;
+    this.shots = 0;
+    this.asteroidsShot = 0;
+    this.levelBonus = 0;
+    this.thrustTicks = 0;
   };
 
   Level.prototype = {
