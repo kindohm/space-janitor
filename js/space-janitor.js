@@ -656,6 +656,7 @@
     draw: function(context){
 
       context.font = "10px 'Press Start 2P'";
+      context.textAlign = "left"
       context.fillStyle = '#ccc';
       context.fillText('Level: ' + this.levelNumber.toString(), 10, 20);
 
@@ -687,6 +688,33 @@
   exports.Level = Level;
 
 })(this);
+;(function(exports){
+
+  var IntermissionView = function(game){
+    this.game = game;
+  };
+
+  IntermissionView.prototype = {
+
+    show: false,
+    zindex: 1000,
+
+    draw: function(context){
+
+      if (!this.show) return;
+
+      context.font = "12px 'Press Start 2P'";
+      context.textAlign = "center"
+      context.fillStyle = '#ccc';
+      context.fillText('Level ' + this.game.level.number.toString() + ' complete. Loading next level...', this.game.width / 2, this.game.height / 2);
+
+    }
+
+  };
+
+  exports.IntermissionView = IntermissionView;
+
+})(this);
 ;(function(exports) {
 
   var Game = function(canvasId, width, height) {
@@ -703,6 +731,8 @@
       function(bar){
         self.gameBar = bar;
       });
+
+    this.intermissionView = new IntermissionView(this);
   };
 
   Game.prototype = {
@@ -731,6 +761,7 @@
         this.gameBar.levelNumber = number;
       }
       this.intermission = false;
+      this.intermissionView.show = false;
       for (var i = 0; i < asteroidCount; i++){
         this.deployAsteroid();
       }
@@ -753,6 +784,7 @@
         this.level.update();
         if (this.level.complete){
           this.intermission = true;
+          this.intermissionView.show = true;
           var self = this;
           setTimeout(function(){
 
@@ -789,6 +821,8 @@
 
         }
       }
+
+      this.intermissionView.draw(context);
 
     },
 

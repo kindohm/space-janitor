@@ -26,6 +26,7 @@
     draw: function(context){
 
       context.font = "10px 'Press Start 2P'";
+      context.textAlign = "left"
       context.fillStyle = '#ccc';
       context.fillText('Level: ' + this.levelNumber.toString(), 10, 20);
 

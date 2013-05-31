@@ -14,6 +14,8 @@
       function(bar){
         self.gameBar = bar;
       });
+
+    this.intermissionView = new IntermissionView(this);
   };
 
   Game.prototype = {
@@ -42,6 +44,7 @@
         this.gameBar.levelNumber = number;
       }
       this.intermission = false;
+      this.intermissionView.show = false;
       for (var i = 0; i < asteroidCount; i++){
         this.deployAsteroid();
       }
@@ -64,6 +67,7 @@
         this.level.update();
         if (this.level.complete){
           this.intermission = true;
+          this.intermissionView.show = true;
           var self = this;
           setTimeout(function(){
 
@@ -100,6 +104,8 @@
 
         }
       }
+
+      this.intermissionView.draw(context);
 
     },
 
