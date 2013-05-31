@@ -15,11 +15,19 @@
         self.gameBar = bar;
       });
 
-    this.intermissionView = new IntermissionView(this);
+    this.messageView = new MessageView(this);
   };
 
   Game.prototype = {
 
+    state: 0,
+    STATE_INTRO: 0,
+    STATE_READY: 1,
+    STATE_PLAYING: 2,
+    STATE_BETWEEN_LEVELS: 3,
+    STATE_GAME_OVER: 4,
+
+    lives: 3,
     gameBar: null,
     explosions: [],
     level: null,
@@ -28,15 +36,45 @@
     height: 0,
     showBoundingBoxes: false,
     soundsPath: 'sounds/',
-    intermission: false,
 
     init: function() {
       this.soundBus = new SoundBus(this.soundsPath);
-      this.spawnPlayer();
-      this.initNextLevel();
+      state = this.STATE_INTRO;
+      this.messageView.text = 'Press SPACE to play.';
+      this.messageView.show = true;
+      for (var i = 0; i < 5; i++){
+        this.deployAsteroid();
+      }
+
+    },
+
+    startNewGame: function(){
+
+      // wipe out all entities
+      var entities = this.coquette.entities.all();      
+      for(var i = entities.length - 1; i >= 0; i--){
+        if (entities[i] instanceof GameBar === false) {
+          this.coquette.entities.destroy(entities[i]);
+        }
+      }
+
+      var self = this;
+      this.state = this.STATE_READY;
+      this.lives = 3;
+      this.level = null;
+      this.messageView.text = "Ready player one";
+      this.messageView.show = true;
+
+      setTimeout(function(){
+        self.messageView.show = false;
+        self.spawnPlayer();
+        self.initNextLevel();
+      }, 3000);
     },
 
     initNextLevel: function(){
+
+      this.state = this.STATE_PLAYING;
       var number = this.level === null ? 1 : this.level.number + 1;
       var asteroidCount = number + 2;
       this.level = new Level(this, number, asteroidCount);
@@ -44,7 +82,7 @@
         this.gameBar.levelNumber = number;
       }
       this.intermission = false;
-      this.intermissionView.show = false;
+      this.messageView.show = false;
       for (var i = 0; i < asteroidCount; i++){
         this.deployAsteroid();
       }
@@ -63,11 +101,12 @@
         }
       }
 
-      if (!this.intermission){
+      if (!this.state == this.STATE_PLAYING){
         this.level.update();
         if (this.level.complete){
-          this.intermission = true;
-          this.intermissionView.show = true;
+          this.state = this.STATE_BETWEEN_LEVELS;
+          this.messageView.text = 'Level ' + this.level.number.toString() + ' complete. Loading next level...';
+          this.messageView.show = true;
           var self = this;
           setTimeout(function(){
 
@@ -105,7 +144,7 @@
         }
       }
 
-      this.intermissionView.draw(context);
+      this.messageView.draw(context);
 
     },
 
@@ -113,8 +152,13 @@
 
       if(this.coquette.inputter.state(this.coquette.inputter.LEFT_ARROW)
         && this.coquette.inputter.state(this.coquette.inputter.RIGHT_ARROW)) {
-
         this.showBoundingBoxes = !this.showBoundingBoxes;
+      }
+
+      if (this.state === this.STATE_INTRO || this.state === this.STATE_GAME_OVER){
+        if(this.coquette.inputter.state(this.coquette.inputter.SPACE)) {
+          this.startNewGame();
+        }
       }
 
     },
@@ -208,12 +252,31 @@
     },
 
     playerKilled: function(player){
+      this.lives--;
       this.soundBus.playerExplosionSound.play();
-      var self = this;
-      setTimeout(function(){
-        self.spawnPlayer();
-      }, 2000);
       this.spawnPlayerExplosion(player.pos);
+
+      var self = this;
+
+      if (this.lives > 0){
+        setTimeout(function(){
+          self.spawnPlayer();
+        }, 2000);
+      } else {
+        this.endGame();
+      }
+    },
+
+    endGame: function(){      
+      var self = this;
+      this.messageView.text = 'Game Over';
+      this.messageView.show = true;
+      this.state = self.STATE_GAME_OVER;
+
+      setTimeout(function(){
+        self.messageView.text = 'Press SPACE to play again.';
+        self.state = self.STATE_INTRO;
+      }, 3000);
     }
 
   };

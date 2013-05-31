@@ -26,10 +26,11 @@
     draw: function(context){
 
       context.font = "10px 'Press Start 2P'";
-      context.textAlign = "left"
       context.fillStyle = '#ccc';
+      
+      context.textAlign = "left"
       context.fillText('Level: ' + this.levelNumber.toString(), 10, 20);
-
+      context.fillText('Lives: ' + this.game.lives.toString(), 150, 20);
     }
   };
 
