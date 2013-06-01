@@ -283,11 +283,43 @@
 
       if (this.lives > 0){
         setTimeout(function(){
-          self.spawnPlayer();
+          self.trySpawnPlayer();
         }, 2000);
       } else {
         this.endGame();
       }
+    },
+
+    trySpawnPlayer: function(){
+
+      var desiredPosition = {
+        x: this.width / 2,
+        y: this.height / 2
+      };
+
+      var asteroids = this.coquette.entities.all(Asteroid);
+      var spaceAvailable = true;
+
+      for (var i = 0; i < asteroids.length; i++){
+
+        if (this.maths.distance(desiredPosition, asteroids[i].pos) < this.settings.PLAYER_SIZE * 4){
+          spaceAvailable = false;
+          break;
+        }
+      }
+
+      if (!spaceAvailable){
+        this.messageView.text = "Waiting for some open space...";
+        this.messageView.show = true;
+        var self = this;
+        setTimeout(function(){
+          self.trySpawnPlayer();
+        }, 1000)
+      } else{
+        this.messageView.show = false;
+        this.spawnPlayer();
+      }
+
     },
 
     endGame: function(){      
