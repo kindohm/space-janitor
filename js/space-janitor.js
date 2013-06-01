@@ -656,6 +656,11 @@
 
     draw: function(context){
 
+      if (this.game.state === this.game.STATE_TITLE) return;
+
+      context.fillStyle = '#000';
+      context.fillRect(0,0,this.game.width, 30);
+
       context.font = "10px 'Press Start 2P'";
       context.fillStyle = '#ccc';
       
@@ -735,6 +740,110 @@
 })(this);
 ;(function(exports){
 
+  var TitleView = function(game){
+    this.game = game;    
+    this.storyOffset = this.game.height + this.storyLineHeight;
+  };
+
+  TitleView.prototype = {
+
+    mode: 0,
+    MODE_TITLE: 0,
+    MODE_STORY: 1,
+    storyLineHeight: 25,
+    storyLeftMargin: 50,
+    storyOffset: 500,
+    scrollSpeed: .4,
+    scrollOffset: 0,
+    scrolling: false,
+    timeoutId: 0,
+
+    play: function(){
+      clearTimeout(this.timeoutId);
+      var self = this;
+      this.scrolling = false;
+      this.scrollOffset = 0;
+      this.timeoutId = setTimeout(function(){
+        self.startScrolling();
+      }, 4000);
+    },
+
+    stop: function(){
+      clearTimeout(this.timeoutId);
+    },
+
+    startScrolling: function(){
+      var self = this;
+      this.scrolling = true;
+      this.timeoutId = setTimeout(function(){
+        self.stopScrolling();
+      }, 15000);
+    },
+
+    stopScrolling: function(){
+      this.scrolling = false;
+      var self = this;
+      this.timeoutId = setTimeout(function(){
+        self.resetTitle();
+      }, 5000);
+    },
+
+    resetTitle: function(){
+      this.scrollOffset = 0;
+      var self = this;
+      this.timeoutId = setTimeout(function(){
+        self.startScrolling();
+      }, 5000);
+    },
+
+    draw: function(context){
+      context.fillStyle = '#ccc';
+
+      context.font = "48px 'Press Start 2P'";
+      context.textAlign = "center"
+      context.fillText("Space Janitor", this.game.width/2, this.game.height/2 + this.scrollOffset);
+
+      context.font = "12px 'Press Start 2P'";
+      context.textAlign = "center"
+      context.fillText("Press SPACE to play", this.game.width/2, this.game.height/2 + 50 + this.scrollOffset);
+
+      context.font = "14px 'Press Start 2P'";
+      context.textAlign = "left"
+
+      context.fillText("After centuries of abuse and neglect, space has", 
+        this.storyLeftMargin, this.storyOffset + this.scrollOffset);
+      context.fillText("become littered with debris from failed space",
+        this.storyLeftMargin, this.storyOffset + this.storyLineHeight + this.scrollOffset);
+      context.fillText("missions, canisters of unwanted, spent nuclear",
+        this.storyLeftMargin, this.storyOffset + this.storyLineHeight * 2 + this.scrollOffset);
+      context.fillText("fuel, and rains of small planetary bodies that ",
+        this.storyLeftMargin, this.storyOffset + this.storyLineHeight * 3 + this.scrollOffset);
+      context.fillText("threaten earth. There is one astronaut who is up ",
+        this.storyLeftMargin, this.storyOffset + this.storyLineHeight * 4 + this.scrollOffset);
+      context.fillText("to the challenge of clearing this debris and",
+        this.storyLeftMargin, this.storyOffset + this.storyLineHeight * 5 + this.scrollOffset);
+      context.fillText("cleaning the realm of space:",
+        this.storyLeftMargin, this.storyOffset + this.storyLineHeight * 6 + this.scrollOffset);
+
+      context.font = "24px 'Press Start 2P'";
+      context.textAlign = "center"
+
+      context.fillText("the Space Janitor",
+        this.game.width / 2, this.storyOffset + this.storyLineHeight * 9 + this.scrollOffset);
+
+      if (this.scrolling){
+       this.scrollOffset -= this.scrollSpeed;
+      }
+
+    }
+
+  };
+
+  exports.TitleView = TitleView;
+
+})(this);
+;(function(exports){
+
   var ScoringRules = function(game){
     this.game = game;
   };
@@ -752,7 +861,7 @@
     },
 
     pointsForLevel: function(level){
-      var base = 500 * level.number + Math.min(100, Math.floor(level.thrustTicks * .03));
+      var base = 500 * level.number;
       if (level.shots === 0) return base;
       var percent = level.asteroidsShot / level.shots;
       return base + Math.floor(percent * 1000);
@@ -785,6 +894,7 @@
       });
 
     this.messageView = new MessageView(this);
+    this.titleView = new TitleView(this);
     this.scoringRules = new ScoringRules(this);
 
   };
@@ -792,11 +902,11 @@
   Game.prototype = {
 
     state: 0,
-    STATE_INTRO: 0,
     STATE_READY: 1,
     STATE_PLAYING: 2,
     STATE_BETWEEN_LEVELS: 3,
     STATE_GAME_OVER: 4,
+    STATE_TITLE: 0,
 
     score: 0,
     lives: 3,
@@ -811,17 +921,11 @@
 
     init: function() {
       this.soundBus = new SoundBus(this.soundsPath);
-      state = this.STATE_INTRO;
-      this.messageView.text = 'Press SPACE to play.';
-      this.messageView.show = true;
-      for (var i = 0; i < 5; i++){
-        this.deployAsteroid();
-      }
-
+      this.state = this.STATE_TITLE;
+      this.titleView.play();
     },
 
-    startNewGame: function(){
-
+    clearEntities: function(){
       // wipe out all entities
       var entities = this.coquette.entities.all();      
       for(var i = entities.length - 1; i >= 0; i--){
@@ -829,6 +933,10 @@
           this.coquette.entities.destroy(entities[i]);
         }
       }
+    },
+
+    startNewGame: function(){
+      this.clearEntities();
 
       var self = this;
       this.score = 0;
@@ -837,6 +945,7 @@
       this.level = null;
       this.messageView.text = "Ready player one";
       this.messageView.show = true;
+      this.titleView.stop();
 
       setTimeout(function(){
         self.messageView.show = false;
@@ -849,7 +958,7 @@
 
       this.state = this.STATE_PLAYING;
       var number = this.level === null ? 1 : this.level.number + 1;
-      var asteroidCount = number + 2;
+      var asteroidCount = number + 1;
       this.level = new Level(this, number, asteroidCount);
       if (this.gameBar != null) {
         this.gameBar.levelNumber = number;
@@ -919,7 +1028,11 @@
         }
       }
 
-      this.messageView.draw(context);
+      if (this.state === this.STATE_TITLE){
+        this.titleView.draw(context);
+      } else {
+        this.messageView.draw(context);
+      }
 
     },
 
@@ -930,7 +1043,7 @@
         this.showBoundingBoxes = !this.showBoundingBoxes;
       }
 
-      if (this.state === this.STATE_INTRO || this.state === this.STATE_GAME_OVER){
+      if (this.state === this.STATE_INTRO || this.state === this.STATE_TITLE || this.state === this.STATE_GAME_OVER){
         if(this.coquette.inputter.state(this.coquette.inputter.SPACE)) {
           this.startNewGame();
         }
@@ -1058,10 +1171,11 @@
       this.state = self.STATE_GAME_OVER;
 
       setTimeout(function(){
-        self.messageView.text = 'Press SPACE to play again.';
-        self.state = self.STATE_INTRO;
+        self.clearEntities();
+        self.state = self.STATE_TITLE;
+        self.titleView.play();
       }, 3000);
-    }
+    },
 
   };
 

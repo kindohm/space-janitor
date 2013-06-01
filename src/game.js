@@ -17,20 +17,18 @@
 
     this.messageView = new MessageView(this);
     this.titleView = new TitleView(this);
-    this.storyView = new StoryView(this);
     this.scoringRules = new ScoringRules(this);
 
   };
 
   Game.prototype = {
 
-    state: 5,
-    STATE_INTRO: 0,
+    state: 0,
     STATE_READY: 1,
     STATE_PLAYING: 2,
     STATE_BETWEEN_LEVELS: 3,
     STATE_GAME_OVER: 4,
-    STATE_TITLE: 5,
+    STATE_TITLE: 0,
 
     score: 0,
     lives: 3,
@@ -45,16 +43,11 @@
 
     init: function() {
       this.soundBus = new SoundBus(this.soundsPath);
-      this.showTitle();
-
-      for (var i = 0; i < 5; i++){
-        this.deployAsteroid();
-      }
-
+      this.state = this.STATE_TITLE;
+      this.titleView.play();
     },
 
-    startNewGame: function(){
-
+    clearEntities: function(){
       // wipe out all entities
       var entities = this.coquette.entities.all();      
       for(var i = entities.length - 1; i >= 0; i--){
@@ -62,6 +55,10 @@
           this.coquette.entities.destroy(entities[i]);
         }
       }
+    },
+
+    startNewGame: function(){
+      this.clearEntities();
 
       var self = this;
       this.score = 0;
@@ -70,6 +67,7 @@
       this.level = null;
       this.messageView.text = "Ready player one";
       this.messageView.show = true;
+      this.titleView.stop();
 
       setTimeout(function(){
         self.messageView.show = false;
@@ -82,7 +80,7 @@
 
       this.state = this.STATE_PLAYING;
       var number = this.level === null ? 1 : this.level.number + 1;
-      var asteroidCount = number + 2;
+      var asteroidCount = number + 1;
       this.level = new Level(this, number, asteroidCount);
       if (this.gameBar != null) {
         this.gameBar.levelNumber = number;
@@ -152,9 +150,7 @@
         }
       }
 
-      if (this.state === this.STATE_INTRO){
-        this.storyView.draw(context);
-      } else if (this.state === this.STATE_TITLE){
+      if (this.state === this.STATE_TITLE){
         this.titleView.draw(context);
       } else {
         this.messageView.draw(context);
@@ -169,7 +165,7 @@
         this.showBoundingBoxes = !this.showBoundingBoxes;
       }
 
-      if (this.state === this.STATE_INTRO || this.state === this.STATE_GAME_OVER){
+      if (this.state === this.STATE_INTRO || this.state === this.STATE_TITLE || this.state === this.STATE_GAME_OVER){
         if(this.coquette.inputter.state(this.coquette.inputter.SPACE)) {
           this.startNewGame();
         }
@@ -297,25 +293,11 @@
       this.state = self.STATE_GAME_OVER;
 
       setTimeout(function(){
-        self.showTitle();
+        self.clearEntities();
+        self.state = self.STATE_TITLE;
+        self.titleView.play();
       }, 3000);
     },
-
-    showTitle: function(){
-      var self = this;
-      this.state = self.STATE_TITLE;
-      setTimeout(function(){
-        self.showStory();
-      }, 8000)
-    },
-
-    showStory: function(){
-      var self = this;
-      this.state = this.STATE_INTRO;
-      setTimeout(function(){
-        self.showTitle();
-      }, 15000);
-    }
 
   };
 

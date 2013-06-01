@@ -17,7 +17,7 @@
     },
 
     pointsForLevel: function(level){
-      var base = 500 * level.number + Math.min(100, Math.floor(level.thrustTicks * .03));
+      var base = 500 * level.number;
       if (level.shots === 0) return base;
       var percent = level.asteroidsShot / level.shots;
       return base + Math.floor(percent * 1000);
