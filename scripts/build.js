@@ -13,6 +13,7 @@ var input = [
   src + 'thrusteffect.js',
   src + 'explosioneffect.js',
   src + 'asteroid.js',
+  src + 'ufo.js',
   src + 'player.js',
   src + 'gamebar.js',
   src + 'level.js',

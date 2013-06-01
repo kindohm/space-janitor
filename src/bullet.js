@@ -17,6 +17,8 @@
       x:this.game.settings.BULLET_SIZE_X,
       y:this.game.settings.BULLET_SIZE_Y
     };
+
+    this.hostile = settings.hostile === undefined ? false : settings.hostile;
     
   };
 
@@ -42,7 +44,7 @@
     },
 
     collision: function(other, type){
-      if (other instanceof Asteroid){
+      if (!this.hostile && other instanceof Asteroid){
         this.game.coquette.entities.destroy(this);
       }
     }

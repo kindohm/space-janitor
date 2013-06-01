@@ -74,6 +74,8 @@
       x:this.game.settings.BULLET_SIZE_X,
       y:this.game.settings.BULLET_SIZE_Y
     };
+
+    this.hostile = settings.hostile === undefined ? false : settings.hostile;
     
   };
 
@@ -99,7 +101,7 @@
     },
 
     collision: function(other, type){
-      if (other instanceof Asteroid){
+      if (!this.hostile && other instanceof Asteroid){
         this.game.coquette.entities.destroy(this);
       }
     }
@@ -399,7 +401,7 @@
 
     collision: function(other, type){
       if (type === this.game.coquette.collider.INITIAL){
-        if (other instanceof Bullet || other instanceof Player){
+        if ((other instanceof Bullet && !other.hostile) || other instanceof Player){
           this.game.coquette.entities.destroy(this);
           this.game.asteroidKilled(this);
         }
@@ -409,6 +411,127 @@
   };
 
   exports.Asteroid = Asteroid;
+
+})(this);
+;(function(exports){
+
+  var Ufo = function(game, settings){
+
+    this.game = game;
+    this.pos = {
+      x: settings.pos.x,
+      y: settings.pos.y
+    };
+
+    this.vel = {
+      x: settings.vel.x,
+      y: settings.vel.y
+    };
+
+    this.size = {
+      x: settings.size.x,
+      y: settings.size.y
+    };
+
+    this.halfSize = {
+      x: this.size.x / 2,
+      y: this.size.y / 2
+    };
+
+    this.shotTicksLeft = this.shotTicks;
+    this.boundingBox = this.game.coquette.collider.RECTANGLE;
+  };
+
+  Ufo.prototype = {
+
+    shotTicks: 40,
+    shotVelScale: 5,
+
+    update: function(){
+      this.pos.x += this.vel.x;
+      this.pos.y += this.vel.y;
+
+      this.checkBounds();
+      this.checkShoot();
+    },
+
+    checkShoot: function(){
+      this.shotTicksLeft--;
+      if (this.shotTicksLeft === 0){
+        this.shoot();
+        this.shotTicksLeft = this.shotTicks;
+      }
+    },
+
+    shoot: function(){
+
+      var angle = this.game.maths.getRandomInt(0, 359);
+      var vector = this.game.maths.angleToVector(angle);
+      var shotVel = {
+        x: vector.x * this.shotVelScale,
+        y: vector.y * this.shotVelScale
+      };
+
+      var bulletPos = {
+        x: vector.x * this.halfSize.x + this.halfSize.x + this.pos.x,
+        y: vector.y * this.halfSize.y + this.halfSize.y + this.pos.y
+      };
+
+      this.game.coquette.entities.create(Bullet, 
+        {
+          pos: bulletPos, 
+          vel: shotVel,
+          hostile: true
+        });
+
+    },
+
+    checkBounds: function(){
+
+      if (this.pos.x > this.game.width || this.pos.x < -this.size.x){
+        this.selfKill();
+      }
+
+    },
+
+    draw: function(context){
+
+      context.beginPath();
+      context.moveTo(this.pos.x, this.pos.y);
+
+      context.lineTo(this.pos.x, this.pos.y + this.size.y);
+      context.lineTo(this.pos.x + this.halfSize.x, this.pos.y + this.size.y * .75);
+      context.lineTo(this.pos.x + this.size.x, this.pos.y + this.size.y);
+      context.lineTo(this.pos.x + this.size.x, this.pos.y);
+      context.lineTo(this.pos.x + this.halfSize.x, this.pos.y + this.size.y * .25);
+      context.lineTo(this.pos.x, this.pos.y);
+
+      context.closePath();
+      context.strokeStyle = '#ccc';
+      context.lineWidth = this.game.settings.PLAYER_LINE_WIDTH;
+      context.stroke();
+
+
+    },
+
+    selfKill: function(){
+      this.game.coquette.entities.destroy(this);
+    },
+
+    collision: function(other, type){
+      if (type === this.game.coquette.collider.INITIAL && 
+        (
+          (other instanceof Bullet && !other.hostile) ||
+          other instanceof Player
+        )){
+          this.game.ufoKilled(this);
+          this.game.coquette.entities.destroy(this);
+      }
+    }
+
+  };
+
+  exports.Ufo = Ufo;
 
 })(this);
 ;(function(exports){
@@ -615,7 +738,7 @@
     collision: function(other, type){
       this.colliding = true;
       if (type === this.game.coquette.collider.INITIAL){
-        if (other instanceof Asteroid){
+        if (other instanceof Asteroid || (other instanceof Bullet && other.hostile || other instanceof Ufo)){
           this.game.coquette.entities.destroy(this);
           this.game.soundBus.thrustSound.stop();
           this.game.playerKilled(this);
@@ -704,7 +827,8 @@
 
     update: function(){
       if (!this.complete) {
-        this.complete = this.game.coquette.entities.all(Asteroid).length === 0;
+        this.complete = this.game.coquette.entities.all(Asteroid).length === 0
+          && this.game.coquette.entities.all(Ufo).length === 0;
       }
     }
 
@@ -902,6 +1026,10 @@
 
     pointsForCrash: function(){
       return 500;
+    },
+
+    pointsForUfo: function(ufo){
+      return 1000;
     }
 
   };
@@ -930,6 +1058,7 @@
     this.titleView = new TitleView(this);
     this.scoringRules = new ScoringRules(this);
 
+    this.ufoTicksLeft = this.ufoTicks;
   };
 
   Game.prototype = {
@@ -951,6 +1080,7 @@
     height: 0,
     showBoundingBoxes: false,
     soundsPath: 'sounds/',
+    ufoTicks: 2000,
 
     init: function() {
       this.soundBus = new SoundBus(this.soundsPath);
@@ -1029,13 +1159,48 @@
           this.messageView.text = 'Level ' + this.level.number.toString() + ' complete. Bonus: ' + levelBonus.toString() + '. Loading next level...';
           this.messageView.show = true;
           var self = this;
+
           setTimeout(function(){
 
             self.initNextLevel();
 
           }, 3000);
+
+        } else {
+          this.checkUfo();
         }
       }
+    },
+
+    checkUfo: function(){
+      this.ufoTicksLeft--;
+      if (this.ufoTicksLeft === 0){
+        this.ufoTicksLeft = this.ufoTicks;
+        this.spawnUfo();
+      }
+    },
+
+    spawnUfo: function(){
+
+      var pos = {
+        x: 1,
+        y: 100,
+      };
+
+      var vel = {
+        x: 2,
+        y: 0
+      };
+
+      this.coquette.entities.create(Ufo, {
+        pos: pos,
+        vel: vel,
+        size: {
+          x: 30,
+          y: 30
+        }
+      });
+
     },
 
     draw: function(context){
@@ -1199,6 +1364,12 @@
       } else {
         this.endGame();
       }
+    },
+
+    ufoKilled: function(ufo){
+      this.soundBus.asteroidExplosionSound.play();
+      this.spawnAsteroidExplosion(ufo.pos);
+      this.score += this.scoringRules.pointsForUfo(ufo);
     },
 
     trySpawnPlayer: function(){

@@ -19,6 +19,7 @@
     this.titleView = new TitleView(this);
     this.scoringRules = new ScoringRules(this);
 
+    this.ufoTicksLeft = this.ufoTicks;
   };
 
   Game.prototype = {
@@ -40,6 +41,7 @@
     height: 0,
     showBoundingBoxes: false,
     soundsPath: 'sounds/',
+    ufoTicks: 2000,
 
     init: function() {
       this.soundBus = new SoundBus(this.soundsPath);
@@ -118,13 +120,48 @@
           this.messageView.text = 'Level ' + this.level.number.toString() + ' complete. Bonus: ' + levelBonus.toString() + '. Loading next level...';
           this.messageView.show = true;
           var self = this;
+
           setTimeout(function(){
 
             self.initNextLevel();
 
           }, 3000);
+
+        } else {
+          this.checkUfo();
         }
       }
+    },
+
+    checkUfo: function(){
+      this.ufoTicksLeft--;
+      if (this.ufoTicksLeft === 0){
+        this.ufoTicksLeft = this.ufoTicks;
+        this.spawnUfo();
+      }
+    },
+
+    spawnUfo: function(){
+
+      var pos = {
+        x: 1,
+        y: 100,
+      };
+
+      var vel = {
+        x: 2,
+        y: 0
+      };
+
+      this.coquette.entities.create(Ufo, {
+        pos: pos,
+        vel: vel,
+        size: {
+          x: 30,
+          y: 30
+        }
+      });
+
     },
 
     draw: function(context){
@@ -288,6 +325,12 @@
       } else {
         this.endGame();
       }
+    },
+
+    ufoKilled: function(ufo){
+      this.soundBus.asteroidExplosionSound.play();
+      this.spawnAsteroidExplosion(ufo.pos);
+      this.score += this.scoringRules.pointsForUfo(ufo);
     },
 
     trySpawnPlayer: function(){

@@ -25,6 +25,10 @@
 
     pointsForCrash: function(){
       return 500;
+    },
+
+    pointsForUfo: function(ufo){
+      return 1000;
     }
 
   };

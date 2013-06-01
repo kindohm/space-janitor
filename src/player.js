@@ -202,7 +202,7 @@
     collision: function(other, type){
       this.colliding = true;
       if (type === this.game.coquette.collider.INITIAL){
-        if (other instanceof Asteroid){
+        if (other instanceof Asteroid || (other instanceof Bullet && other.hostile || other instanceof Ufo)){
           this.game.coquette.entities.destroy(this);
           this.game.soundBus.thrustSound.stop();
           this.game.playerKilled(this);

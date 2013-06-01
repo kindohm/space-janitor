@@ -15,7 +15,8 @@
 
     update: function(){
       if (!this.complete) {
-        this.complete = this.game.coquette.entities.all(Asteroid).length === 0;
+        this.complete = this.game.coquette.entities.all(Asteroid).length === 0
+          && this.game.coquette.entities.all(Ufo).length === 0;
       }
     }
 
