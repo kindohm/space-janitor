@@ -4,6 +4,12 @@ body{
 	background: #000;
 }
 
+body.info{
+	font-family: Helvetica, Arial, cursive; 
+	/*color: #333;
+	background: #fff;*/
+}
+
 #canvas{
 	border: solid 1px #333;
 	margin-top: 10px;
@@ -16,9 +22,16 @@ body{
 
 p{
 	font-size: 12px;
+}
 
+body.info p{
+	font-size: inherit;
 }
 
 h3{
-	margin-top: 20px;
+	margin-top: 40px;
+}
+
+.info-container h1, h2, h3, h4, h5, h6{
+	font-family: 'Press Start 2P', Helvetica, Arial, cursive; 
 }
