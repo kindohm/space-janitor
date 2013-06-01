@@ -505,7 +505,15 @@
       context.save();
       context.translate(this.pos.x + this.halfSize.x, this.pos.y + this.halfSize.y);
       context.rotate(this.rAngle);
+      this.drawMainSprite(context);
+      context.rotate(-this.Angle);
+      context.translate(-(this.pos.x), -(this.pos.y));
+      context.restore();
 
+      this.thrustEffect.draw(context);
+    },
+
+    drawMainSprite: function(context){
       context.beginPath();
       context.moveTo(-this.halfSize.x,-this.halfSize.y);
       context.lineTo(0,this.halfSize.y);
@@ -517,11 +525,6 @@
       context.lineWidth = this.game.settings.PLAYER_LINE_WIDTH;
       context.stroke();
 
-      context.rotate(-this.Angle);
-      context.translate(-(this.pos.x), -(this.pos.y));
-      context.restore();
-
-      this.thrustEffect.draw(context);
     },
 
     handleKeyboard: function(){
@@ -721,15 +724,23 @@
     show: false,
     zindex: 1000,
     text: '',
+    text2: '',
+    text3: '',
 
     draw: function(context){
 
       if (!this.show) return;
 
-      context.font = "12px 'Press Start 2P'";
+      var firstFontSize = this.text2.length > 0 ? '16px' : '12px';
+
+      context.font = firstFontSize + " 'Press Start 2P'";
       context.textAlign = "center"
       context.fillStyle = '#ccc';
-      context.fillText(this.text, this.game.width/2, this.game.height/2);
+      context.fillText(this.text, this.game.width/2, this.game.height/2 - 30);
+
+      context.font = "12px 'Press Start 2P'";
+      context.fillText(this.text2, this.game.width/2, this.game.height/2 + 45);
+      context.fillText(this.text3, this.game.width/2, this.game.height/2 + 90);
 
     }
 
@@ -751,7 +762,7 @@
     MODE_TITLE: 0,
     MODE_STORY: 1,
     storyLineHeight: 25,
-    storyLeftMargin: 50,
+    storyLeftMargin: 60,
     storyOffset: 500,
     scrollSpeed: .4,
     scrollOffset: 0,
@@ -777,7 +788,7 @@
       this.scrolling = true;
       this.timeoutId = setTimeout(function(){
         self.stopScrolling();
-      }, 15000);
+      }, 16000);
     },
 
     stopScrolling: function(){
@@ -818,7 +829,7 @@
         this.storyLeftMargin, this.storyOffset + this.storyLineHeight * 2 + this.scrollOffset);
       context.fillText("fuel, and rains of small planetary bodies that ",
         this.storyLeftMargin, this.storyOffset + this.storyLineHeight * 3 + this.scrollOffset);
-      context.fillText("threaten earth. There is one astronaut who is up ",
+      context.fillText("threaten Earth. There is one brave hero who is up ",
         this.storyLeftMargin, this.storyOffset + this.storyLineHeight * 4 + this.scrollOffset);
       context.fillText("to the challenge of clearing this debris and",
         this.storyLeftMargin, this.storyOffset + this.storyLineHeight * 5 + this.scrollOffset);
@@ -828,8 +839,30 @@
       context.font = "24px 'Press Start 2P'";
       context.textAlign = "center"
 
-      context.fillText("the Space Janitor",
+      context.fillText("The Space Janitor",
         this.game.width / 2, this.storyOffset + this.storyLineHeight * 9 + this.scrollOffset);
+
+/*
+      context.translate(this.game.width / 2, this.storyOffset + this.storyLineHeight * 11 + this.scrollOffset);
+*/
+      var halfSize = {
+        x: this.game.settings.PLAYER_SIZE / 2,
+        y: this.game.settings.PLAYER_SIZE / 2
+      };
+
+
+      var x = this.game.width / 2;
+      var y = this.storyOffset + this.storyLineHeight * 11 + this.scrollOffset;
+      context.beginPath();
+      context.moveTo(-halfSize.x + x,halfSize.y + y);
+      context.lineTo(x,-halfSize.y + y);
+      context.lineTo(halfSize.x + x, halfSize.y + y);
+      context.lineTo(x,halfSize.y/1.7 + y);
+      context.lineTo(-halfSize.x + x,halfSize.y + y);
+      context.closePath();
+      context.strokeStyle = '#ccc';
+      context.lineWidth = this.game.settings.PLAYER_LINE_WIDTH;
+      context.stroke();
 
       if (this.scrolling){
        this.scrollOffset -= this.scrollSpeed;
@@ -944,14 +977,17 @@
       this.lives = 3;
       this.level = null;
       this.messageView.text = "Ready player one";
+      this.messageView.text2 = "Left, Right, and Up arrow keys to move.";
+      this.messageView.text3 = "Space bar to shoot.";
       this.messageView.show = true;
       this.titleView.stop();
 
       setTimeout(function(){
         self.messageView.show = false;
+        self.messageView.text = self.messageView.text2 = self.messageView.text3 = '';
         self.spawnPlayer();
         self.initNextLevel();
-      }, 3000);
+      }, 5000);
     },
 
     initNextLevel: function(){
@@ -963,8 +999,9 @@
       if (this.gameBar != null) {
         this.gameBar.levelNumber = number;
       }
-      this.intermission = false;
+
       this.messageView.show = false;
+
       for (var i = 0; i < asteroidCount; i++){
         this.deployAsteroid();
       }
@@ -1043,7 +1080,7 @@
         this.showBoundingBoxes = !this.showBoundingBoxes;
       }
 
-      if (this.state === this.STATE_INTRO || this.state === this.STATE_TITLE || this.state === this.STATE_GAME_OVER){
+      if (this.state === this.STATE_INTRO || this.state === this.STATE_TITLE){
         if(this.coquette.inputter.state(this.coquette.inputter.SPACE)) {
           this.startNewGame();
         }
@@ -1059,8 +1096,8 @@
       if (pos === undefined){
         pos = {
           x: direction === 1 ? 
-            this.maths.getRandomInt(-this.settings.ASTEROID_SIZE_LARGE,200) : 
-              this.maths.getRandomInt(this.width - 200,this.width + this.settings.ASTEROID_SIZE_LARGE), 
+            this.maths.getRandomInt(-this.settings.ASTEROID_SIZE_LARGE,150) : 
+              this.maths.getRandomInt(this.width - 150,this.width + this.settings.ASTEROID_SIZE_LARGE), 
           y: this.height
         };
       }
@@ -1068,9 +1105,9 @@
       this.coquette.entities.create(Asteroid, {
         pos: pos,
         vel: {
-          x: direction === 1 ? this.maths.getRandomInt(0,30) * .01 : 
-            this.maths.getRandomInt(-30,0) * .01,
-          y: this.maths.getRandomInt(50,200) * .01 * this.maths.plusMinus()
+          x: direction === 1 ? this.maths.getRandomInt(0,20) * .01 : 
+            this.maths.getRandomInt(-20,0) * .01,
+          y: this.maths.getRandomInt(40,200) * .01 * this.maths.plusMinus()
         },
         maxPos:{
           x: this.width,

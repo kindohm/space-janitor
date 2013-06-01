@@ -66,14 +66,17 @@
       this.lives = 3;
       this.level = null;
       this.messageView.text = "Ready player one";
+      this.messageView.text2 = "Left, Right, and Up arrow keys to move.";
+      this.messageView.text3 = "Space bar to shoot.";
       this.messageView.show = true;
       this.titleView.stop();
 
       setTimeout(function(){
         self.messageView.show = false;
+        self.messageView.text = self.messageView.text2 = self.messageView.text3 = '';
         self.spawnPlayer();
         self.initNextLevel();
-      }, 3000);
+      }, 5000);
     },
 
     initNextLevel: function(){
@@ -85,8 +88,9 @@
       if (this.gameBar != null) {
         this.gameBar.levelNumber = number;
       }
-      this.intermission = false;
+
       this.messageView.show = false;
+
       for (var i = 0; i < asteroidCount; i++){
         this.deployAsteroid();
       }
@@ -165,7 +169,7 @@
         this.showBoundingBoxes = !this.showBoundingBoxes;
       }
 
-      if (this.state === this.STATE_INTRO || this.state === this.STATE_TITLE || this.state === this.STATE_GAME_OVER){
+      if (this.state === this.STATE_INTRO || this.state === this.STATE_TITLE){
         if(this.coquette.inputter.state(this.coquette.inputter.SPACE)) {
           this.startNewGame();
         }
@@ -181,8 +185,8 @@
       if (pos === undefined){
         pos = {
           x: direction === 1 ? 
-            this.maths.getRandomInt(-this.settings.ASTEROID_SIZE_LARGE,200) : 
-              this.maths.getRandomInt(this.width - 200,this.width + this.settings.ASTEROID_SIZE_LARGE), 
+            this.maths.getRandomInt(-this.settings.ASTEROID_SIZE_LARGE,150) : 
+              this.maths.getRandomInt(this.width - 150,this.width + this.settings.ASTEROID_SIZE_LARGE), 
           y: this.height
         };
       }
@@ -190,9 +194,9 @@
       this.coquette.entities.create(Asteroid, {
         pos: pos,
         vel: {
-          x: direction === 1 ? this.maths.getRandomInt(0,30) * .01 : 
-            this.maths.getRandomInt(-30,0) * .01,
-          y: this.maths.getRandomInt(50,200) * .01 * this.maths.plusMinus()
+          x: direction === 1 ? this.maths.getRandomInt(0,20) * .01 : 
+            this.maths.getRandomInt(-20,0) * .01,
+          y: this.maths.getRandomInt(40,200) * .01 * this.maths.plusMinus()
         },
         maxPos:{
           x: this.width,

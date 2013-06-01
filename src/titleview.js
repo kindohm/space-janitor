@@ -11,7 +11,7 @@
     MODE_TITLE: 0,
     MODE_STORY: 1,
     storyLineHeight: 25,
-    storyLeftMargin: 50,
+    storyLeftMargin: 60,
     storyOffset: 500,
     scrollSpeed: .4,
     scrollOffset: 0,
@@ -37,7 +37,7 @@
       this.scrolling = true;
       this.timeoutId = setTimeout(function(){
         self.stopScrolling();
-      }, 15000);
+      }, 16000);
     },
 
     stopScrolling: function(){
@@ -78,7 +78,7 @@
         this.storyLeftMargin, this.storyOffset + this.storyLineHeight * 2 + this.scrollOffset);
       context.fillText("fuel, and rains of small planetary bodies that ",
         this.storyLeftMargin, this.storyOffset + this.storyLineHeight * 3 + this.scrollOffset);
-      context.fillText("threaten earth. There is one astronaut who is up ",
+      context.fillText("threaten Earth. There is one brave hero who is up ",
         this.storyLeftMargin, this.storyOffset + this.storyLineHeight * 4 + this.scrollOffset);
       context.fillText("to the challenge of clearing this debris and",
         this.storyLeftMargin, this.storyOffset + this.storyLineHeight * 5 + this.scrollOffset);
@@ -88,8 +88,30 @@
       context.font = "24px 'Press Start 2P'";
       context.textAlign = "center"
 
-      context.fillText("the Space Janitor",
+      context.fillText("The Space Janitor",
         this.game.width / 2, this.storyOffset + this.storyLineHeight * 9 + this.scrollOffset);
+
+/*
+      context.translate(this.game.width / 2, this.storyOffset + this.storyLineHeight * 11 + this.scrollOffset);
+*/
+      var halfSize = {
+        x: this.game.settings.PLAYER_SIZE / 2,
+        y: this.game.settings.PLAYER_SIZE / 2
+      };
+
+
+      var x = this.game.width / 2;
+      var y = this.storyOffset + this.storyLineHeight * 11 + this.scrollOffset;
+      context.beginPath();
+      context.moveTo(-halfSize.x + x,halfSize.y + y);
+      context.lineTo(x,-halfSize.y + y);
+      context.lineTo(halfSize.x + x, halfSize.y + y);
+      context.lineTo(x,halfSize.y/1.7 + y);
+      context.lineTo(-halfSize.x + x,halfSize.y + y);
+      context.closePath();
+      context.strokeStyle = '#ccc';
+      context.lineWidth = this.game.settings.PLAYER_LINE_WIDTH;
+      context.stroke();
 
       if (this.scrolling){
        this.scrollOffset -= this.scrollSpeed;

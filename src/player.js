@@ -92,7 +92,15 @@
       context.save();
       context.translate(this.pos.x + this.halfSize.x, this.pos.y + this.halfSize.y);
       context.rotate(this.rAngle);
+      this.drawMainSprite(context);
+      context.rotate(-this.Angle);
+      context.translate(-(this.pos.x), -(this.pos.y));
+      context.restore();
 
+      this.thrustEffect.draw(context);
+    },
+
+    drawMainSprite: function(context){
       context.beginPath();
       context.moveTo(-this.halfSize.x,-this.halfSize.y);
       context.lineTo(0,this.halfSize.y);
@@ -104,11 +112,6 @@
       context.lineWidth = this.game.settings.PLAYER_LINE_WIDTH;
       context.stroke();
 
-      context.rotate(-this.Angle);
-      context.translate(-(this.pos.x), -(this.pos.y));
-      context.restore();
-
-      this.thrustEffect.draw(context);
     },
 
     handleKeyboard: function(){
