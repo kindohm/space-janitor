@@ -25,6 +25,7 @@
 
     this.shotTicksLeft = this.shotTicks;
     this.boundingBox = this.game.coquette.collider.RECTANGLE;
+    this.game.soundBus.ufoSound.play();
   };
 
   Ufo.prototype = {
@@ -108,6 +109,7 @@
 
     selfKill: function(){
       this.game.coquette.entities.destroy(this);
+      this.game.soundBus.ufoSound.stop();
     },
 
     collision: function(other, type){
@@ -116,6 +118,7 @@
           (other instanceof Bullet && !other.hostile) ||
           other instanceof Player
         )){
+          this.game.soundBus.ufoSound.stop();
           this.game.ufoKilled(this);
           this.game.coquette.entities.destroy(this);
       }
