@@ -82,14 +82,21 @@
     draw: function(context){
 
       context.beginPath();
-      context.moveTo(this.pos.x, this.pos.y);
+      context.moveTo(this.pos.x, this.pos.y + this.size.y * .25);
+      context.lineTo(this.pos.x, this.pos.y + this.size.y * .75);
 
-      context.lineTo(this.pos.x, this.pos.y + this.size.y);
-      context.lineTo(this.pos.x + this.halfSize.x, this.pos.y + this.size.y * .75);
-      context.lineTo(this.pos.x + this.size.x, this.pos.y + this.size.y);
-      context.lineTo(this.pos.x + this.size.x, this.pos.y);
-      context.lineTo(this.pos.x + this.halfSize.x, this.pos.y + this.size.y * .25);
-      context.lineTo(this.pos.x, this.pos.y);
+      context.lineTo(this.pos.x + this.size.x * .25, this.pos.y + this.size.y);
+      context.lineTo(this.pos.x + this.size.x * .75, this.pos.y + this.size.y);
+
+      context.lineTo(this.pos.x + this.size.x, this.pos.y + this.size.y * .75);
+      context.lineTo(this.pos.x + this.size.x, this.pos.y + this.size.y * .25);
+
+      context.lineTo(this.pos.x + this.size.x * .75, this.pos.y);
+      context.lineTo(this.pos.x + this.size.x * .25, this.pos.y);
+
+      context.lineTo(this.pos.x, this.pos.y + this.size.y * .25);
+
+
 
       context.closePath();
       context.strokeStyle = '#ccc';
