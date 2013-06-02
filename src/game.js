@@ -143,13 +143,15 @@
 
     spawnUfo: function(){
 
+      var direction = this.maths.plusMinus();
+
       var pos = {
-        x: 1,
-        y: 100,
+        x: direction === 1 ? -39 : this.width,
+        y: this.maths.getRandomInt(50, this.height - 50),
       };
 
       var vel = {
-        x: 2,
+        x: direction === 1 ? 2 : -2,
         y: 0
       };
 

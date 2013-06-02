@@ -73,7 +73,7 @@
 
     checkBounds: function(){
 
-      if (this.pos.x > this.game.width || this.pos.x < -this.size.x){
+      if (this.pos.x > this.game.width + this.size.x || this.pos.x < -this.size.x){
         this.selfKill();
       }
 
