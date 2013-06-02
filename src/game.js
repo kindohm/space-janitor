@@ -157,8 +157,8 @@
         pos: pos,
         vel: vel,
         size: {
-          x: 30,
-          y: 30
+          x: 40,
+          y: 25
         }
       });
 
