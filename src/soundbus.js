@@ -33,6 +33,14 @@
       volume: 0.5
     });    
 
+    this.ufoSound = new Howl({
+      urls: [
+        soundsPath + 'ufo.mp3', 
+        soundsPath + 'ufo.ogg'],
+      volume: 0.7,
+      loop: true
+    });    
+
   };
 
   SoundBus.prototype = {
