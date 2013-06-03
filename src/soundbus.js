@@ -41,6 +41,14 @@
       loop: true
     });    
 
+    this.oneUpSound = new Howl({
+      urls: [
+        soundsPath + 'oneup.mp3', 
+        soundsPath + 'oneup.ogg'],
+      volume: 0.7,
+      loop: false
+    });    
+
   };
 
   SoundBus.prototype = {

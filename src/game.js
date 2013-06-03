@@ -20,6 +20,8 @@
     this.scoringRules = new ScoringRules(this);
 
     this.ufoTicksLeft = this.ufoTicks;
+
+    this.oneUpPlateau = this.oneUpPlateauStep;
   };
 
   Game.prototype = {
@@ -42,6 +44,7 @@
     showBoundingBoxes: false,
     soundsPath: 'sounds/',
     ufoTicks: 1400,
+    oneUpPlateauStep: 250000,
 
     init: function() {
       this.soundBus = new SoundBus(this.soundsPath);
@@ -63,6 +66,7 @@
       this.clearEntities();
 
       var self = this;
+      this.oneUpPlateau = this.oneUpPlateauStep;
       this.score = 0;
       this.state = this.STATE_READY;
       this.lives = 3;
@@ -123,7 +127,7 @@
         if (this.level.complete){
           this.state = this.STATE_BETWEEN_LEVELS;
           var levelBonus = this.scoringRules.pointsForLevel(this.level);
-          this.score += levelBonus;
+          this.appendScore(levelBonus);
           this.messageView.text = 'Level ' + this.level.number.toString() + ' complete. Bonus: ' + levelBonus.toString() + '. Loading next level...';
           this.messageView.show = true;
           var self = this;
@@ -254,7 +258,7 @@
         this.level.deployAsteroid(this.settings.ASTEROID_SIZE_SMALL, asteroid.pos);
       } 
       this.level.asteroidsShot++;
-      this.score += this.scoringRules.pointsForAsteroid(asteroid);
+      this.appendScore(this.scoringRules.pointsForAsteroid(asteroid));
       this.spawnAsteroidExplosion(asteroid.pos);
     },
 
@@ -285,7 +289,7 @@
     ufoKilled: function(ufo){
       this.soundBus.asteroidExplosionSound.play();
       this.spawnAsteroidExplosion(ufo.pos);
-      this.score += this.scoringRules.pointsForUfo(ufo);
+      this.appendScore(this.scoringRules.pointsForUfo(ufo));
     },
 
     trySpawnPlayer: function(){
@@ -332,6 +336,16 @@
         self.titleView.play();
       }, 3000);
     },
+
+    appendScore: function(more){
+      this.score += more;
+
+      if (this.score >= this.oneUpPlateau){
+        this.oneUpPlateau += this.oneUpPlateauStep;
+        this.lives++;
+        this.soundBus.oneUpSound.play();
+      }
+    }
 
   };
 
