@@ -25,7 +25,7 @@
 
     draw: function(context){
 
-      if (this.game.state === this.game.STATE_TITLE) return;
+      //if (this.game.state === this.game.STATE_TITLE) return;
 
       context.fillStyle = '#000';
       context.fillRect(0,0,this.game.width, 30);

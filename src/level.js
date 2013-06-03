@@ -74,8 +74,8 @@
       };
 
       var vel = {
-        x: (direction === 1 ? 2 : -2) + (this.number - 1) * .02,
-        y: 0 + .02 * (this.number - 1) * this.game.maths.plusMinus()
+        x: (direction === 1 ? 2 : -2) + (this.number - 1) * .06,
+        y: 0 + .03 * (this.number - 1) * this.game.maths.plusMinus()
       };
 
       var shotTicks = 40;
