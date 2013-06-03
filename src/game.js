@@ -95,15 +95,16 @@
       this.score = 0;
       this.lives = 3;
       this.level = null;
-      this.messageView.text = "Ready player one";
+      this.messageView.text = "READY PLAYER ONE";
       this.messageView.text2 = "Left, Right, and Up arrow keys to move.";
       this.messageView.text3 = "Space bar to shoot.";
+      this.messageView.text4 = "ESC to pause.";
       this.messageView.show = true;
       this.titleView.stop();
 
       setTimeout(function(){
         self.messageView.show = false;
-        self.messageView.text = self.messageView.text2 = self.messageView.text3 = '';
+        self.messageView.text = self.messageView.text2 = self.messageView.text3 = self.messageView.text4 = '';
         self.spawnPlayer();
         self.initNextLevel();
       }, 5000);
