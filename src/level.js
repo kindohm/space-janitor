@@ -15,6 +15,7 @@
   Level.prototype = {
 
     update: function(){
+      if (this.game.paused) return;
       if (!this.complete) {
         this.complete = this.game.coquette.entities.all(Asteroid).length === 0
           && this.game.coquette.entities.all(Ufo).length === 0;

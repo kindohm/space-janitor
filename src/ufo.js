@@ -35,6 +35,7 @@
     shotVelScale: 5,
 
     update: function(){
+      if (this.game.paused) return;
       this.pos.x += this.vel.x;
       this.pos.y += this.vel.y;
 

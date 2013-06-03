@@ -21,6 +21,7 @@
     colorBase: '204,204,204',
 
     update: function(){
+      if (this.game.paused) return;
       this.radius += this.radiusGrowth;
       this.ticksLeft--;
       this.pos.x += this.vel.x;

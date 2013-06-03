@@ -28,6 +28,9 @@
     halfSize: { x:1, y:1 },
 
     update: function() {
+
+      if (this.game.paused) return;
+
       this.pos.x += this.vel.x;
       this.pos.y += this.vel.y;
 
@@ -39,6 +42,7 @@
     },
 
     draw: function(context) {
+
       context.drawImage(this.sprite, this.pos.x, 
         this.pos.y, this.size.x, this.size.y);
     },
