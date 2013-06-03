@@ -2,6 +2,8 @@
 
   var Particle = function(game, settings){
 
+    this.game = game;
+    
     this.pos = {
       x: settings.pos.x,
       y: settings.pos.y
@@ -17,6 +19,7 @@
   Particle.prototype = {
 
     update: function(){
+      if (this.game.paused) return;
       this.pos.x += this.vel.x;
       this.pos.y += this.vel.y;
     }
@@ -51,6 +54,7 @@
     complete: false,
 
     update: function(){
+      if (this.game.paused) return;
       if (!this.complete){
         for(var i = 0; i < this.particles.length; i++){
           this.particles[i].update();
@@ -61,6 +65,7 @@
     },
 
     draw: function(context){
+
       var ratio = (this.ticksLeft / this.duration).toString();
       if (!this.complete){
         for (var i = 0; i < this.particles.length; i++){

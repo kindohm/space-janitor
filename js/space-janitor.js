@@ -85,6 +85,9 @@
     halfSize: { x:1, y:1 },
 
     update: function() {
+
+      if (this.game.paused) return;
+
       this.pos.x += this.vel.x;
       this.pos.y += this.vel.y;
 
@@ -96,6 +99,7 @@
     },
 
     draw: function(context) {
+
       context.drawImage(this.sprite, this.pos.x, 
         this.pos.y, this.size.x, this.size.y);
     },
@@ -161,6 +165,14 @@
       loop: false
     });    
 
+    this.pauseSound = new Howl({
+      urls: [
+        soundsPath + 'pause.mp3', 
+        soundsPath + 'pause.ogg'],
+      volume: 0.7,
+      loop: false
+    });    
+
   };
 
   SoundBus.prototype = {
@@ -192,6 +204,7 @@
     colorBase: '204,204,204',
 
     update: function(){
+      if (this.game.paused) return;
       this.radius += this.radiusGrowth;
       this.ticksLeft--;
       this.pos.x += this.vel.x;
@@ -270,6 +283,8 @@
 
   var Particle = function(game, settings){
 
+    this.game = game;
+    
     this.pos = {
       x: settings.pos.x,
       y: settings.pos.y
@@ -285,6 +300,7 @@
   Particle.prototype = {
 
     update: function(){
+      if (this.game.paused) return;
       this.pos.x += this.vel.x;
       this.pos.y += this.vel.y;
     }
@@ -319,6 +335,7 @@
     complete: false,
 
     update: function(){
+      if (this.game.paused) return;
       if (!this.complete){
         for(var i = 0; i < this.particles.length; i++){
           this.particles[i].update();
@@ -329,6 +346,7 @@
     },
 
     draw: function(context){
+
       var ratio = (this.ticksLeft / this.duration).toString();
       if (!this.complete){
         for (var i = 0; i < this.particles.length; i++){
@@ -379,6 +397,9 @@
   Asteroid.prototype = {
 
     update: function(){
+
+      if (this.game.paused) return;
+
       this.pos.x += this.vel.x;
       this.pos.y += this.vel.y;
 
@@ -400,6 +421,7 @@
     },
 
     draw: function(context){
+
       context.beginPath();
       if (this.boundingBox == this.game.coquette.collider.RECTANGLE){
         context.rect(this.pos.x, this.pos.y, this.size.x, this.size.y);
@@ -466,6 +488,7 @@
     shotVelScale: 5,
 
     update: function(){
+      if (this.game.paused) return;
       this.pos.x += this.vel.x;
       this.pos.y += this.vel.y;
 
@@ -621,6 +644,8 @@
     shotTicksLeft: 0,
 
     update: function (){
+
+      if (this.game.paused) return;
 
       this.handleKeyboard();
 
@@ -854,6 +879,7 @@
   Level.prototype = {
 
     update: function(){
+      if (this.game.paused) return;
       if (!this.complete) {
         this.complete = this.game.coquette.entities.all(Asteroid).length === 0
           && this.game.coquette.entities.all(Ufo).length === 0;
@@ -1180,6 +1206,8 @@
     STATE_GAME_OVER: 4,
     STATE_TITLE: 0,
 
+    pausing: false,
+    paused: false,
     score: 0,
     lives: 3,
     gameBar: null,
@@ -1258,6 +1286,8 @@
 
     update: function(){
       this.handleKeyboard();
+
+      if (this.paused) return;
 
       for (var i = 0; i < this.explosions.length; i++){
         this.explosions[i].update();
@@ -1340,8 +1370,11 @@
 
     handleKeyboard: function(){
 
-      if(this.coquette.inputter.state(this.coquette.inputter.LEFT_ARROW)
-        && this.coquette.inputter.state(this.coquette.inputter.RIGHT_ARROW)) {
+      this.checkPause();
+
+      if (this.paused) return;
+
+      if(this.coquette.inputter.state(this.coquette.inputter.F12)) {
         this.showBoundingBoxes = !this.showBoundingBoxes;
       }
 
@@ -1351,6 +1384,38 @@
         }
       }
 
+
+    },
+
+    checkPause: function(){
+      var esc = this.coquette.inputter.state(this.coquette.inputter.ESC);
+
+      if (this.state === this.STATE_PLAYING && esc){
+        if (!this.pausing){
+          this.pausing = true;
+        } 
+      } else if (this.state === this.STATE_PLAYING && !esc){
+        if (this.pausing){
+          
+          this.paused = !this.paused;
+          this.pausing = false;
+          if (this.paused){
+
+            this.previousText = this.messageView.text;
+            this.previousShow = this.messageView.show;
+
+            this.messageView.text = 'PAUSED';
+            this.messageView.show = true;
+            this.soundBus.pauseSound.play();
+          }
+          else{
+            this.messageView.text = this.previousText;
+            this.messageView.show = this.previousShow;
+            this.soundBus.pauseSound.play();
+          }
+
+        }
+      }
     },
 
     spawnPlayer: function(){
@@ -1397,12 +1462,13 @@
       this.soundBus.asteroidExplosionSound.play();
 
       // split up asteroid into two smaller ones
+      var newPos = {x: asteroid.pos.x + asteroid.size.x / 4, y: asteroid.pos.y + asteroid.size.y/4};
       if (asteroid.size.x === this.settings.ASTEROID_SIZE_LARGE){
-        this.level.deployAsteroid(this.settings.ASTEROID_SIZE_MEDIUM, asteroid.pos);
-        this.level.deployAsteroid(this.settings.ASTEROID_SIZE_MEDIUM, asteroid.pos);
+        this.level.deployAsteroid(this.settings.ASTEROID_SIZE_MEDIUM, newPos);
+        this.level.deployAsteroid(this.settings.ASTEROID_SIZE_MEDIUM, newPos);
       } else if (asteroid.size.x === this.settings.ASTEROID_SIZE_MEDIUM){
-        this.level.deployAsteroid(this.settings.ASTEROID_SIZE_SMALL, asteroid.pos);
-        this.level.deployAsteroid(this.settings.ASTEROID_SIZE_SMALL, asteroid.pos);
+        this.level.deployAsteroid(this.settings.ASTEROID_SIZE_SMALL, newPos);
+        this.level.deployAsteroid(this.settings.ASTEROID_SIZE_SMALL, newPos);
       } 
       this.level.asteroidsShot++;
       this.appendScore(this.scoringRules.pointsForAsteroid(asteroid));

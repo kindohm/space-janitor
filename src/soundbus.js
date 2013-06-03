@@ -49,6 +49,14 @@
       loop: false
     });    
 
+    this.pauseSound = new Howl({
+      urls: [
+        soundsPath + 'pause.mp3', 
+        soundsPath + 'pause.ogg'],
+      volume: 0.7,
+      loop: false
+    });    
+
   };
 
   SoundBus.prototype = {

@@ -35,6 +35,9 @@
   Asteroid.prototype = {
 
     update: function(){
+
+      if (this.game.paused) return;
+
       this.pos.x += this.vel.x;
       this.pos.y += this.vel.y;
 
@@ -56,6 +59,7 @@
     },
 
     draw: function(context){
+
       context.beginPath();
       if (this.boundingBox == this.game.coquette.collider.RECTANGLE){
         context.rect(this.pos.x, this.pos.y, this.size.x, this.size.y);

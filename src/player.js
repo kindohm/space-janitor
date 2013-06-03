@@ -59,6 +59,8 @@
 
     update: function (){
 
+      if (this.game.paused) return;
+
       this.handleKeyboard();
 
       this.vel.x += this.thrust.x;
