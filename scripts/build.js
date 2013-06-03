@@ -18,6 +18,7 @@ var input = [
   src + 'gamebar.js',
   src + 'level.js',
   src + 'messageview.js',
+  src + 'difficultyview.js',
   src + 'titleview.js',
   src + 'scoringrules.js',
   src + 'game.js'

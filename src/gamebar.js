@@ -25,7 +25,7 @@
 
     draw: function(context){
 
-      //if (this.game.state === this.game.STATE_TITLE) return;
+      if (this.game.difficulty === this.game.DIFFICULTY_FREE) return;
 
       context.fillStyle = '#000';
       context.fillRect(0,0,this.game.width, 30);
@@ -39,14 +39,8 @@
       context.textAlign = "left"
       context.fillText('Lives: ' + this.game.lives.toString(), 150, 20);
 
-      if (this.game.level != null){
-        context.textAlign = "center"
-        var bonus = this.game.scoringRules.pointsForLevel(this.game.level);
-        context.fillText('Level Bonus: ' + bonus.toString(), this.game.width/2, 20);
-      }
-
       context.textAlign = "right"
-      context.fillText('Score: ' + this.game.score.toString(), this.game.width - 10, 20);
+      context.fillText('Score: ' + Math.floor(this.game.score).toString(), this.game.width - 10, 20);
     }
   };
 
