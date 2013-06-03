@@ -15,13 +15,17 @@
         self.gameBar = bar;
       });
 
+    this.coquette.entities.create(PauseView,{},
+      function(view){
+        self.pauseView = view;
+      });
+
     this.messageView = new MessageView(this);
     this.titleView = new TitleView(this);
     this.scoringRules = new ScoringRules(this);
     this.difficultyView = new DifficultyView(this);
 
     this.ufoTicksLeft = this.ufoTicks;
-
     this.oneUpPlateau = this.oneUpPlateauStep;
   };
 
@@ -58,6 +62,7 @@
     oneUpPlateauStep: 250000,
 
     init: function() {
+      this.coquette.inputter.supressedKeys
       this.soundBus = new SoundBus(this.soundsPath);
       this.state = this.STATE_TITLE;
       this.titleView.play();
@@ -67,7 +72,7 @@
       // wipe out all entities
       var entities = this.coquette.entities.all();      
       for(var i = entities.length - 1; i >= 0; i--){
-        if (entities[i] instanceof GameBar === false) {
+        if (entities[i] instanceof GameBar === false && entities[i] instanceof PauseView === false) {
           this.coquette.entities.destroy(entities[i]);
         }
       }
@@ -90,15 +95,16 @@
       this.score = 0;
       this.lives = 3;
       this.level = null;
-      this.messageView.text = "Ready player one";
+      this.messageView.text = "READY PLAYER ONE";
       this.messageView.text2 = "Left, Right, and Up arrow keys to move.";
       this.messageView.text3 = "Space bar to shoot.";
+      this.messageView.text4 = "ESC to pause.";
       this.messageView.show = true;
       this.titleView.stop();
 
       setTimeout(function(){
         self.messageView.show = false;
-        self.messageView.text = self.messageView.text2 = self.messageView.text3 = '';
+        self.messageView.text = self.messageView.text2 = self.messageView.text3 = self.messageView.text4 = '';
         self.spawnPlayer();
         self.initNextLevel();
       }, 5000);
@@ -218,9 +224,17 @@
 
       this.checkPause();
 
+      var inputter = this.coquette.inputter;
+
+      if (this.paused && inputter.state(inputter.Q)){
+        // quit!
+        this.clearEntities();
+        this.endGame();
+        return;
+      }
+
       if (this.paused) return;
 
-      var inputter = this.coquette.inputter;
 
       if (this.state === this.STATE_CHOOSE_DIFFICULTY){
         if (inputter.state(inputter.TWO)){
@@ -274,12 +288,13 @@
 
             this.previousText = this.messageView.text;
             this.previousShow = this.messageView.show;
-
-            this.messageView.text = 'PAUSED';
-            this.messageView.show = true;
+            
+            this.messageView.show = false;
+            this.pauseView.show = true;
             this.soundBus.pauseSound.play();
           }
           else{
+            this.pauseView.show = false;
             this.messageView.text = this.previousText;
             this.messageView.show = this.previousShow;
             this.soundBus.pauseSound.play();
@@ -410,6 +425,8 @@
 
     endGame: function(){      
       var self = this;
+      this.paused = false;
+      this.pauseView.show = false;      
       this.messageView.text = 'Game Over';
       this.messageView.show = true;
       this.state = self.STATE_GAME_OVER;

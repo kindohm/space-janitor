@@ -7,8 +7,8 @@
     // the GameBar needs to be an entity itself with a zindex. Coquette
     // won't draw it without a pos and size.
     this.pos = {
-      x: 0,
-      y: 0
+      x: -1000,
+      y: -1000
     };
 
     this.size = {
