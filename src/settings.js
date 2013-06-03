@@ -9,7 +9,7 @@
     PLAYER_SIZE:          30,
     PLAYER_LINE_WIDTH:    2, 
     BULLET_VELOCITY:      5.0,
-    BULLET_DELAY_TICKS:   35, 
+    BULLET_DELAY_TICKS:   10, 
     BULLET_SIZE_X:        4,
     BULLET_SIZE_Y:        4,
     THRUST_EFFECT_TICKS:  8,

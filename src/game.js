@@ -41,7 +41,7 @@
     height: 0,
     showBoundingBoxes: false,
     soundsPath: 'sounds/',
-    ufoTicks: 2000,
+    ufoTicks: 1400,
 
     init: function() {
       this.soundBus = new SoundBus(this.soundsPath);
@@ -83,19 +83,26 @@
 
     initNextLevel: function(){
 
+      this.ufoTicks = this.maths.getRandomInt(1000, 1500);
+      this.ufoTicksLeft = this.ufoTicks;
       this.state = this.STATE_PLAYING;
       var number = this.level === null ? 1 : this.level.number + 1;
-      var asteroidCount = number + 1;
-      this.level = new Level(this, number, asteroidCount);
+      this.level = new Level(this, number);
       if (this.gameBar != null) {
         this.gameBar.levelNumber = number;
       }
 
       this.messageView.show = false;
 
-      for (var i = 0; i < asteroidCount; i++){
-        this.deployAsteroid();
+      var self = this;
+      self.level.deployAsteroid();
+      for (var i = 1; i < this.level.asteroidCount; i++){
+        setTimeout(function(){
+          self.level.deployAsteroid();
+        }, i * 1000);
       }
+
+
     },
 
     update: function(){
@@ -135,35 +142,14 @@
 
     checkUfo: function(){
       this.ufoTicksLeft--;
-      if (this.ufoTicksLeft === 0){
-        this.ufoTicksLeft = this.ufoTicks;
+      if (!this.level.ufoDeployed && this.ufoTicksLeft === 0){
+        this.level.ufoDeployed = true;
         this.spawnUfo();
       }
     },
 
     spawnUfo: function(){
-
-      var direction = this.maths.plusMinus();
-
-      var pos = {
-        x: direction === 1 ? -39 : this.width,
-        y: this.maths.getRandomInt(50, this.height - 50),
-      };
-
-      var vel = {
-        x: direction === 1 ? 2 : -2,
-        y: 0
-      };
-
-      this.coquette.entities.create(Ufo, {
-        pos: pos,
-        vel: vel,
-        size: {
-          x: 40,
-          y: 25
-        }
-      });
-
+      this.level.spawnUfo();
     },
 
     draw: function(context){
@@ -216,39 +202,6 @@
 
     },
 
-    deployAsteroid: function(size, pos){
-
-      var direction = this.maths.plusMinus();
-      size = size === undefined ? this.settings.ASTEROID_SIZE_LARGE : size;
-
-      if (pos === undefined){
-        pos = {
-          x: direction === 1 ? 
-            this.maths.getRandomInt(-this.settings.ASTEROID_SIZE_LARGE,150) : 
-              this.maths.getRandomInt(this.width - 150,this.width + this.settings.ASTEROID_SIZE_LARGE), 
-          y: this.height
-        };
-      }
-
-      this.coquette.entities.create(Asteroid, {
-        pos: pos,
-        vel: {
-          x: direction === 1 ? this.maths.getRandomInt(0,20) * .01 : 
-            this.maths.getRandomInt(-20,0) * .01,
-          y: this.maths.getRandomInt(40,200) * .01 * this.maths.plusMinus()
-        },
-        maxPos:{
-          x: this.width,
-          y: this.height
-        },
-        size: {
-          x: size,
-          y: size
-        },
-        boundingBox: this.coquette.collider.RECTANGLE
-      });
-    },
-
     spawnPlayer: function(){
       var self = this;
       self.coquette.entities.create(Player, {
@@ -268,7 +221,7 @@
 
     spawnAsteroidExplosion: function(pos){
       var effect = new ExplosionEffect(this, {
-        numParticles: 50,
+        numParticles: 20,
         duration: 50,
         particleSize: 3,
         pos: pos
@@ -279,7 +232,7 @@
 
     spawnPlayerExplosion: function(pos){
       var effect = new ExplosionEffect(this, {
-        numParticles: 100,
+        numParticles: 50,
         duration: 75,
         particleSize: 8,
         pos: pos
@@ -294,11 +247,11 @@
 
       // split up asteroid into two smaller ones
       if (asteroid.size.x === this.settings.ASTEROID_SIZE_LARGE){
-        this.deployAsteroid(this.settings.ASTEROID_SIZE_MEDIUM, asteroid.pos);
-        this.deployAsteroid(this.settings.ASTEROID_SIZE_MEDIUM, asteroid.pos);
+        this.level.deployAsteroid(this.settings.ASTEROID_SIZE_MEDIUM, asteroid.pos);
+        this.level.deployAsteroid(this.settings.ASTEROID_SIZE_MEDIUM, asteroid.pos);
       } else if (asteroid.size.x === this.settings.ASTEROID_SIZE_MEDIUM){
-        this.deployAsteroid(this.settings.ASTEROID_SIZE_SMALL, asteroid.pos);
-        this.deployAsteroid(this.settings.ASTEROID_SIZE_SMALL, asteroid.pos);
+        this.level.deployAsteroid(this.settings.ASTEROID_SIZE_SMALL, asteroid.pos);
+        this.level.deployAsteroid(this.settings.ASTEROID_SIZE_SMALL, asteroid.pos);
       } 
       this.level.asteroidsShot++;
       this.score += this.scoringRules.pointsForAsteroid(asteroid);
