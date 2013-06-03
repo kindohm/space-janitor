@@ -1,6 +1,9 @@
 ;(function(exports){
 
-  var ThrustBubble = function(pos, direction){
+  var ThrustBubble = function(game, pos, direction){
+
+    this.game = game;
+
     this.pos = {
       x: pos.x,
       y: pos.y
@@ -52,7 +55,7 @@
     thrustEffectTicksLeft: 0,
 
     add: function(pos, direction){
-      var bubble = new ThrustBubble(pos, direction);
+      var bubble = new ThrustBubble(this.game, pos, direction);
       this.effects.push(bubble);
     },
 

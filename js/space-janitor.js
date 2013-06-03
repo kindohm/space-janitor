@@ -183,7 +183,10 @@
 })(this);
 ;(function(exports){
 
-  var ThrustBubble = function(pos, direction){
+  var ThrustBubble = function(game, pos, direction){
+
+    this.game = game;
+
     this.pos = {
       x: pos.x,
       y: pos.y
@@ -235,7 +238,7 @@
     thrustEffectTicksLeft: 0,
 
     add: function(pos, direction){
-      var bubble = new ThrustBubble(pos, direction);
+      var bubble = new ThrustBubble(this.game, pos, direction);
       this.effects.push(bubble);
     },
 
@@ -834,7 +837,7 @@
 
     draw: function(context){
 
-      //if (this.game.state === this.game.STATE_TITLE) return;
+      if (this.game.difficulty === this.game.DIFFICULTY_FREE) return;
 
       context.fillStyle = '#000';
       context.fillRect(0,0,this.game.width, 30);
@@ -848,14 +851,8 @@
       context.textAlign = "left"
       context.fillText('Lives: ' + this.game.lives.toString(), 150, 20);
 
-      if (this.game.level != null){
-        context.textAlign = "center"
-        var bonus = this.game.scoringRules.pointsForLevel(this.game.level);
-        context.fillText('Level Bonus: ' + bonus.toString(), this.game.width/2, 20);
-      }
-
       context.textAlign = "right"
-      context.fillText('Score: ' + this.game.score.toString(), this.game.width - 10, 20);
+      context.fillText('Score: ' + Math.floor(this.game.score).toString(), this.game.width - 10, 20);
     }
   };
 
@@ -864,10 +861,11 @@
 })(this);
 ;(function(exports){
 
-  var Level = function(game, number){
+  var Level = function(game, number, difficulty){
     this.game = game;
+    this.difficulty = difficulty;
     this.number = number;
-    this.asteroidCount = Math.min(number + 1, 7);
+    this.asteroidCount = this.getAsteroidCount();
     this.complete = false;
     this.shots = 0;
     this.asteroidsShot = 0;
@@ -878,8 +876,26 @@
 
   Level.prototype = {
 
+    getAsteroidCount: function(){
+
+      if (this.difficulty === this.game.DIFFICULTY_FREE) 
+        return 0;
+
+      if (this.difficulty === this.game.DIFFICULTY_EASY) 
+        return Math.min(this.number, 6);
+
+      if (this.difficulty === this.game.DIFFICULTY_NORMAL) 
+        return Math.min(this.number + 1, 7);
+
+      if (this.difficulty === this.game.DIFFICULTY_HARD) 
+        return Math.min(this.number + 2, 7);
+
+      if (this.difficulty === this.game.DIFFICULTY_INSANE) 
+        return Math.min(this.number + 3, 7);
+    },
+
     update: function(){
-      if (this.game.paused) return;
+      if (this.game.paused || this.difficulty === this.game.DIFFICULTY_FREE) return;
       if (!this.complete) {
         this.complete = this.game.coquette.entities.all(Asteroid).length === 0
           && this.game.coquette.entities.all(Ufo).length === 0;
@@ -887,6 +903,8 @@
     },
 
     deployAsteroid: function(size, pos){
+
+      if (this.difficulty === this.game.DIFFICULTY_FREE) return;
 
       var direction = this.game.maths.plusMinus();
       size = size === undefined ? this.game.settings.ASTEROID_SIZE_LARGE : size;
@@ -904,8 +922,8 @@
 
       }
 
-      var xVelBase = this.game.maths.getRandomInt(Math.floor(1+ this.number/2), 10 + 10 * this.number * .75) * .01;
-      var yVelBase = this.game.maths.getRandomInt(40 + 10 * this.number/2, 200 + 20 * this.number/2) * .01;
+      var xVelBase = this.getNextVelX();
+      var yVelBase = this.getNextVelY();
 
       var vel = {
         x: direction === 1 ? xVelBase : -xVelBase,
@@ -928,8 +946,39 @@
       });
     },
 
+    getNextVelX: function(){
+      if (this.difficulty === this.game.DIFFICULTY_EASY)
+        return this.game.maths.getRandomInt(1, 10 + 10 * this.number * .25) * .01;
+
+      if (this.difficulty === this.game.DIFFICULTY_NORMAL)
+        return this.game.maths.getRandomInt(1, 10 + 10 * this.number * .75) * .01;
+
+      if (this.difficulty === this.game.DIFFICULTY_HARD)
+        return this.game.maths.getRandomInt(5, 10 + 10 * this.number * 1.25) * .01;
+
+      if (this.difficulty === this.game.DIFFICULTY_INSANE)
+        return this.game.maths.getRandomInt(5 + this.number, 10 + 10 * this.number * 1.75) * .01;
+    },
+
+    getNextVelY: function(){
+      if (this.difficulty === this.game.DIFFICULTY_EASY)
+        return this.game.maths.getRandomInt(40, 200 + this.number/2) * .01;
+
+      if (this.difficulty === this.game.DIFFICULTY_NORMAL)
+        return this.game.maths.getRandomInt(40 + 5 * this.number, 200 + 10 * this.number) * .01;
+
+      if (this.difficulty === this.game.DIFFICULTY_HARD)
+        return this.game.maths.getRandomInt(40 + 10 * this.number, 200 + 30 * this.number) * .01;
+
+      if (this.difficulty === this.game.DIFFICULTY_INSANE)
+        return this.game.maths.getRandomInt(50 + 20 * this.number, 210 + 50 * this.number) * .01;
+    },
+
 
     spawnUfo: function(){
+
+      if (this.difficulty === this.game.DIFFICULTY_FREE ||
+        this.difficulty === this.game.DIFFICULTY_EASY) return;
 
       var direction = this.game.maths.plusMinus();
 
@@ -939,8 +988,8 @@
       };
 
       var vel = {
-        x: (direction === 1 ? 2 : -2) + (this.number - 1) * .06,
-        y: 0 + .03 * (this.number - 1) * this.game.maths.plusMinus()
+        x: direction * this.nextUfoVelX(),
+        y: this.nextUfoVelY()
       };
 
       var shotTicks = 40;
@@ -960,13 +1009,35 @@
         }
       });
 
+    },
+
+    nextUfoVelY: function(){
+      if (this.game.difficulty === this.game.DIFFICULTY_NORMAL)
+        return .03 * (this.number - 1) * this.game.maths.plusMinus();
+      if (this.game.difficulty === this.game.DIFFICULTY_HARD)
+        return .05 * (this.number) * this.game.maths.plusMinus();
+      if (this.game.difficulty === this.game.DIFFICULTY_INSANE)
+        return .1 * (this.number) * this.game.maths.plusMinus();
+
+      return 0;
+    },
+
+    nextUfoVelX: function(){
+      if (this.game.difficulty === this.game.DIFFICULTY_EASY)
+        return 2 + (this.number - 1) * .04;
+
+      if (this.game.difficulty === this.game.DIFFICULTY_NORMAL)
+        return 2 + (this.number - 1) * .06;
+
+      if (this.game.difficulty === this.game.DIFFICULTY_HARD)
+        return 2 + (this.number - 1) * .1;
+
+      if (this.game.difficulty === this.game.DIFFICULTY_INSANE)
+        return 3 + (this.number - 1) * .1;
+
+      return 2;
     }
-
-
-
   };
-
-
 
   exports.Level = Level;
 
@@ -1005,6 +1076,43 @@
   };
 
   exports.MessageView = MessageView;
+
+})(this);
+;(function(exports){
+
+  var DifficultyView = function(game){
+    this.game = game;
+  };
+
+  DifficultyView.prototype = {
+
+    show: false,
+
+    draw: function(context){
+
+      if (!this.show) return;
+
+      var x = this.game.width / 2;
+
+      context.font = "16px 'Press Start 2P'";
+      context.textAlign = "center"
+      context.fillStyle = '#ccc';
+      context.fillText('CHOOSE DIFFICULTY', x, 100);
+
+      context.font = "12px 'Press Start 2P'";
+      context.fillText('Press a number key:', x, 200);
+
+      context.fillText('1 - free flying', x, 250);
+      context.fillText('2 - easy', x, 280);
+      context.fillText('3 - normal', x, 310);
+      context.fillText('4 - hard', x, 340);
+      context.fillText('5 - insane', x, 370);
+
+    }
+
+  };
+
+  exports.DifficultyView = DifficultyView;
 
 })(this);
 ;(function(exports){
@@ -1137,33 +1245,42 @@
 
   var ScoringRules = function(game){
     this.game = game;
+
+    if (game.difficulty === game.DIFFICULTY_FREE) this.multiplier = 0;
+    if (game.difficulty === game.DIFFICULTY_EASY) this.multiplier = 0.5;
+    if (game.difficulty === game.DIFFICULTY_NORMAL) this.multiplier = 1;
+    if (game.difficulty === game.DIFFICULTY_HARD) this.multiplier = 1.25;
+    if (game.difficulty === game.DIFFICULTY_INSANE) this.multiplier = 1.5;
+
   };
 
   ScoringRules.prototype = {
 
+    multiplier: 1.0,
+
     pointsForAsteroid: function(asteroid){
       if (asteroid.size.x === this.game.settings.ASTEROID_SIZE_LARGE) {
-        return 250;
+        return 250 * this.multiplier;
       } else if (asteroid.size.x === this.game.settings.ASTEROID_SIZE_MEDIUM){
-        return 500;
+        return 500 * this.multiplier;
       } else {
-        return 1000;
+        return 1000 * this.multiplier;
       }
     },
 
     pointsForLevel: function(level){
       var base = 500 * level.number;
-      if (level.shots === 0) return base;
+      if (level.shots === 0) return base * this.multiplier;
       var percent = level.asteroidsShot / level.shots;
-      return base + Math.floor(percent * 1000);
+      return Math.floor((base + percent * 1000) * this.multiplier);
     },
 
     pointsForCrash: function(){
-      return 1000;
+      return 1000 * this.multiplier;
     },
 
     pointsForUfo: function(ufo){
-      return 2000;
+      return 2000 * this.multiplier;
     }
 
   };
@@ -1191,6 +1308,7 @@
     this.messageView = new MessageView(this);
     this.titleView = new TitleView(this);
     this.scoringRules = new ScoringRules(this);
+    this.difficultyView = new DifficultyView(this);
 
     this.ufoTicksLeft = this.ufoTicks;
 
@@ -1200,12 +1318,20 @@
   Game.prototype = {
 
     state: 0,
+    STATE_TITLE: 0,
     STATE_READY: 1,
     STATE_PLAYING: 2,
     STATE_BETWEEN_LEVELS: 3,
     STATE_GAME_OVER: 4,
-    STATE_TITLE: 0,
+    STATE_CHOOSE_DIFFICULTY: 5,
 
+    DIFFICULTY_FREE: 0,
+    DIFFICULTY_EASY: 1,
+    DIFFICULTY_NORMAL: 2,
+    DIFFICULTY_HARD: 3,
+    DIFFICULTY_INSANE: 4,
+
+    difficulty: 2,
     pausing: false,
     paused: false,
     score: 0,
@@ -1237,13 +1363,21 @@
       }
     },
 
+    chooseDifficulty: function(){
+      this.messageView.show = false;
+      this.state = this.STATE_CHOOSE_DIFFICULTY;
+      this.difficultyView.show = true;      
+    },
+
     startNewGame: function(){
       this.clearEntities();
 
+      this.state = this.STATE_READY;
+
       var self = this;
+      this.scoringRules = new ScoringRules(this);
       this.oneUpPlateau = this.oneUpPlateauStep;
       this.score = 0;
-      this.state = this.STATE_READY;
       this.lives = 3;
       this.level = null;
       this.messageView.text = "Ready player one";
@@ -1266,7 +1400,7 @@
       this.ufoTicksLeft = this.ufoTicks;
       this.state = this.STATE_PLAYING;
       var number = this.level === null ? 1 : this.level.number + 1;
-      this.level = new Level(this, number);
+      this.level = new Level(this, number, this.difficulty);
       if (this.gameBar != null) {
         this.gameBar.levelNumber = number;
       }
@@ -1362,6 +1496,8 @@
 
       if (this.state === this.STATE_TITLE){
         this.titleView.draw(context);
+      } else if (this.state === this.STATE_CHOOSE_DIFFICULTY){
+        this.difficultyView.draw(context);
       } else {
         this.messageView.draw(context);
       }
@@ -1374,16 +1510,41 @@
 
       if (this.paused) return;
 
-      if(this.coquette.inputter.state(this.coquette.inputter.F12)) {
+      var inputter = this.coquette.inputter;
+
+      if (this.state === this.STATE_CHOOSE_DIFFICULTY){
+        if (inputter.state(inputter.TWO)){
+          this.difficulty = this.DIFFICULTY_EASY;
+          this.startNewGame();
+          return;
+        } else if (inputter.state(inputter.THREE)){
+          this.difficulty = this.DIFFICULTY_NORMAL;
+          this.startNewGame();
+          return;
+        } else if (inputter.state(inputter.FOUR)){
+          this.difficulty = this.DIFFICULTY_HARD;
+          this.startNewGame();
+          return;
+        } else if (inputter.state(inputter.FIVE)){
+          this.difficulty = this.DIFFICULTY_INSANE;
+          this.startNewGame();
+          return;
+        } else if (inputter.state(inputter.ONE)){
+          this.difficulty = this.DIFFICULTY_FREE;
+          this.startNewGame();
+          return;
+        }
+      }
+
+      if(inputter.state(inputter.F12)) {
         this.showBoundingBoxes = !this.showBoundingBoxes;
       }
 
       if (this.state === this.STATE_INTRO || this.state === this.STATE_TITLE){
-        if(this.coquette.inputter.state(this.coquette.inputter.SPACE)) {
-          this.startNewGame();
+        if(inputter.state(inputter.SPACE)) {
+          this.chooseDifficulty();
         }
       }
-
 
     },
 

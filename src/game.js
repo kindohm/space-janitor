@@ -18,6 +18,7 @@
     this.messageView = new MessageView(this);
     this.titleView = new TitleView(this);
     this.scoringRules = new ScoringRules(this);
+    this.difficultyView = new DifficultyView(this);
 
     this.ufoTicksLeft = this.ufoTicks;
 
@@ -27,12 +28,20 @@
   Game.prototype = {
 
     state: 0,
+    STATE_TITLE: 0,
     STATE_READY: 1,
     STATE_PLAYING: 2,
     STATE_BETWEEN_LEVELS: 3,
     STATE_GAME_OVER: 4,
-    STATE_TITLE: 0,
+    STATE_CHOOSE_DIFFICULTY: 5,
 
+    DIFFICULTY_FREE: 0,
+    DIFFICULTY_EASY: 1,
+    DIFFICULTY_NORMAL: 2,
+    DIFFICULTY_HARD: 3,
+    DIFFICULTY_INSANE: 4,
+
+    difficulty: 2,
     pausing: false,
     paused: false,
     score: 0,
@@ -64,13 +73,21 @@
       }
     },
 
+    chooseDifficulty: function(){
+      this.messageView.show = false;
+      this.state = this.STATE_CHOOSE_DIFFICULTY;
+      this.difficultyView.show = true;      
+    },
+
     startNewGame: function(){
       this.clearEntities();
 
+      this.state = this.STATE_READY;
+
       var self = this;
+      this.scoringRules = new ScoringRules(this);
       this.oneUpPlateau = this.oneUpPlateauStep;
       this.score = 0;
-      this.state = this.STATE_READY;
       this.lives = 3;
       this.level = null;
       this.messageView.text = "Ready player one";
@@ -93,7 +110,7 @@
       this.ufoTicksLeft = this.ufoTicks;
       this.state = this.STATE_PLAYING;
       var number = this.level === null ? 1 : this.level.number + 1;
-      this.level = new Level(this, number);
+      this.level = new Level(this, number, this.difficulty);
       if (this.gameBar != null) {
         this.gameBar.levelNumber = number;
       }
@@ -189,6 +206,8 @@
 
       if (this.state === this.STATE_TITLE){
         this.titleView.draw(context);
+      } else if (this.state === this.STATE_CHOOSE_DIFFICULTY){
+        this.difficultyView.draw(context);
       } else {
         this.messageView.draw(context);
       }
@@ -201,16 +220,41 @@
 
       if (this.paused) return;
 
-      if(this.coquette.inputter.state(this.coquette.inputter.F12)) {
+      var inputter = this.coquette.inputter;
+
+      if (this.state === this.STATE_CHOOSE_DIFFICULTY){
+        if (inputter.state(inputter.TWO)){
+          this.difficulty = this.DIFFICULTY_EASY;
+          this.startNewGame();
+          return;
+        } else if (inputter.state(inputter.THREE)){
+          this.difficulty = this.DIFFICULTY_NORMAL;
+          this.startNewGame();
+          return;
+        } else if (inputter.state(inputter.FOUR)){
+          this.difficulty = this.DIFFICULTY_HARD;
+          this.startNewGame();
+          return;
+        } else if (inputter.state(inputter.FIVE)){
+          this.difficulty = this.DIFFICULTY_INSANE;
+          this.startNewGame();
+          return;
+        } else if (inputter.state(inputter.ONE)){
+          this.difficulty = this.DIFFICULTY_FREE;
+          this.startNewGame();
+          return;
+        }
+      }
+
+      if(inputter.state(inputter.F12)) {
         this.showBoundingBoxes = !this.showBoundingBoxes;
       }
 
       if (this.state === this.STATE_INTRO || this.state === this.STATE_TITLE){
-        if(this.coquette.inputter.state(this.coquette.inputter.SPACE)) {
-          this.startNewGame();
+        if(inputter.state(inputter.SPACE)) {
+          this.chooseDifficulty();
         }
       }
-
 
     },
 
