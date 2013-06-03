@@ -23,6 +23,7 @@
       y: this.size.y / 2
     };
 
+    this.shotTicks = settings.shotTicks;
     this.shotTicksLeft = this.shotTicks;
     this.boundingBox = this.game.coquette.collider.RECTANGLE;
     this.game.soundBus.ufoSound.play();
