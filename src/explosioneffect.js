@@ -32,6 +32,7 @@
     this.duration = settings.duration;
     this.ticksLeft = this.duration;
     this.particleSize = settings.particleSize;
+    this.baseColor =  settings.baseColor === undefined ? '200,200,200' : settings.baseColor;
 
     this.particles = [];
     for(var i = 0; i < this.numParticles; i++){
@@ -69,7 +70,7 @@
       var ratio = (this.ticksLeft / this.duration).toString();
       if (!this.complete){
         for (var i = 0; i < this.particles.length; i++){
-          context.fillStyle = 'rgba(200,200,200,' + ratio + ')';
+          context.fillStyle = 'rgba(' + this.baseColor + ',' + ratio + ')';
           context.fillRect(this.particles[i].pos.x, this.particles[i].pos.y, this.particleSize, this.particleSize);
         }
       }

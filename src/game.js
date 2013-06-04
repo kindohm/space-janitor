@@ -345,6 +345,30 @@
       this.explosions.push(effect);
     },
 
+    spawnUfoExplosion: function(pos){
+      var effect = new ExplosionEffect(this, {
+        numParticles: 50,
+        duration: 75,
+        particleSize: 8,
+        pos: pos
+      });
+
+      this.explosions.push(effect);
+    },
+
+    spawnPowerupExplosion: function(pos){
+      console.log(pos);
+      var effect = new ExplosionEffect(this, {
+        numParticles: 50,
+        duration: 75,
+        particleSize: 8,
+        baseColor: '102,102,255',
+        pos: pos
+      });
+
+      this.explosions.push(effect);
+    },
+
     asteroidKilled: function(asteroid){
 
       this.soundBus.asteroidExplosionSound.play();
@@ -388,8 +412,8 @@
     },
 
     ufoKilled: function(ufo){
-      this.soundBus.asteroidExplosionSound.play();
-      this.spawnAsteroidExplosion(ufo.pos);
+      this.soundBus.playerExplosionSound.play();
+      this.spawnUfoExplosion(ufo.pos);
       this.appendScore(this.scoringRules.pointsForUfo(ufo));
     },
 
@@ -448,6 +472,12 @@
         this.lives++;
         this.soundBus.oneUpSound.play();
       }
+    },
+
+    radialBlastAcquired: function(powerup){
+      this.player.radialBlasts++;
+      this.spawnPowerupExplosion(powerup.pos);
+      this.soundBus.playerExplosionSound.play();
     }
 
   };

@@ -64,7 +64,7 @@
         this.game.coquette.entities.destroy(this);
         this.game.coquette.entities.destroy(other);
         this.game.soundBus.powerupHumSound.stop();
-        this.game.player.radialBlasts++;        
+        this.game.radialBlastAcquired(this);
       }
     }
 
