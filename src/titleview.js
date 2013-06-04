@@ -57,7 +57,7 @@
     },
 
     draw: function(context){
-      context.fillStyle = '#ccc';
+      context.fillStyle = this.game.settings.FOREGROUND_COLOR;
 
       context.font = "48px 'Press Start 2P'";
       context.textAlign = "center"
@@ -109,7 +109,7 @@
       context.lineTo(x,halfSize.y/1.7 + y);
       context.lineTo(-halfSize.x + x,halfSize.y + y);
       context.closePath();
-      context.strokeStyle = '#ccc';
+      context.strokeStyle = this.game.settings.FOREGROUND_COLOR;
       context.lineWidth = this.game.settings.PLAYER_LINE_WIDTH;
       context.stroke();
 

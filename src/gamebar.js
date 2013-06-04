@@ -27,11 +27,11 @@
 
       if (this.game.difficulty === this.game.DIFFICULTY_FREE) return;
 
-      context.fillStyle = '#000';
+      context.fillStyle = this.game.settings.BACKGROUND_COLOR;
       context.fillRect(0,0,this.game.width, 30);
 
       context.font = "10px 'Press Start 2P'";
-      context.fillStyle = '#ccc';
+      context.fillStyle = this.game.settings.FOREGROUND_COLOR;
       
       context.textAlign = "left"
       context.fillText('Level: ' + this.levelNumber.toString(), 10, 20);
@@ -49,7 +49,7 @@
           context.beginPath();
           context.arc(x, y, 7, 0, Math.PI * 2, true);
           context.lineWidth = 2;
-          context.strokeStyle = '#6666ff';
+          context.strokeStyle = this.game.settings.POWERUP_COLOR;
           context.stroke();
           context.closePath();
         }

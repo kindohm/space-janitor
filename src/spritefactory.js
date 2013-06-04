@@ -16,7 +16,7 @@
         canvas.height = this.game.settings.BULLET_SIZE_Y;
 
         var context = canvas.getContext('2d');
-        context.fillStyle = '#ccc';
+        context.fillStyle = this.game.settings.FOREGROUND_COLOR;
         context.fillRect(0,0,this.game.settings.BULLET_SIZE_X, this.game.settings.BULLET_SIZE_Y);
         cache.put(this.getBulletSprite, canvas);
       }

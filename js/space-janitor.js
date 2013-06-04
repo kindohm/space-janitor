@@ -17,7 +17,37 @@
     ASTEROID_LINE_WIDTH:  2,
     ASTEROID_SIZE_LARGE:  100,
     ASTEROID_SIZE_MEDIUM: 50, 
-    ASTEROID_SIZE_SMALL:  25
+    ASTEROID_SIZE_SMALL:  25,
+
+    /* DEFAULT THEME */
+    
+    BACKGROUND_COLOR:     '#000',
+    POWERUP_BASE_COLOR:   '100,100,255',
+    POWERUP_COLOR:        '#6666FF',
+    FOREGROUND_COLOR:     '#ccc',
+    FOREGROUND_BASE_COLOR:'204,204,204',
+    FLASH_BASE_COLOR:     '255,255,255', 
+    
+    /* NEPTUNE THEME */
+    /*
+    BACKGROUND_COLOR:     '#0094FF',
+    POWERUP_BASE_COLOR:   '255,255,100',
+    POWERUP_COLOR:        '#FFFF66',
+    FOREGROUND_COLOR:     '#fff',
+    FOREGROUND_BASE_COLOR:'255,255,255',
+    FLASH_BASE_COLOR:     '255,255,255', 
+    */
+
+    /* LUNAR THEME */
+    /*
+    BACKGROUND_COLOR:     '#fff',
+    POWERUP_BASE_COLOR:   '100,100,255',
+    POWERUP_COLOR:        '#6666FF',
+    FOREGROUND_COLOR:     '#333',
+    FOREGROUND_BASE_COLOR:'51,51,51',
+    FLASH_BASE_COLOR:     '0,0,0', 
+    */
+
   };
 
   exports.Settings = Settings;
@@ -41,7 +71,7 @@
         canvas.height = this.game.settings.BULLET_SIZE_Y;
 
         var context = canvas.getContext('2d');
-        context.fillStyle = '#ccc';
+        context.fillStyle = this.game.settings.FOREGROUND_COLOR;
         context.fillRect(0,0,this.game.settings.BULLET_SIZE_X, this.game.settings.BULLET_SIZE_Y);
         cache.put(this.getBulletSprite, canvas);
       }
@@ -211,14 +241,15 @@
       x: direction.x,
       y: direction.y
     };
+
+    this.colorBase = game.settings.FOREGROUND_BASE_COLOR;
+    this.ticksLeft = this.totalTicks = 30;
+    this.radius = 1;
   };
 
   ThrustBubble.prototype = {
 
-    radius: 1,
     radiusGrowth: .2,
-    ticksLeft: 30,
-    totalTicks: 30,
     pos: null,
     colorBase: '204,204,204',
 
@@ -232,15 +263,15 @@
 
     draw: function(context){
 
+      var ratio = this.ticksLeft / this.totalTicks;
       var side = this.radius * 2;
       context.beginPath();
       context.rect(this.pos.x - this.radius, this.pos.y - this.radius,
         side, side);
-      context.closePath();
-      context.lineWidth = 1;
-      var ratio = this.ticksLeft / this.totalTicks;
       context.strokeStyle = 'rgba(' + this.colorBase + ',' + ratio.toString() + ')';
+      context.lineWidth = 1;
       context.stroke();
+      context.closePath();
     }
   };
 
@@ -332,7 +363,7 @@
     this.duration = settings.duration;
     this.ticksLeft = this.duration;
     this.particleSize = settings.particleSize;
-    this.baseColor =  settings.baseColor === undefined ? '200,200,200' : settings.baseColor;
+    this.baseColor =  settings.baseColor === undefined ? game.settings.FOREGROUND_BASE_COLOR : settings.baseColor;
 
     this.particles = [];
     for(var i = 0; i < this.numParticles; i++){
@@ -452,7 +483,7 @@
        }
 
       context.lineWidth = this.game.settings.ASTEROID_LINE_WIDTH;
-      context.strokeStyle = '#ccc';
+      context.strokeStyle = this.game.settings.FOREGROUND_COLOR;
       context.stroke();
 
     },
@@ -575,7 +606,7 @@
 
 
       context.closePath();
-      context.strokeStyle = '#ccc';
+      context.strokeStyle = this.game.settings.FOREGROUND_COLOR;
       context.lineWidth = this.game.settings.PLAYER_LINE_WIDTH;
       context.stroke();
 
@@ -720,7 +751,7 @@
       context.lineTo(0,-this.halfSize.y/1.7);
       context.lineTo(-this.halfSize.x,-this.halfSize.y);
       context.closePath();
-      context.strokeStyle = '#ccc';
+      context.strokeStyle = this.game.settings.FOREGROUND_COLOR;
       context.lineWidth = this.game.settings.PLAYER_LINE_WIDTH;
       context.stroke();
 
@@ -882,11 +913,11 @@
 
       if (this.game.difficulty === this.game.DIFFICULTY_FREE) return;
 
-      context.fillStyle = '#000';
+      context.fillStyle = this.game.settings.BACKGROUND_COLOR;
       context.fillRect(0,0,this.game.width, 30);
 
       context.font = "10px 'Press Start 2P'";
-      context.fillStyle = '#ccc';
+      context.fillStyle = this.game.settings.FOREGROUND_COLOR;
       
       context.textAlign = "left"
       context.fillText('Level: ' + this.levelNumber.toString(), 10, 20);
@@ -904,7 +935,7 @@
           context.beginPath();
           context.arc(x, y, 7, 0, Math.PI * 2, true);
           context.lineWidth = 2;
-          context.strokeStyle = '#6666ff';
+          context.strokeStyle = this.game.settings.POWERUP_COLOR;
           context.stroke();
           context.closePath();
         }
@@ -1170,14 +1201,14 @@
       var sizeRatio = ((this.maxSize - this.size.x) / this.maxSize).toString();
 
       if (this.flashTicksLeft > 0){
-        context.fillStyle = 'rgba(255,255,255,' + flashRatio + ')';
+        context.fillStyle = 'rgba(' + this.game.settings.FLASH_BASE_COLOR + ',' + flashRatio + ')';
         context.fillRect(0,0,this.game.width, this.game.height);
       }
 
       context.beginPath();
       context.arc(this.pos.x + this.size.x/2, this.pos.y + this.size.y/2, this.size.x/2, 0, Math.PI * 2, true);
       context.lineWidth = 5;
-      context.strokeStyle = 'rgba(102,102,255,' + sizeRatio + ')';
+      context.strokeStyle = 'rgba(' + this.game.settings.POWERUP_BASE_COLOR + ',' + sizeRatio + ')';
       context.stroke();
       context.closePath();
     },
@@ -1214,14 +1245,14 @@
     this.boundingBox = this.game.coquette.collider.CIRCLE;
     this.game.soundBus.powerupHumSound.play();
 
-    this.fadeTicks = 2;
-    this.fadeAmount = 20;
+    this.fadeTicks = this.fadeAmount = 60;
     this.growing = true;
   };
 
   RadialBlastPowerup.prototype = {
 
     size: {x:40,y:40},
+    halfSize: {x:20,y:20},
 
     update: function(){
       this.pos.x += this.vel.x;
@@ -1229,7 +1260,7 @@
 
       if (this.fadeTicks === this.fadeAmount){
         this.growing = false;
-      } else if (this.fadeTicks === 2){
+      } else if (this.fadeTicks === 30){
         this.growing = true;
       }
 
@@ -1250,10 +1281,11 @@
     draw: function(context){
 
       context.beginPath();
-      context.arc(this.pos.x + this.size.x/2, this.pos.y + this.size.y/2, this.size.x/2, 0, Math.PI * 2, true);
+      context.arc(this.pos.x + this.halfSize.x, this.pos.y + this.halfSize.y, this.halfSize.x, 0, Math.PI * 2, true);
       context.lineWidth = 3;
       var ratio = (this.fadeTicks / this.fadeAmount).toString();
-      context.strokeStyle = 'rgba(102,102,255,' + ratio + ')';
+      context.strokeStyle = 'rgba(' + this.game.settings.POWERUP_BASE_COLOR + ',' + ratio + ')';
+      console.log('rgba(' + this.game.settings.POWERUP_BASE_COLOR + ',' + ratio + ')');
       context.stroke();
       context.closePath();
 
@@ -1342,7 +1374,7 @@
 
       context.font = firstFontSize + " 'Press Start 2P'";
       context.textAlign = "center"
-      context.fillStyle = '#ccc';
+      context.fillStyle = this.game.settings.FOREGROUND_COLOR;
       context.fillText(this.text, this.game.width/2, this.game.height/2 - 30);
 
       context.font = "12px 'Press Start 2P'";
@@ -1373,7 +1405,7 @@
 
       context.font = "16px 'Press Start 2P'";
       context.textAlign = "center"
-      context.fillStyle = '#ccc';
+      context.fillStyle = this.game.settings.FOREGROUND_COLOR;
       context.fillText('READY PLAYER ONE', this.game.width/2, baseHeight);
 
       var left = 180;
@@ -1392,8 +1424,8 @@
       var y = baseHeight + 230;
       context.beginPath();
       context.arc(x, y, 20, 0, Math.PI * 2, true);
-      context.lineWidth = 2;
-      context.strokeStyle = '#6666ff';
+      context.lineWidth = 3;
+      context.strokeStyle = this.game.settings.POWERUP_COLOR;
       context.stroke();
       context.closePath();
 
@@ -1422,7 +1454,7 @@
 
       context.font = "16px 'Press Start 2P'";
       context.textAlign = "center"
-      context.fillStyle = '#ccc';
+      context.fillStyle = this.game.settings.FOREGROUND_COLOR;
       context.fillText('CHOOSE DIFFICULTY', x, 100);
 
       context.font = "12px 'Press Start 2P'";
@@ -1500,7 +1532,7 @@
     },
 
     draw: function(context){
-      context.fillStyle = '#ccc';
+      context.fillStyle = this.game.settings.FOREGROUND_COLOR;
 
       context.font = "48px 'Press Start 2P'";
       context.textAlign = "center"
@@ -1552,7 +1584,7 @@
       context.lineTo(x,halfSize.y/1.7 + y);
       context.lineTo(-halfSize.x + x,halfSize.y + y);
       context.closePath();
-      context.strokeStyle = '#ccc';
+      context.strokeStyle = this.game.settings.FOREGROUND_COLOR;
       context.lineWidth = this.game.settings.PLAYER_LINE_WIDTH;
       context.stroke();
 
@@ -1619,11 +1651,12 @@
   var Game = function(canvasId, width, height) {
     var self = this;
 
-    this.coquette = new Coquette(this, canvasId, width, height, "#000");
+    this.settings = new Settings();
+
+    this.coquette = new Coquette(this, canvasId, width, height, this.settings.BACKGROUND_COLOR);
     this.maths = new Maths();
     this.width = width;
     this.height = height;
-    this.settings = new Settings();
     this.spriteFactory = new SpriteFactory(this);
 
     this.coquette.entities.create(GameBar,{},
@@ -1719,7 +1752,7 @@
         self.messageView.text = self.messageView.text2 = self.messageView.text3 = self.messageView.text4 = '';
         self.spawnPlayer();
         self.initNextLevel();
-      }, 7000);
+      }, 5000);
     },
 
     initNextLevel: function(){
@@ -1970,12 +2003,11 @@
     },
 
     spawnPowerupExplosion: function(pos){
-      console.log(pos);
       var effect = new ExplosionEffect(this, {
         numParticles: 50,
         duration: 75,
         particleSize: 8,
-        baseColor: '102,102,255',
+        baseColor: this.settings.POWERUP_BASE_COLOR,
         pos: pos
       });
 

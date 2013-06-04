@@ -32,7 +32,7 @@
     this.duration = settings.duration;
     this.ticksLeft = this.duration;
     this.particleSize = settings.particleSize;
-    this.baseColor =  settings.baseColor === undefined ? '200,200,200' : settings.baseColor;
+    this.baseColor =  settings.baseColor === undefined ? game.settings.FOREGROUND_BASE_COLOR : settings.baseColor;
 
     this.particles = [];
     for(var i = 0; i < this.numParticles; i++){

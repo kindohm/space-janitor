@@ -16,7 +16,7 @@
 
       context.font = "16px 'Press Start 2P'";
       context.textAlign = "center"
-      context.fillStyle = '#ccc';
+      context.fillStyle = this.game.settings.FOREGROUND_COLOR;
       context.fillText('CHOOSE DIFFICULTY', x, 100);
 
       context.font = "12px 'Press Start 2P'";

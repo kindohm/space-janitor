@@ -14,7 +14,7 @@
 
       context.font = "16px 'Press Start 2P'";
       context.textAlign = "center"
-      context.fillStyle = '#ccc';
+      context.fillStyle = this.game.settings.FOREGROUND_COLOR;
       context.fillText('READY PLAYER ONE', this.game.width/2, baseHeight);
 
       var left = 180;
@@ -33,8 +33,8 @@
       var y = baseHeight + 230;
       context.beginPath();
       context.arc(x, y, 20, 0, Math.PI * 2, true);
-      context.lineWidth = 2;
-      context.strokeStyle = '#6666ff';
+      context.lineWidth = 3;
+      context.strokeStyle = this.game.settings.POWERUP_COLOR;
       context.stroke();
       context.closePath();
 

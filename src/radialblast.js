@@ -39,14 +39,14 @@
       var sizeRatio = ((this.maxSize - this.size.x) / this.maxSize).toString();
 
       if (this.flashTicksLeft > 0){
-        context.fillStyle = 'rgba(255,255,255,' + flashRatio + ')';
+        context.fillStyle = 'rgba(' + this.game.settings.FLASH_BASE_COLOR + ',' + flashRatio + ')';
         context.fillRect(0,0,this.game.width, this.game.height);
       }
 
       context.beginPath();
       context.arc(this.pos.x + this.size.x/2, this.pos.y + this.size.y/2, this.size.x/2, 0, Math.PI * 2, true);
       context.lineWidth = 5;
-      context.strokeStyle = 'rgba(102,102,255,' + sizeRatio + ')';
+      context.strokeStyle = 'rgba(' + this.game.settings.POWERUP_BASE_COLOR + ',' + sizeRatio + ')';
       context.stroke();
       context.closePath();
     },
