@@ -49,9 +49,6 @@
       context.strokeStyle = 'rgba(102,102,255,' + sizeRatio + ')';
       context.stroke();
       context.closePath();
-
-
-
     },
 
     collision: function(other, type){
@@ -60,9 +57,6 @@
           this.game.asteroidKilled(other);
           this.game.coquette.entities.destroy(other);
         }
-      } else if (other instanceof Ufo){
-        this.game.ufoKilled(other);
-        this.game.coquette.entities.destroy(other);
       } else if (other instanceof Bullet && other.hostile){
         this.game.coquette.entities.destroy(other);
       }
