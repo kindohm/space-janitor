@@ -11,6 +11,10 @@
     this.levelBonus = 0;
     this.thrustTicks = 0;
     this.ufoDeployed = false;
+
+    this.willDeployPowerup = number % 2 === 0;
+    this.powerupTicks = game.maths.getRandomInt(500,1500);
+    this.powerupTicksLeft = this.powerupTicks;
   };
 
   Level.prototype = {
@@ -34,11 +38,38 @@
     },
 
     update: function(){
-      if (this.game.paused || this.difficulty === this.game.DIFFICULTY_FREE) return;
-      if (!this.complete) {
+      if (this.game.paused || this.difficulty === this.game.DIFFICULTY_FREE) return;      
+      if (!this.complete) {       
         this.complete = this.game.coquette.entities.all(Asteroid).length === 0
           && this.game.coquette.entities.all(Ufo).length === 0;
+
+        if (this.willDeployPowerup && !this.complete && this.powerupTicksLeft !== 0){
+          this.powerupTicksLeft--;
+          if (this.powerupTicksLeft === 0){
+            this.deployPowerup();
+          }
+        }
       }
+    },    
+
+    deployPowerup: function(){
+      var direction = this.game.maths.plusMinus();
+
+      var pos = {
+        x: direction === 1 ? -39 : this.game.width,
+        y: this.game.maths.getRandomInt(50, this.game.height - 50),
+      };
+
+      var vel = {
+        x: direction * this.nextUfoVelX(),
+        y: this.nextUfoVelY()
+      };
+
+      this.game.coquette.entities.create(RadialBlastPowerup, {
+        pos: pos,
+        vel: vel
+      });
+
     },
 
     deployAsteroid: function(size, pos){

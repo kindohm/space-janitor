@@ -45,6 +45,7 @@
     DIFFICULTY_HARD: 3,
     DIFFICULTY_INSANE: 4,
 
+    oldRadialBlasts: 0,
     difficulty: 2,
     pausing: false,
     paused: false,
@@ -260,7 +261,7 @@
         }
       }
 
-      if(inputter.state(inputter.F12)) {
+      if(inputter.state(inputter.D)) {
         this.showBoundingBoxes = !this.showBoundingBoxes;
       }
 
@@ -314,7 +315,8 @@
         maxPos: { 
           x: self.width, 
           y: self.height 
-        }
+        },
+        radialBlasts: this.oldRadialBlasts
       }, function(player) {
         self.player = player;
       });
@@ -373,7 +375,7 @@
       this.lives--;
       this.soundBus.playerExplosionSound.play();
       this.spawnPlayerExplosion(player.pos);
-
+      this.oldRadialBlasts = player.radialBlasts;
       var self = this;
 
       if (this.lives > 0){
