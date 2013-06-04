@@ -19,7 +19,7 @@
 
     size: {x: 20,y: 20},
     growthRate: 10,
-    maxSize: 400,
+    maxSize: 440,
 
     update: function(){
       this.size.x += this.growthRate;
