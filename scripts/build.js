@@ -21,6 +21,7 @@ var input = [
   src + 'radialblastpowerup.js',
   src + 'pauseview.js',
   src + 'messageview.js',
+  src + 'readyview.js',
   src + 'difficultyview.js',
   src + 'titleview.js',
   src + 'scoringrules.js',

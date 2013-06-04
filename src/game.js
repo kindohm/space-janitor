@@ -24,7 +24,7 @@
     this.titleView = new TitleView(this);
     this.scoringRules = new ScoringRules(this);
     this.difficultyView = new DifficultyView(this);
-
+    this.readyView = new ReadyView(this);
     this.ufoTicksLeft = this.ufoTicks;
     this.oneUpPlateau = this.oneUpPlateauStep;
   };
@@ -96,11 +96,6 @@
       this.score = 0;
       this.lives = 3;
       this.level = null;
-      this.messageView.text = "READY PLAYER ONE";
-      this.messageView.text2 = "Left, Right, and Up arrow keys to move.";
-      this.messageView.text3 = "Space bar to shoot.";
-      this.messageView.text4 = "ESC to pause.";
-      this.messageView.show = true;
       this.titleView.stop();
 
       setTimeout(function(){
@@ -108,7 +103,7 @@
         self.messageView.text = self.messageView.text2 = self.messageView.text3 = self.messageView.text4 = '';
         self.spawnPlayer();
         self.initNextLevel();
-      }, 5000);
+      }, 7000);
     },
 
     initNextLevel: function(){
@@ -215,6 +210,8 @@
         this.titleView.draw(context);
       } else if (this.state === this.STATE_CHOOSE_DIFFICULTY){
         this.difficultyView.draw(context);
+      } else if (this.state === this.STATE_READY){
+        this.readyView.draw(context);
       } else {
         this.messageView.draw(context);
       }
