@@ -49,12 +49,28 @@
       loop: false
     });    
 
+    this.radialBlastSound = new Howl({
+      urls: [
+        soundsPath + 'radialblast.mp3', 
+        soundsPath + 'radialblast.ogg'],
+      volume: 0.5,
+      loop: false
+    });    
+
     this.pauseSound = new Howl({
       urls: [
         soundsPath + 'pause.mp3', 
         soundsPath + 'pause.ogg'],
       volume: 0.7,
       loop: false
+    });    
+
+    this.powerupHumSound = new Howl({
+      urls: [
+        soundsPath + 'poweruphum.mp3', 
+        soundsPath + 'poweruphum.ogg'],
+      volume: 0.4,
+      loop: true
     });    
 
   };

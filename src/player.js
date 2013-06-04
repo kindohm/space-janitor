@@ -8,6 +8,8 @@
     this.pos = { x: settings.pos.x, y: settings.pos.y };
     this.maxPos = { x: settings.maxPos.x, y: settings.maxPos.y };
     this.game = game;
+    
+    this.radialBlasts = settings.radialBlasts;
 
     this.size = { 
       x: game.settings.PLAYER_SIZE,
@@ -44,6 +46,7 @@
 
   Player.prototype = {
 
+    radialBlasts: 0,
     colliding: false,
     thrustEffect: null,
     size: {x: 20, y: 30},
@@ -135,6 +138,15 @@
       if(this.game.coquette.inputter.state(this.game.coquette.inputter.SPACE)) {
         this.shoot();
       }
+
+      if (this.game.coquette.inputter.state(this.game.coquette.inputter.DOWN_ARROW)){
+
+        if (this.game.coquette.entities.all(RadialBlast).length === 0 && this.radialBlasts > 0){
+        
+          this.deployRadialBlast();
+        }
+        
+      }
     },
 
     rotate: function(direction){      
@@ -199,6 +211,19 @@
         this.game.shotFired();
         this.shotTicksLeft = this.game.settings.BULLET_DELAY_TICKS;
       }
+    },
+
+    deployRadialBlast: function(){
+      
+      this.game.coquette.entities.create(RadialBlast,{
+        pos: {
+          x: this.pos.x,
+          y: this.pos.y
+        }
+      });
+
+      this.game.soundBus.radialBlastSound.play();
+      this.radialBlasts--;
     },
 
     collision: function(other, type){

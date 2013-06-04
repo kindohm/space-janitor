@@ -165,12 +165,28 @@
       loop: false
     });    
 
+    this.radialBlastSound = new Howl({
+      urls: [
+        soundsPath + 'radialblast.mp3', 
+        soundsPath + 'radialblast.ogg'],
+      volume: 0.5,
+      loop: false
+    });    
+
     this.pauseSound = new Howl({
       urls: [
         soundsPath + 'pause.mp3', 
         soundsPath + 'pause.ogg'],
       volume: 0.7,
       loop: false
+    });    
+
+    this.powerupHumSound = new Howl({
+      urls: [
+        soundsPath + 'poweruphum.mp3', 
+        soundsPath + 'poweruphum.ogg'],
+      volume: 0.4,
+      loop: true
     });    
 
   };
@@ -597,6 +613,8 @@
     this.pos = { x: settings.pos.x, y: settings.pos.y };
     this.maxPos = { x: settings.maxPos.x, y: settings.maxPos.y };
     this.game = game;
+    
+    this.radialBlasts = settings.radialBlasts;
 
     this.size = { 
       x: game.settings.PLAYER_SIZE,
@@ -633,6 +651,7 @@
 
   Player.prototype = {
 
+    radialBlasts: 0,
     colliding: false,
     thrustEffect: null,
     size: {x: 20, y: 30},
@@ -724,6 +743,15 @@
       if(this.game.coquette.inputter.state(this.game.coquette.inputter.SPACE)) {
         this.shoot();
       }
+
+      if (this.game.coquette.inputter.state(this.game.coquette.inputter.DOWN_ARROW)){
+
+        if (this.game.coquette.entities.all(RadialBlast).length === 0 && this.radialBlasts > 0){
+        
+          this.deployRadialBlast();
+        }
+        
+      }
     },
 
     rotate: function(direction){      
@@ -790,6 +818,19 @@
       }
     },
 
+    deployRadialBlast: function(){
+      
+      this.game.coquette.entities.create(RadialBlast,{
+        pos: {
+          x: this.pos.x,
+          y: this.pos.y
+        }
+      });
+
+      this.game.soundBus.radialBlastSound.play();
+      this.radialBlasts--;
+    },
+
     collision: function(other, type){
       this.colliding = true;
       if (type === this.game.coquette.collider.INITIAL){
@@ -853,6 +894,19 @@
 
       context.textAlign = "right"
       context.fillText('Score: ' + Math.floor(this.game.score).toString(), this.game.width - 10, 20);
+
+      if (this.game.player !== null){
+        for(var i = 0; i < this.game.player.radialBlasts; i++){
+          var x = 280 + i * 20;
+          var y = 15;
+          context.beginPath();
+          context.arc(x, y, 7, 0, Math.PI * 2, true);
+          context.lineWidth = 2;
+          context.strokeStyle = '#6666ff';
+          context.stroke();
+          context.closePath();
+        }
+      }
     }
   };
 
@@ -872,6 +926,10 @@
     this.levelBonus = 0;
     this.thrustTicks = 0;
     this.ufoDeployed = false;
+
+    this.willDeployPowerup = number % 2 === 0;
+    this.powerupTicks = game.maths.getRandomInt(500,1500);
+    this.powerupTicksLeft = this.powerupTicks;
   };
 
   Level.prototype = {
@@ -895,11 +953,38 @@
     },
 
     update: function(){
-      if (this.game.paused || this.difficulty === this.game.DIFFICULTY_FREE) return;
-      if (!this.complete) {
+      if (this.game.paused || this.difficulty === this.game.DIFFICULTY_FREE) return;      
+      if (!this.complete) {       
         this.complete = this.game.coquette.entities.all(Asteroid).length === 0
           && this.game.coquette.entities.all(Ufo).length === 0;
+
+        if (this.willDeployPowerup && !this.complete && this.powerupTicksLeft !== 0){
+          this.powerupTicksLeft--;
+          if (this.powerupTicksLeft === 0){
+            this.deployPowerup();
+          }
+        }
       }
+    },    
+
+    deployPowerup: function(){
+      var direction = this.game.maths.plusMinus();
+
+      var pos = {
+        x: direction === 1 ? -39 : this.game.width,
+        y: this.game.maths.getRandomInt(50, this.game.height - 50),
+      };
+
+      var vel = {
+        x: direction * this.nextUfoVelX(),
+        y: this.nextUfoVelY()
+      };
+
+      this.game.coquette.entities.create(RadialBlastPowerup, {
+        pos: pos,
+        vel: vel
+      });
+
     },
 
     deployAsteroid: function(size, pos){
@@ -1040,6 +1125,158 @@
   };
 
   exports.Level = Level;
+
+})(this);
+;(function(exports){
+
+  var RadialBlast = function(game, settings){
+
+    this.game = game;
+
+    this.pos = {
+      x: settings.pos.x,
+      y: settings.pos.y
+    };
+
+    this.boundingBox = this.game.coquette.collider.CIRCLE;
+    this.size = { x: 20, y: 20};
+    this.flashTicksLeft = 20;
+    this.flashTicks = 20;
+  };
+
+  RadialBlast.prototype = {
+
+    size: {x: 20,y: 20},
+    growthRate: 10,
+    maxSize: 400,
+
+    update: function(){
+      this.size.x += this.growthRate;
+      this.size.y += this.growthRate;
+      this.pos.x -= this.growthRate / 2;
+      this.pos.y -= this.growthRate / 2;
+
+      this.flashTicksLeft = Math.max(0, this.flashTicksLeft - 1);
+
+      if (this.size.x >= this.maxSize){
+        this.game.coquette.entities.destroy(this);
+      }
+    },
+
+    draw: function(context){
+      var flashRatio = (this.flashTicksLeft / this.flashTicks).toString();
+      var sizeRatio = ((this.maxSize - this.size.x) / this.maxSize).toString();
+
+      if (this.flashTicksLeft > 0){
+        context.fillStyle = 'rgba(255,255,255,' + flashRatio + ')';
+        context.fillRect(0,0,this.game.width, this.game.height);
+      }
+
+      context.beginPath();
+      context.arc(this.pos.x + this.size.x/2, this.pos.y + this.size.y/2, this.size.x/2, 0, Math.PI * 2, true);
+      context.lineWidth = 5;
+      context.strokeStyle = 'rgba(102,102,255,' + sizeRatio + ')';
+      context.stroke();
+      context.closePath();
+
+
+
+    },
+
+    collision: function(other, type){
+      if (type === this.game.coquette.collider.INITIAL){
+        if (other instanceof Asteroid){
+          this.game.asteroidKilled(other);
+          this.game.coquette.entities.destroy(other);
+        }
+      } else if (other instanceof Ufo){
+        this.game.ufoKilled(other);
+        this.game.coquette.entities.destroy(other);
+      } else if (other instanceof Bullet && other.hostile){
+        this.game.coquette.entities.destroy(other);
+      }
+
+    }
+
+  };
+
+  exports.RadialBlast = RadialBlast;
+
+})(this);
+;(function(exports){
+
+  var RadialBlastPowerup = function(game, settings){
+    this.game = game;
+    this.pos = {
+      x: settings.pos.x,
+      y: settings.pos.y
+    };
+    this.vel = {
+      x: settings.vel.x,
+      y: settings.vel.y
+    };
+    this.boundingBox = this.game.coquette.collider.CIRCLE;
+    this.game.soundBus.powerupHumSound.play();
+
+    this.fadeTicks = 2;
+    this.fadeAmount = 20;
+    this.growing = true;
+  };
+
+  RadialBlastPowerup.prototype = {
+
+    size: {x:40,y:40},
+
+    update: function(){
+      this.pos.x += this.vel.x;
+      this.pos.y += this.vel.y;
+
+      if (this.fadeTicks === this.fadeAmount){
+        this.growing = false;
+      } else if (this.fadeTicks === 2){
+        this.growing = true;
+      }
+
+      this.fadeTicks += this.growing ? 1 : -1;
+
+      if (this.pos.x < -this.size.x || 
+        this.pos.x > (this.game.width + this.size.x) || 
+        this.pos.y < -this.size.y || 
+        this.pos.y > (this.game.height + this.size.y)){
+
+        this.game.soundBus.powerupHumSound.stop();
+        this.game.coquette.entities.destroy(this);
+
+      }
+
+    },
+
+    draw: function(context){
+
+      context.beginPath();
+      context.arc(this.pos.x + this.size.x/2, this.pos.y + this.size.y/2, this.size.x/2, 0, Math.PI * 2, true);
+      context.lineWidth = 3;
+      var ratio = (this.fadeTicks / this.fadeAmount).toString();
+      context.strokeStyle = 'rgba(102,102,255,' + ratio + ')';
+      context.stroke();
+      context.closePath();
+
+    },
+
+    collision: function(other, type){
+
+      if (other instanceof Bullet && !other.hostile){
+        this.game.coquette.entities.destroy(this);
+        this.game.coquette.entities.destroy(other);
+        this.game.soundBus.powerupHumSound.stop();
+        this.game.player.radialBlasts++;        
+      }
+    }
+
+  };
+
+  exports.RadialBlastPowerup = RadialBlastPowerup;
+
 
 })(this);
 ;(function(exports){
@@ -1381,6 +1618,7 @@
     DIFFICULTY_HARD: 3,
     DIFFICULTY_INSANE: 4,
 
+    oldRadialBlasts: 0,
     difficulty: 2,
     pausing: false,
     paused: false,
@@ -1596,7 +1834,7 @@
         }
       }
 
-      if(inputter.state(inputter.F12)) {
+      if(inputter.state(inputter.D)) {
         this.showBoundingBoxes = !this.showBoundingBoxes;
       }
 
@@ -1650,7 +1888,8 @@
         maxPos: { 
           x: self.width, 
           y: self.height 
-        }
+        },
+        radialBlasts: this.oldRadialBlasts
       }, function(player) {
         self.player = player;
       });
@@ -1709,7 +1948,7 @@
       this.lives--;
       this.soundBus.playerExplosionSound.play();
       this.spawnPlayerExplosion(player.pos);
-
+      this.oldRadialBlasts = player.radialBlasts;
       var self = this;
 
       if (this.lives > 0){

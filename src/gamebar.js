@@ -41,6 +41,19 @@
 
       context.textAlign = "right"
       context.fillText('Score: ' + Math.floor(this.game.score).toString(), this.game.width - 10, 20);
+
+      if (this.game.player !== null){
+        for(var i = 0; i < this.game.player.radialBlasts; i++){
+          var x = 280 + i * 20;
+          var y = 15;
+          context.beginPath();
+          context.arc(x, y, 7, 0, Math.PI * 2, true);
+          context.lineWidth = 2;
+          context.strokeStyle = '#6666ff';
+          context.stroke();
+          context.closePath();
+        }
+      }
     }
   };
 
