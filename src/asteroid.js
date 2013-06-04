@@ -70,7 +70,7 @@
        }
 
       context.lineWidth = this.game.settings.ASTEROID_LINE_WIDTH;
-      context.strokeStyle = '#ccc';
+      context.strokeStyle = this.game.settings.FOREGROUND_COLOR;
       context.stroke();
 
     },

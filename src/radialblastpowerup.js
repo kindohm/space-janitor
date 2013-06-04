@@ -13,14 +13,14 @@
     this.boundingBox = this.game.coquette.collider.CIRCLE;
     this.game.soundBus.powerupHumSound.play();
 
-    this.fadeTicks = 2;
-    this.fadeAmount = 20;
+    this.fadeTicks = this.fadeAmount = 60;
     this.growing = true;
   };
 
   RadialBlastPowerup.prototype = {
 
     size: {x:40,y:40},
+    halfSize: {x:20,y:20},
 
     update: function(){
       this.pos.x += this.vel.x;
@@ -28,7 +28,7 @@
 
       if (this.fadeTicks === this.fadeAmount){
         this.growing = false;
-      } else if (this.fadeTicks === 2){
+      } else if (this.fadeTicks === 30){
         this.growing = true;
       }
 
@@ -49,10 +49,11 @@
     draw: function(context){
 
       context.beginPath();
-      context.arc(this.pos.x + this.size.x/2, this.pos.y + this.size.y/2, this.size.x/2, 0, Math.PI * 2, true);
+      context.arc(this.pos.x + this.halfSize.x, this.pos.y + this.halfSize.y, this.halfSize.x, 0, Math.PI * 2, true);
       context.lineWidth = 3;
       var ratio = (this.fadeTicks / this.fadeAmount).toString();
-      context.strokeStyle = 'rgba(102,102,255,' + ratio + ')';
+      context.strokeStyle = 'rgba(' + this.game.settings.POWERUP_BASE_COLOR + ',' + ratio + ')';
+      console.log('rgba(' + this.game.settings.POWERUP_BASE_COLOR + ',' + ratio + ')');
       context.stroke();
       context.closePath();
 

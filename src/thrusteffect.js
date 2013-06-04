@@ -12,14 +12,15 @@
       x: direction.x,
       y: direction.y
     };
+
+    this.colorBase = game.settings.FOREGROUND_BASE_COLOR;
+    this.ticksLeft = this.totalTicks = 30;
+    this.radius = 1;
   };
 
   ThrustBubble.prototype = {
 
-    radius: 1,
     radiusGrowth: .2,
-    ticksLeft: 30,
-    totalTicks: 30,
     pos: null,
     colorBase: '204,204,204',
 
@@ -33,15 +34,15 @@
 
     draw: function(context){
 
+      var ratio = this.ticksLeft / this.totalTicks;
       var side = this.radius * 2;
       context.beginPath();
       context.rect(this.pos.x - this.radius, this.pos.y - this.radius,
         side, side);
-      context.closePath();
-      context.lineWidth = 1;
-      var ratio = this.ticksLeft / this.totalTicks;
       context.strokeStyle = 'rgba(' + this.colorBase + ',' + ratio.toString() + ')';
+      context.lineWidth = 1;
       context.stroke();
+      context.closePath();
     }
   };
 

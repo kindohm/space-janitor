@@ -3,11 +3,12 @@
   var Game = function(canvasId, width, height) {
     var self = this;
 
-    this.coquette = new Coquette(this, canvasId, width, height, "#000");
+    this.settings = new Settings();
+
+    this.coquette = new Coquette(this, canvasId, width, height, this.settings.BACKGROUND_COLOR);
     this.maths = new Maths();
     this.width = width;
     this.height = height;
-    this.settings = new Settings();
     this.spriteFactory = new SpriteFactory(this);
 
     this.coquette.entities.create(GameBar,{},
@@ -103,7 +104,7 @@
         self.messageView.text = self.messageView.text2 = self.messageView.text3 = self.messageView.text4 = '';
         self.spawnPlayer();
         self.initNextLevel();
-      }, 7000);
+      }, 5000);
     },
 
     initNextLevel: function(){
@@ -354,12 +355,11 @@
     },
 
     spawnPowerupExplosion: function(pos){
-      console.log(pos);
       var effect = new ExplosionEffect(this, {
         numParticles: 50,
         duration: 75,
         particleSize: 8,
-        baseColor: '102,102,255',
+        baseColor: this.settings.POWERUP_BASE_COLOR,
         pos: pos
       });
 

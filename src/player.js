@@ -113,7 +113,7 @@
       context.lineTo(0,-this.halfSize.y/1.7);
       context.lineTo(-this.halfSize.x,-this.halfSize.y);
       context.closePath();
-      context.strokeStyle = '#ccc';
+      context.strokeStyle = this.game.settings.FOREGROUND_COLOR;
       context.lineWidth = this.game.settings.PLAYER_LINE_WIDTH;
       context.stroke();
 
