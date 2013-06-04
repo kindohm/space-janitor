@@ -118,6 +118,7 @@
       if (type === this.game.coquette.collider.INITIAL && 
         (
           (other instanceof Bullet && !other.hostile) ||
+          other instanceof RadialBlast ||
           other instanceof Player
         )){
           this.game.soundBus.ufoSound.stop();
