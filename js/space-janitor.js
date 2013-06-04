@@ -1536,7 +1536,7 @@
 
       context.font = "48px 'Press Start 2P'";
       context.textAlign = "center"
-      context.fillText("Space Janitor", this.game.width/2, this.game.height/2 + this.scrollOffset);
+      context.fillText("Orbital Janitor", this.game.width/2, this.game.height/2 + this.scrollOffset);
 
       context.font = "12px 'Press Start 2P'";
       context.textAlign = "center"
@@ -1563,12 +1563,9 @@
       context.font = "24px 'Press Start 2P'";
       context.textAlign = "center"
 
-      context.fillText("The Space Janitor",
+      context.fillText("The Orbital Janitor",
         this.game.width / 2, this.storyOffset + this.storyLineHeight * 9 + this.scrollOffset);
 
-/*
-      context.translate(this.game.width / 2, this.storyOffset + this.storyLineHeight * 11 + this.scrollOffset);
-*/
       var halfSize = {
         x: this.game.settings.PLAYER_SIZE / 2,
         y: this.game.settings.PLAYER_SIZE / 2
