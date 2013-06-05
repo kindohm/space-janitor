@@ -24,21 +24,20 @@
     this.messageView = new MessageView(this);
     this.titleView = new TitleView(this);
     this.scoringRules = new ScoringRules(this);
-    this.difficultyView = new DifficultyView(this);
-    this.readyView = new ReadyView(this);
     this.ufoTicksLeft = this.ufoTicks;
     this.oneUpPlateau = this.oneUpPlateauStep;
+    this.version = new Version();
   };
 
   Game.prototype = {
 
     state: 0,
     STATE_TITLE: 0,
-    STATE_READY: 1,
-    STATE_PLAYING: 2,
-    STATE_BETWEEN_LEVELS: 3,
-    STATE_GAME_OVER: 4,
-    STATE_CHOOSE_DIFFICULTY: 5,
+    STATE_CHOOSE_DIFFICULTY: 1,
+    STATE_SHOW_CONTROLS: 2,
+    STATE_PLAYING: 3,
+    STATE_BETWEEN_LEVELS: 4,
+    STATE_GAME_OVER: 5,
 
     DIFFICULTY_FREE: 0,
     DIFFICULTY_EASY: 1,
@@ -51,7 +50,7 @@
     pausing: false,
     paused: false,
     score: 0,
-    lives: 3,
+    lives: 0,
     gameBar: null,
     explosions: [],
     level: null,
@@ -81,17 +80,24 @@
     },
 
     chooseDifficulty: function(){
+      var self = this;
       this.messageView.show = false;
       this.state = this.STATE_CHOOSE_DIFFICULTY;
-      this.difficultyView.show = true;      
+      this.coquette.entities.create(DifficultyView, {},
+        function(view){
+          view.difficultySelected(function(difficultyValue){
+            self.difficulty = difficultyValue;
+            self.coquette.entities.destroy(view);
+            self.startNewGame();
+          });
+        });
     },
 
     startNewGame: function(){
-      this.clearEntities();
-
-      this.state = this.STATE_READY;
-
       var self = this;
+
+      this.clearEntities();
+      this.state = this.STATE_READY;
       this.scoringRules = new ScoringRules(this);
       this.oneUpPlateau = this.oneUpPlateauStep;
       this.score = 0;
@@ -99,12 +105,22 @@
       this.level = null;
       this.titleView.stop();
 
-      setTimeout(function(){
-        self.messageView.show = false;
-        self.messageView.text = self.messageView.text2 = self.messageView.text3 = self.messageView.text4 = '';
-        self.spawnPlayer();
-        self.initNextLevel();
-      }, 5000);
+      this.coquette.entities.create(ReadyView, {}, 
+        function(view){
+          view.playerReady(function(){
+            self.coquette.entities.destroy(view);
+            self.messageView.show = false;
+            self.messageView.text = self.messageView.text2 = self.messageView.text3 = self.messageView.text4 = '';
+
+            // delay spawning the player so that the user's space bar doesn't
+            // trigger a shot. just annoying to me.
+            setTimeout(function(){
+              self.spawnPlayer();
+              self.initNextLevel();
+            }, 500);
+          });
+        });
+
     },
 
     initNextLevel: function(){
@@ -209,13 +225,15 @@
 
       if (this.state === this.STATE_TITLE){
         this.titleView.draw(context);
-      } else if (this.state === this.STATE_CHOOSE_DIFFICULTY){
-        this.difficultyView.draw(context);
-      } else if (this.state === this.STATE_READY){
-        this.readyView.draw(context);
       } else {
         this.messageView.draw(context);
       }
+
+      context.fillStyle = this.settings.MUTED_COLOR;
+      context.font = "8px 'Press Start 2P'";
+      context.textAlign = "left"
+      context.fillText("v" + this.version.number, 5, this.height - 5);
+
 
     },
 
@@ -234,36 +252,11 @@
 
       if (this.paused) return;
 
-
-      if (this.state === this.STATE_CHOOSE_DIFFICULTY){
-        if (inputter.state(inputter.TWO)){
-          this.difficulty = this.DIFFICULTY_EASY;
-          this.startNewGame();
-          return;
-        } else if (inputter.state(inputter.THREE)){
-          this.difficulty = this.DIFFICULTY_NORMAL;
-          this.startNewGame();
-          return;
-        } else if (inputter.state(inputter.FOUR)){
-          this.difficulty = this.DIFFICULTY_HARD;
-          this.startNewGame();
-          return;
-        } else if (inputter.state(inputter.FIVE)){
-          this.difficulty = this.DIFFICULTY_INSANE;
-          this.startNewGame();
-          return;
-        } else if (inputter.state(inputter.ONE)){
-          this.difficulty = this.DIFFICULTY_FREE;
-          this.startNewGame();
-          return;
-        }
-      }
-
       if(inputter.state(inputter.D)) {
         this.showBoundingBoxes = !this.showBoundingBoxes;
       }
 
-      if (this.state === this.STATE_INTRO || this.state === this.STATE_TITLE){
+      if (this.state === this.STATE_TITLE){
         if(inputter.state(inputter.SPACE)) {
           this.chooseDifficulty();
         }
@@ -438,7 +431,7 @@
         var self = this;
         setTimeout(function(){
           self.trySpawnPlayer();
-        }, 1000)
+        }, 200)
       } else{
         this.messageView.show = false;
         this.spawnPlayer();

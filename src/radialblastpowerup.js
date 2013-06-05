@@ -53,7 +53,6 @@
       context.lineWidth = 3;
       var ratio = (this.fadeTicks / this.fadeAmount).toString();
       context.strokeStyle = 'rgba(' + this.game.settings.POWERUP_BASE_COLOR + ',' + ratio + ')';
-      console.log('rgba(' + this.game.settings.POWERUP_BASE_COLOR + ',' + ratio + ')');
       context.stroke();
       context.closePath();
 

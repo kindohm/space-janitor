@@ -1,5 +1,16 @@
 ;(function(exports){
 
+  var num = '0.1.0';
+
+  var Version = function(){
+    this.number = num;
+  };
+  
+  exports.Version = Version;
+
+})(this);
+;(function(exports){
+
   var Settings = function() { };
 
   Settings.prototype = {
@@ -27,6 +38,7 @@
     FOREGROUND_COLOR:     '#ccc',
     FOREGROUND_BASE_COLOR:'204,204,204',
     FLASH_BASE_COLOR:     '255,255,255', 
+    MUTED_COLOR:     '#333',
     
     /* NEPTUNE THEME */
     /*
@@ -1285,7 +1297,6 @@
       context.lineWidth = 3;
       var ratio = (this.fadeTicks / this.fadeAmount).toString();
       context.strokeStyle = 'rgba(' + this.game.settings.POWERUP_BASE_COLOR + ',' + ratio + ')';
-      console.log('rgba(' + this.game.settings.POWERUP_BASE_COLOR + ',' + ratio + ')');
       context.stroke();
       context.closePath();
 
@@ -1391,13 +1402,48 @@
 })(this);
 ;(function(exports){
 
-  var ReadyView = function(game){
+  var ReadyView = function(game, settings){
     this.game = game;
+    this.ratio = 1.0;
+    this.down = true;
   };
 
   ReadyView.prototype = {
 
-    zindex: 1000,
+    zindex: 1000,    
+    size: {x:1, y:1},
+    pos: {x: -182, y: -992},
+
+    update: function(){
+
+      if (this.down){
+        this.ratio -= .02;
+      } else {
+        this.ratio += .02;
+      }
+
+      if (this.ratio >= 1.0){
+        this.down = true;
+      } else if (this.ratio <= 0.5){
+        this.down = false;
+      }
+
+      this.handleKeyboard();
+    },
+
+    handleKeyboard: function(){
+
+      if (this.callback === undefined || this.callback === null) return;
+
+      var inputter = this.game.coquette.inputter;
+      if (inputter.state(inputter.SPACE)){
+        this.callback();
+      }
+    },
+
+    playerReady: function(callback){
+      this.callback = callback;
+    },
 
     draw: function(context){
 
@@ -1406,28 +1452,32 @@
       context.font = "16px 'Press Start 2P'";
       context.textAlign = "center"
       context.fillStyle = this.game.settings.FOREGROUND_COLOR;
-      context.fillText('READY PLAYER ONE', this.game.width/2, baseHeight);
+      context.fillText('CONTROLS', this.game.width/2, baseHeight);
 
-      var left = 180;
+      var left = 150;
 
       context.font = "12px 'Press Start 2P'";
       context.textAlign = 'left';
-      context.fillText('- Left and right arrow keys to rotate', left, baseHeight + 50);
-      context.fillText('- Up arrow key to thrust', left, baseHeight + 90);
-      context.fillText('- Space bar to shoot', left, baseHeight + 130);
-      context.fillText('- Esc to pause', left, baseHeight + 170);
 
-      context.fillText('Collect these:', left, baseHeight + 240);
-      context.fillText('and deploy them with Down arrow.', left, baseHeight + 280);
+      context.fillText('Press LEFT, RIGHT, and UP arrows to move.', left, baseHeight + 50);
+      context.fillText('Press SPACE to shoot. ESC to pause.', left, baseHeight + 90);
 
-      var x = 390;
-      var y = baseHeight + 230;
+      context.fillText('Collect these:', left, baseHeight + 170);
+
+      var x = 370;
+      var y = baseHeight + 160;
       context.beginPath();
       context.arc(x, y, 20, 0, Math.PI * 2, true);
       context.lineWidth = 3;
       context.strokeStyle = this.game.settings.POWERUP_COLOR;
       context.stroke();
       context.closePath();
+
+      context.fillText('and deploy them with DOWN arrow.', left, baseHeight + 210);
+
+      context.fillStyle = 'rgba(' + this.game.settings.FOREGROUND_BASE_COLOR + ', ' + this.ratio.toString() + ')';
+      context.fillText('Press SPACE to play.', left, baseHeight + 290);
+
 
     }
 
@@ -1438,17 +1488,40 @@
 })(this);
 ;(function(exports){
 
-  var DifficultyView = function(game){
+  var DifficultyView = function(game, settings){
     this.game = game;
   };
 
   DifficultyView.prototype = {
 
-    show: false,
+    zindex: 1000,    
+    size: {x:1, y:1},
+    pos: {x: -682, y: -792},
+
+    update: function(){
+      this.handleKeyboard();
+    },
+
+    handleKeyboard: function(){
+
+      if (this.callback === undefined || this.callback === null) return;    
+      var inputter = this.game.coquette.inputter;
+      var result = -1;
+      if (inputter.state(inputter.ONE)) result = this.game.DIFFICULTY_FREE;
+      if (inputter.state(inputter.TWO)) result = this.game.DIFFICULTY_EASY;
+      if (inputter.state(inputter.THREE)) result = this.game.DIFFICULTY_NORMAL;
+      if (inputter.state(inputter.FOUR)) result = this.game.DIFFICULTY_HARD;
+      if (inputter.state(inputter.FIVE)) result = this.game.DIFFICULTY_INSANE;
+
+      if (result === -1) return;
+      this.callback(result);
+    },
+
+    difficultySelected: function(callback){
+      this.callback = callback;
+    },
 
     draw: function(context){
-
-      if (!this.show) return;
 
       var x = this.game.width / 2;
 
@@ -1458,13 +1531,13 @@
       context.fillText('CHOOSE DIFFICULTY', x, 100);
 
       context.font = "12px 'Press Start 2P'";
-      context.fillText('Press a number key:', x, 200);
+      context.fillText('Press a number key:', x, 150);
 
-      context.fillText('1 - free flying', x, 250);
-      context.fillText('2 - easy', x, 280);
-      context.fillText('3 - normal', x, 310);
-      context.fillText('4 - hard', x, 340);
-      context.fillText('5 - insane', x, 370);
+      context.fillText('1 - free flying', x, 200);
+      context.fillText('2 - easy', x, 230);
+      context.fillText('3 - normal', x, 260);
+      context.fillText('4 - hard', x, 290);
+      context.fillText('5 - insane', x, 320);
 
     }
 
@@ -1534,13 +1607,13 @@
     draw: function(context){
       context.fillStyle = this.game.settings.FOREGROUND_COLOR;
 
-      context.font = "48px 'Press Start 2P'";
+      context.font = "40px 'Press Start 2P'";
       context.textAlign = "center"
       context.fillText("Orbital Janitor", this.game.width/2, this.game.height/2 + this.scrollOffset);
 
       context.font = "12px 'Press Start 2P'";
       context.textAlign = "center"
-      context.fillText("Press SPACE to play", this.game.width/2, this.game.height/2 + 50 + this.scrollOffset);
+      context.fillText("Press SPACE to start", this.game.width/2, this.game.height/2 + 50 + this.scrollOffset);
 
       context.font = "14px 'Press Start 2P'";
       context.textAlign = "left"
@@ -1669,21 +1742,20 @@
     this.messageView = new MessageView(this);
     this.titleView = new TitleView(this);
     this.scoringRules = new ScoringRules(this);
-    this.difficultyView = new DifficultyView(this);
-    this.readyView = new ReadyView(this);
     this.ufoTicksLeft = this.ufoTicks;
     this.oneUpPlateau = this.oneUpPlateauStep;
+    this.version = new Version();
   };
 
   Game.prototype = {
 
     state: 0,
     STATE_TITLE: 0,
-    STATE_READY: 1,
-    STATE_PLAYING: 2,
-    STATE_BETWEEN_LEVELS: 3,
-    STATE_GAME_OVER: 4,
-    STATE_CHOOSE_DIFFICULTY: 5,
+    STATE_CHOOSE_DIFFICULTY: 1,
+    STATE_SHOW_CONTROLS: 2,
+    STATE_PLAYING: 3,
+    STATE_BETWEEN_LEVELS: 4,
+    STATE_GAME_OVER: 5,
 
     DIFFICULTY_FREE: 0,
     DIFFICULTY_EASY: 1,
@@ -1696,7 +1768,7 @@
     pausing: false,
     paused: false,
     score: 0,
-    lives: 3,
+    lives: 0,
     gameBar: null,
     explosions: [],
     level: null,
@@ -1726,17 +1798,24 @@
     },
 
     chooseDifficulty: function(){
+      var self = this;
       this.messageView.show = false;
       this.state = this.STATE_CHOOSE_DIFFICULTY;
-      this.difficultyView.show = true;      
+      this.coquette.entities.create(DifficultyView, {},
+        function(view){
+          view.difficultySelected(function(difficultyValue){
+            self.difficulty = difficultyValue;
+            self.coquette.entities.destroy(view);
+            self.startNewGame();
+          });
+        });
     },
 
     startNewGame: function(){
-      this.clearEntities();
-
-      this.state = this.STATE_READY;
-
       var self = this;
+
+      this.clearEntities();
+      this.state = this.STATE_READY;
       this.scoringRules = new ScoringRules(this);
       this.oneUpPlateau = this.oneUpPlateauStep;
       this.score = 0;
@@ -1744,12 +1823,22 @@
       this.level = null;
       this.titleView.stop();
 
-      setTimeout(function(){
-        self.messageView.show = false;
-        self.messageView.text = self.messageView.text2 = self.messageView.text3 = self.messageView.text4 = '';
-        self.spawnPlayer();
-        self.initNextLevel();
-      }, 5000);
+      this.coquette.entities.create(ReadyView, {}, 
+        function(view){
+          view.playerReady(function(){
+            self.coquette.entities.destroy(view);
+            self.messageView.show = false;
+            self.messageView.text = self.messageView.text2 = self.messageView.text3 = self.messageView.text4 = '';
+
+            // delay spawning the player so that the user's space bar doesn't
+            // trigger a shot. just annoying to me.
+            setTimeout(function(){
+              self.spawnPlayer();
+              self.initNextLevel();
+            }, 500);
+          });
+        });
+
     },
 
     initNextLevel: function(){
@@ -1854,13 +1943,15 @@
 
       if (this.state === this.STATE_TITLE){
         this.titleView.draw(context);
-      } else if (this.state === this.STATE_CHOOSE_DIFFICULTY){
-        this.difficultyView.draw(context);
-      } else if (this.state === this.STATE_READY){
-        this.readyView.draw(context);
       } else {
         this.messageView.draw(context);
       }
+
+      context.fillStyle = this.settings.MUTED_COLOR;
+      context.font = "8px 'Press Start 2P'";
+      context.textAlign = "left"
+      context.fillText("v" + this.version.number, 5, this.height - 5);
+
 
     },
 
@@ -1879,36 +1970,11 @@
 
       if (this.paused) return;
 
-
-      if (this.state === this.STATE_CHOOSE_DIFFICULTY){
-        if (inputter.state(inputter.TWO)){
-          this.difficulty = this.DIFFICULTY_EASY;
-          this.startNewGame();
-          return;
-        } else if (inputter.state(inputter.THREE)){
-          this.difficulty = this.DIFFICULTY_NORMAL;
-          this.startNewGame();
-          return;
-        } else if (inputter.state(inputter.FOUR)){
-          this.difficulty = this.DIFFICULTY_HARD;
-          this.startNewGame();
-          return;
-        } else if (inputter.state(inputter.FIVE)){
-          this.difficulty = this.DIFFICULTY_INSANE;
-          this.startNewGame();
-          return;
-        } else if (inputter.state(inputter.ONE)){
-          this.difficulty = this.DIFFICULTY_FREE;
-          this.startNewGame();
-          return;
-        }
-      }
-
       if(inputter.state(inputter.D)) {
         this.showBoundingBoxes = !this.showBoundingBoxes;
       }
 
-      if (this.state === this.STATE_INTRO || this.state === this.STATE_TITLE){
+      if (this.state === this.STATE_TITLE){
         if(inputter.state(inputter.SPACE)) {
           this.chooseDifficulty();
         }
@@ -2083,7 +2149,7 @@
         var self = this;
         setTimeout(function(){
           self.trySpawnPlayer();
-        }, 1000)
+        }, 200)
       } else{
         this.messageView.show = false;
         this.spawnPlayer();

@@ -59,13 +59,13 @@
     draw: function(context){
       context.fillStyle = this.game.settings.FOREGROUND_COLOR;
 
-      context.font = "48px 'Press Start 2P'";
+      context.font = "40px 'Press Start 2P'";
       context.textAlign = "center"
       context.fillText("Orbital Janitor", this.game.width/2, this.game.height/2 + this.scrollOffset);
 
       context.font = "12px 'Press Start 2P'";
       context.textAlign = "center"
-      context.fillText("Press SPACE to play", this.game.width/2, this.game.height/2 + 50 + this.scrollOffset);
+      context.fillText("Press SPACE to start", this.game.width/2, this.game.height/2 + 50 + this.scrollOffset);
 
       context.font = "14px 'Press Start 2P'";
       context.textAlign = "left"

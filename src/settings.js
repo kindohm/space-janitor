@@ -27,6 +27,7 @@
     FOREGROUND_COLOR:     '#ccc',
     FOREGROUND_BASE_COLOR:'204,204,204',
     FLASH_BASE_COLOR:     '255,255,255', 
+    MUTED_COLOR:     '#333',
     
     /* NEPTUNE THEME */
     /*
