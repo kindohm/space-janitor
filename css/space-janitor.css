@@ -1,13 +1,11 @@
 body{ 
 	font-family: 'Press Start 2P', Helvetica, Arial, cursive; 
-	color: #ccc;
+	color: #666;
 	background: #000;
 }
 
-body.info{
-	font-family: Helvetica, Arial, cursive; 
-	/*color: #333;
-	background: #fff;*/
+.game-container{
+	width: 800px;
 }
 
 #canvas{
@@ -15,23 +13,18 @@ body.info{
 	margin-top: 10px;
 }
 
-.game-container{
-	max-width: 800px;
-	margin-top: 50px;
-}
-
 p{
-	font-size: 12px;
+	font-size: 8px;
 }
 
-body.info p{
-	font-size: inherit;
+.game-info{
+	text-align: center
 }
 
-h3{
-	margin-top: 40px;
+a:link, a:visited{
+	color: #999;
 }
 
-.info-container h1, h2, h3, h4, h5, h6{
-	font-family: 'Press Start 2P', Helvetica, Arial, cursive; 
+a:hover{
+	color: #ccc;
 }

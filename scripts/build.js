@@ -6,6 +6,7 @@ var packer = require( 'node.packer' ),
     out    = path + 'js/';
 
 var input = [
+  src + 'version.js',
   src + 'settings.js',
   src + 'spritefactory.js',
   src + 'bullet.js',
