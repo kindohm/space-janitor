@@ -38,8 +38,7 @@
 
     pointsForUfo: function(ufo){
       return 2000 * this.multiplier;
-    }
-
+    },
   };
 
   exports.ScoringRules = ScoringRules;
