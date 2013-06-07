@@ -8,7 +8,7 @@
         soundsPath + 'explosion01.mp3', 
         soundsPath + 'explosion01.ogg'
       ],
-      volume: 0.5
+      volume: 0.4
     });    
 
     this.playerExplosionSound = new Howl({
@@ -17,7 +17,7 @@
         soundsPath + 'explosion02.mp3', 
         soundsPath + 'explosion02.ogg'
       ],
-      volume: 0.9
+      volume: 0.7
     });  
 
     this.thrustSound = new Howl({
@@ -42,7 +42,7 @@
         soundsPath + 'ufo.wav', 
         soundsPath + 'ufo.mp3', 
         soundsPath + 'ufo.ogg'],
-      volume: 0.7,
+      volume: 0.5,
       loop: true
     });    
 
@@ -60,7 +60,7 @@
         soundsPath + 'radialblast.wav', 
         soundsPath + 'radialblast.mp3', 
         soundsPath + 'radialblast.ogg'],
-      volume: 0.5,
+      volume: 0.3,
       loop: false
     });    
 
