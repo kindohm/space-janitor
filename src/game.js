@@ -258,10 +258,6 @@
 
       if (this.paused) return;
 
-      if(inputter.state(inputter.D)) {
-        this.showBoundingBoxes = !this.showBoundingBoxes;
-      }
-
       if (this.state === this.STATE_TITLE){
         if(inputter.state(inputter.SPACE)) {
           this.chooseDifficulty();
