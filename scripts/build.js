@@ -26,6 +26,7 @@ var input = [
   src + 'difficultyview.js',
   src + 'titleview.js',
   src + 'scoringrules.js',
+  src + 'scoreposter.js',
   src + 'game.js'
 ];
 

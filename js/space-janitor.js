@@ -1,6 +1,6 @@
 ;(function(exports){
 
-  var num = '0.1.0';
+  var num = '0.2.0';
 
   var Version = function(){
     this.number = num;
@@ -504,7 +504,7 @@
       if (type === this.game.coquette.collider.INITIAL){
         if ((other instanceof Bullet && !other.hostile) || other instanceof Player){
           this.game.coquette.entities.destroy(this);
-          this.game.asteroidKilled(this);
+          this.game.asteroidKilled(this, other);
         }
       }
     }
@@ -638,7 +638,7 @@
           other instanceof Player
         )){
           this.game.soundBus.ufoSound.stop();
-          this.game.ufoKilled(this);
+          this.game.ufoKilled(this, other);
           this.game.coquette.entities.destroy(this);
       }
     }
@@ -872,6 +872,7 @@
         }
       });
 
+      this.game.radialBlastDeployed();
       this.game.soundBus.radialBlastSound.play();
       this.radialBlasts--;
     },
@@ -882,7 +883,7 @@
         if (other instanceof Asteroid || (other instanceof Bullet && other.hostile || other instanceof Ufo)){
           this.game.coquette.entities.destroy(this);
           this.game.soundBus.thrustSound.stop();
-          this.game.playerKilled(this);
+          this.game.playerKilled(this, other);
         }
       }
     },
@@ -975,6 +976,21 @@
     this.willDeployPowerup = number % 2 === 0;
     this.powerupTicks = game.maths.getRandomInt(500,1500);
     this.powerupTicksLeft = this.powerupTicks;
+
+    this.score = 0;
+    this.radialBlastsCaptured = 0;
+    this.radialBlastsDeployed = 0;
+    this.asteroidsKilledByBullet = 0;
+    this.asteroidsKilledByRadialBlast = 0;
+    this.asteroidsKilledByPlayerCollision = 0;
+    this.ufosKilledByBullet = 0;
+    this.ufosKilledByPlayerCollision = 0;
+    this.ufosKilledByRadialBlast = 0;
+    this.deathsByAsteroidCollision = 0;
+    this.deathsByUfoCollision = 0;
+    this.deathsByUfoBullet = 0;
+    this.start = new Date();
+    this.end = new Date();
   };
 
   Level.prototype = {
@@ -1228,7 +1244,7 @@
     collision: function(other, type){
       if (type === this.game.coquette.collider.INITIAL){
         if (other instanceof Asteroid){
-          this.game.asteroidKilled(other);
+          this.game.asteroidKilled(other, this);
           this.game.coquette.entities.destroy(other);
         }
       } else if (other instanceof Bullet && other.hostile){
@@ -1709,13 +1725,83 @@
 
     pointsForUfo: function(ufo){
       return 2000 * this.multiplier;
-    }
-
+    },
   };
 
   exports.ScoringRules = ScoringRules;
 
 })(this);
+; (function (exports, $) {
+
+  //postUrl = 'http://localhost:61740/api/Game';
+  postUrl = 'http://orbital-janitor-api.azurewebsites.net/api/Game';
+
+  var ScorePoster = function () {
+  };
+
+  ScorePoster.prototype = {
+
+    postScore: function(game){
+
+      var dto = this.getDto(game);
+      var dtoString = JSON.stringify(dto);
+
+      $.ajax({
+        url: postUrl,
+        contentType: 'text/json',
+        data: dtoString,
+        type: 'POST'
+      })
+      .done(function(result) { console.log("success:"); console.log(result); })
+      .fail(function(result) { console.log("error:"); console.log(result);})
+      .always(function(result) { console.log("complete:"); console.log(result);});
+    },
+
+    getDto: function(game){
+      var gameDto = {
+        start: game.start,
+        end: game.end,
+        player: game.playerName,
+        cheating: game.cheating,
+        difficulty: game.difficulty,
+        score: game.score
+      };
+
+      gameDto.levels = [];
+
+      for (var i = 0; i < game.levels.length; i++){
+        var level = game.levels[i];
+        gameDto.levels.push({
+          number: level.number,
+          start: level.start,
+          end: level.end,
+          score: level.score,
+          shotsFired: level.shots,
+          radialBlastsCaptured: level.radialBlastsCaptured,
+          radialBlastsDeployed: level.radialBlastsDeployed,
+          asteroidsKilledByBullet: level.asteroidsKilledByBullet,
+          asteroidsKilledByRadialBlast: level.asteroidsKilledByRadialBlast,
+          asteroidsKilledByPlayerCollision: level.asteroidsKilledByPlayerCollision,
+          ufosKilledByBullet: level.ufosKilledByBullet,
+          ufosKilledByPlayerCollision: level.ufosKilledByPlayerCollision,
+          ufosKilledByRadialBlast: level.ufosKilledByRadialBlast,
+          deathsByAsteroidCollision: level.deathsByAsteroidCollision,
+          deathsByUfoCollision: level.deathsByUfoCollision,
+          deathsByUfoBullet: level.deathsByUfoBullet
+        });
+
+      }
+
+      return gameDto;
+
+
+
+    }
+
+  };
+
+    exports.ScorePoster = ScorePoster;
+})(this, jQuery);
 ;(function(exports) {
 
   var Game = function(canvasId, width, height) {
@@ -1745,6 +1831,7 @@
     this.ufoTicksLeft = this.ufoTicks;
     this.oneUpPlateau = this.oneUpPlateauStep;
     this.version = new Version();
+    this.levels = [];
   };
 
   Game.prototype = {
@@ -1814,7 +1901,9 @@
     startNewGame: function(){
       var self = this;
 
+      this.start = new Date();
       this.clearEntities();
+      this.levels = [];
       this.state = this.STATE_READY;
       this.scoringRules = new ScoringRules(this);
       this.oneUpPlateau = this.oneUpPlateauStep;
@@ -1848,6 +1937,7 @@
       this.state = this.STATE_PLAYING;
       var number = this.level === null ? 1 : this.level.number + 1;
       this.level = new Level(this, number, this.difficulty);
+      this.levels.push(this.level);
       if (this.gameBar != null) {
         this.gameBar.levelNumber = number;
       }
@@ -2077,7 +2167,11 @@
       this.explosions.push(effect);
     },
 
-    asteroidKilled: function(asteroid){
+    asteroidKilled: function(asteroid, other){
+
+      if (other instanceof Bullet) this.level.asteroidsKilledByBullet++;
+      if (other instanceof RadialBlast) this.level.asteroidsKilledByRadialBlast++;
+      if (other instanceof Player) this.level.asteroidsKilledByPlayerCollision++;
 
       this.soundBus.asteroidExplosionSound.play();
 
@@ -2103,11 +2197,16 @@
       this.level.thrustTicks++;
     },
 
-    playerKilled: function(player){
+    playerKilled: function(player, other){
       this.lives--;
       this.soundBus.playerExplosionSound.play();
       this.spawnPlayerExplosion(player.pos);
       this.oldRadialBlasts = player.radialBlasts;
+
+      if (other instanceof Bullet) this.level.deathsByUfoBullet++;
+      if (other instanceof Ufo) this.level.deathsByUfoCollision++;
+      if (other instanceof Asteroid) this.level.deathsByAsteroidCollision++;
+
       var self = this;
 
       if (this.lives > 0){
@@ -2119,10 +2218,16 @@
       }
     },
 
-    ufoKilled: function(ufo){
+    ufoKilled: function(ufo, other){
       this.soundBus.playerExplosionSound.play();
       this.spawnUfoExplosion(ufo.pos);
       this.appendScore(this.scoringRules.pointsForUfo(ufo));
+
+      if (other instanceof Bullet) this.level.ufosKilledByBullet++;
+      if (other instanceof Player) this.level.ufosKilledByPlayerCollision++;
+      if (other instanceof RadialBlast) this.level.ufosKilledByRadialBlast++;
+
+      console.log(other);
     },
 
     trySpawnPlayer: function(){
@@ -2158,12 +2263,22 @@
     },
 
     endGame: function(){      
+
+      this.end = new Date();
+      this.level.end = new Date();
+      this.playerName = 'DEV';
+
       var self = this;
       this.paused = false;
       this.pauseView.show = false;      
       this.messageView.text = 'Game Over';
       this.messageView.show = true;
       this.state = self.STATE_GAME_OVER;
+
+      setTimeout(function(){
+        var scorePoster = new ScorePoster();
+        scorePoster.postScore(self);
+      }, 500);
 
       setTimeout(function(){
         self.clearEntities();
@@ -2174,6 +2289,7 @@
 
     appendScore: function(more){
       this.score += more;
+      this.level.score += more;
 
       if (this.score >= this.oneUpPlateau){
         this.oneUpPlateau += this.oneUpPlateauStep;
@@ -2184,8 +2300,13 @@
 
     radialBlastAcquired: function(powerup){
       this.player.radialBlasts++;
+      this.level.radialBlastsCaptured++;
       this.spawnPowerupExplosion(powerup.pos);
       this.soundBus.playerExplosionSound.play();
+    },
+
+    radialBlastDeployed: function(powerup){
+      this.level.radialBlastsDeployed++;
     }
 
   };
