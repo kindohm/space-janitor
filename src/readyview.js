@@ -60,7 +60,7 @@
       context.fillText('Press LEFT, RIGHT, and UP arrows to move.', left, baseHeight + 50);
       context.fillText('Press SPACE to shoot. ESC to pause.', left, baseHeight + 90);
 
-      context.fillText('Collect these:', left, baseHeight + 170);
+      context.fillText('Shoot these:', left, baseHeight + 170);
 
       var x = 370;
       var y = baseHeight + 160;
