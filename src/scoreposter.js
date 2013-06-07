@@ -8,7 +8,7 @@
 
   ScorePoster.prototype = {
 
-    postScore: function(game){
+    postScore: function(game, callback){
 
       var dto = this.getDto(game);
       var dtoString = JSON.stringify(dto);
@@ -19,9 +19,7 @@
         data: dtoString,
         type: 'POST'
       })
-      .done(function(result) { console.log("success:"); console.log(result); })
-      .fail(function(result) { console.log("error:"); console.log(result);})
-      .always(function(result) { console.log("complete:"); console.log(result);});
+      .always(function(result) { console.log("complete:"); console.log(result); callback(result); });
     },
 
     getDto: function(game){
