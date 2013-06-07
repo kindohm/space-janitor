@@ -422,8 +422,6 @@
       if (other instanceof Bullet) this.level.ufosKilledByBullet++;
       if (other instanceof Player) this.level.ufosKilledByPlayerCollision++;
       if (other instanceof RadialBlast) this.level.ufosKilledByRadialBlast++;
-
-      console.log(other);
     },
 
     trySpawnPlayer: function(){
