@@ -1,6 +1,7 @@
 ; (function (exports, $) {
 
-  postUrl = 'http://localhost:61740/api/Game';
+  //postUrl = 'http://localhost:61740/api/Game';
+  postUrl = 'http://orbital-janitor-api.azurewebsites.net/api/Game';
 
   var ScorePoster = function () {
   };
