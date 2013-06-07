@@ -4,10 +4,10 @@
     this.game = game;
 
     if (game.difficulty === game.DIFFICULTY_FREE) this.multiplier = 0;
-    if (game.difficulty === game.DIFFICULTY_EASY) this.multiplier = 0.5;
+    if (game.difficulty === game.DIFFICULTY_EASY) this.multiplier = 0.1;
     if (game.difficulty === game.DIFFICULTY_NORMAL) this.multiplier = 1;
-    if (game.difficulty === game.DIFFICULTY_HARD) this.multiplier = 1.25;
-    if (game.difficulty === game.DIFFICULTY_INSANE) this.multiplier = 1.5;
+    if (game.difficulty === game.DIFFICULTY_HARD) this.multiplier = 1.5;
+    if (game.difficulty === game.DIFFICULTY_INSANE) this.multiplier = 2;
 
   };
 

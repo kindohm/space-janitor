@@ -21,6 +21,7 @@
         self.pauseView = view;
       });
 
+
     this.messageView = new MessageView(this);
     this.titleView = new TitleView(this);
     this.scoringRules = new ScoringRules(this);
@@ -98,6 +99,7 @@
       var self = this;
 
       this.start = new Date();
+      this.oldRadialBlasts = 0;
       this.clearEntities();
       this.levels = [];
       this.state = this.STATE_READY;
@@ -461,24 +463,30 @@
       this.end = new Date();
       this.level.end = new Date();
       this.playerName = 'DEV';
+      this.soundBus.ufoSound.stop();
 
       var self = this;
       this.paused = false;
       this.pauseView.show = false;      
-      this.messageView.text = 'Game Over';
-      this.messageView.show = true;
       this.state = self.STATE_GAME_OVER;
 
       setTimeout(function(){
-        var scorePoster = new ScorePoster();
-        scorePoster.postScore(self);
-      }, 500);
 
-      setTimeout(function(){
         self.clearEntities();
-        self.state = self.STATE_TITLE;
-        self.titleView.play();
-      }, 3000);
+        self.coquette.entities.create(GameOverView, { }, 
+          function(view){
+            view.onend(function(sender, result){
+              self.coquette.entities.destroy(view);
+              console.log(result);
+              self.state = self.STATE_TITLE;
+              self.oldRadialBlasts = 0;
+              self.player.radialBlasts = 0;
+              self.titleView.play();
+            });
+        });
+
+      }, 2000);
+
     },
 
     appendScore: function(more){
