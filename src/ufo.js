@@ -122,7 +122,7 @@
           other instanceof Player
         )){
           this.game.soundBus.ufoSound.stop();
-          this.game.ufoKilled(this);
+          this.game.ufoKilled(this, other);
           this.game.coquette.entities.destroy(this);
       }
     }

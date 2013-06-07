@@ -27,6 +27,7 @@
     this.ufoTicksLeft = this.ufoTicks;
     this.oneUpPlateau = this.oneUpPlateauStep;
     this.version = new Version();
+    this.levels = [];
   };
 
   Game.prototype = {
@@ -96,7 +97,9 @@
     startNewGame: function(){
       var self = this;
 
+      this.start = new Date();
       this.clearEntities();
+      this.levels = [];
       this.state = this.STATE_READY;
       this.scoringRules = new ScoringRules(this);
       this.oneUpPlateau = this.oneUpPlateauStep;
@@ -130,6 +133,7 @@
       this.state = this.STATE_PLAYING;
       var number = this.level === null ? 1 : this.level.number + 1;
       this.level = new Level(this, number, this.difficulty);
+      this.levels.push(this.level);
       if (this.gameBar != null) {
         this.gameBar.levelNumber = number;
       }
@@ -359,7 +363,11 @@
       this.explosions.push(effect);
     },
 
-    asteroidKilled: function(asteroid){
+    asteroidKilled: function(asteroid, other){
+
+      if (other instanceof Bullet) this.level.asteroidsKilledByBullet++;
+      if (other instanceof RadialBlast) this.level.asteroidsKilledByRadialBlast++;
+      if (other instanceof Player) this.level.asteroidsKilledByPlayerCollision++;
 
       this.soundBus.asteroidExplosionSound.play();
 
@@ -385,11 +393,16 @@
       this.level.thrustTicks++;
     },
 
-    playerKilled: function(player){
+    playerKilled: function(player, other){
       this.lives--;
       this.soundBus.playerExplosionSound.play();
       this.spawnPlayerExplosion(player.pos);
       this.oldRadialBlasts = player.radialBlasts;
+
+      if (other instanceof Bullet) this.level.deathsByUfoBullet++;
+      if (other instanceof Ufo) this.level.deathsByUfoCollision++;
+      if (other instanceof Asteroid) this.level.deathsByAsteroidCollision++;
+
       var self = this;
 
       if (this.lives > 0){
@@ -401,10 +414,16 @@
       }
     },
 
-    ufoKilled: function(ufo){
+    ufoKilled: function(ufo, other){
       this.soundBus.playerExplosionSound.play();
       this.spawnUfoExplosion(ufo.pos);
       this.appendScore(this.scoringRules.pointsForUfo(ufo));
+
+      if (other instanceof Bullet) this.level.ufosKilledByBullet++;
+      if (other instanceof Player) this.level.ufosKilledByPlayerCollision++;
+      if (other instanceof RadialBlast) this.level.ufosKilledByRadialBlast++;
+
+      console.log(other);
     },
 
     trySpawnPlayer: function(){
@@ -440,12 +459,22 @@
     },
 
     endGame: function(){      
+
+      this.end = new Date();
+      this.level.end = new Date();
+      this.playerName = 'DEV';
+
       var self = this;
       this.paused = false;
       this.pauseView.show = false;      
       this.messageView.text = 'Game Over';
       this.messageView.show = true;
       this.state = self.STATE_GAME_OVER;
+
+      setTimeout(function(){
+        var scorePoster = new ScorePoster();
+        scorePoster.postScore(self);
+      }, 500);
 
       setTimeout(function(){
         self.clearEntities();
@@ -456,6 +485,7 @@
 
     appendScore: function(more){
       this.score += more;
+      this.level.score += more;
 
       if (this.score >= this.oneUpPlateau){
         this.oneUpPlateau += this.oneUpPlateauStep;
@@ -466,8 +496,13 @@
 
     radialBlastAcquired: function(powerup){
       this.player.radialBlasts++;
+      this.level.radialBlastsCaptured++;
       this.spawnPowerupExplosion(powerup.pos);
       this.soundBus.playerExplosionSound.play();
+    },
+
+    radialBlastDeployed: function(powerup){
+      this.level.radialBlastsDeployed++;
     }
 
   };

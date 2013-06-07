@@ -15,6 +15,21 @@
     this.willDeployPowerup = number % 2 === 0;
     this.powerupTicks = game.maths.getRandomInt(500,1500);
     this.powerupTicksLeft = this.powerupTicks;
+
+    this.score = 0;
+    this.radialBlastsCaptured = 0;
+    this.radialBlastsDeployed = 0;
+    this.asteroidsKilledByBullet = 0;
+    this.asteroidsKilledByRadialBlast = 0;
+    this.asteroidsKilledByPlayerCollision = 0;
+    this.ufosKilledByBullet = 0;
+    this.ufosKilledByPlayerCollision = 0;
+    this.ufosKilledByRadialBlast = 0;
+    this.deathsByAsteroidCollision = 0;
+    this.deathsByUfoCollision = 0;
+    this.deathsByUfoBullet = 0;
+    this.start = new Date();
+    this.end = new Date();
   };
 
   Level.prototype = {

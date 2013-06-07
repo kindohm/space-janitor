@@ -222,6 +222,7 @@
         }
       });
 
+      this.game.radialBlastDeployed();
       this.game.soundBus.radialBlastSound.play();
       this.radialBlasts--;
     },
@@ -232,7 +233,7 @@
         if (other instanceof Asteroid || (other instanceof Bullet && other.hostile || other instanceof Ufo)){
           this.game.coquette.entities.destroy(this);
           this.game.soundBus.thrustSound.stop();
-          this.game.playerKilled(this);
+          this.game.playerKilled(this, other);
         }
       }
     },
