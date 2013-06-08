@@ -29,6 +29,9 @@
     this.oneUpPlateau = this.oneUpPlateauStep;
     this.version = new Version();
     this.levels = [];
+
+    this.coquette.inputter.supressedKeys.push(
+      this.coquette.inputter.BACKSPACE);
   };
 
   Game.prototype = {
