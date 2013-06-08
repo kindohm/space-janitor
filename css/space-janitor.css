@@ -1,6 +1,6 @@
 body{ 
 	font-family: 'Press Start 2P', Helvetica, Arial, cursive; 
-	color: #666;
+	color: #ccc;
 	background: #000;
 }
 
@@ -28,4 +28,8 @@ a:link, a:visited{
 
 a:hover{
 	color: #ccc;
+}
+
+td.num{
+	text-align: right;
 }

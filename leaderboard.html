@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Orbital Janitor Leaderboard</title>    
+    <link href="http://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet" type="text/css" />
+    <link href="css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="css/space-janitor.css" rel="stylesheet" type="text/css" />
+  </head>
+  <body>
+    <div class="container game-container">
+      <h3>Space Janitor Leaderboard</h3>
+
+      <table class="table">
+        <tr>
+          <th>RANK</th>
+          <th>PLAYER</th>
+          <th>SCORE</th>
+          <th>DIFFICULTY</th>
+          <th>LEVEL</th>
+          <th>KILLS</th>
+        </tr>
+        <tbody data-bind="foreach: games">
+            <tr>
+                <td data-bind="text: rank"></td>
+                <td data-bind="text: playerName"></td>
+                <td data-bind="text: score"></td>
+                <td data-bind="text: difficulty"></td>
+                <td data-bind="text: level"></td>
+                <td data-bind="text: kills"></td>
+            </tr>    
+        </tbody>        
+      </table>
+
+    </div>
+  </body>
+  <script type="text/javascript" src="js/jquery-1.10.1.min.js"></script>
+  <script type="text/javascript" src="js/jshashtable-2.1.js"></script>
+  <script type="text/javascript" src="js/knockout-2.2.1.js"></script>
+  <script type="text/javascript" src="js/space-janitor-min.js"></script>
+  <script type="text/javascript">
+    window.addEventListener('load', function() {
+      var viewModel = new LeaderboardViewModel();
+      ko.applyBindings(viewModel);
+    });
+  </script>
+</html>
