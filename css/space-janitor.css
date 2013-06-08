@@ -14,22 +14,26 @@ body{
 	margin-top: 10px;
 }
 
-p{
-	font-size: 8px;
+.game-info{
+	text-align: center;
+	color: #666;
 }
 
-.game-info{
-	text-align: center
+.game-info p{
+	font-size: 8px;
+	color: #333;
+	margin-top: 20px;
 }
 
 a:link, a:visited{
-	color: #999;
+	color: #ccc;
 }
 
 a:hover{
-	color: #ccc;
+	color: #999;
 }
 
 td.num{
 	text-align: right;
 }
+
