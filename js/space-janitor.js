@@ -2355,7 +2355,8 @@
       if (this.paused && inputter.state(inputter.Q)){
         // quit!
         this.clearEntities();
-        this.endGame();
+        var paused = true;
+        this.endGame(paused);
         return;
       }
 
@@ -2557,7 +2558,7 @@
 
     },
 
-    endGame: function(){      
+    endGame: function(wasPaused){      
 
       this.end = new Date();
       this.level.end = new Date();
@@ -2567,11 +2568,23 @@
       var self = this;
       this.paused = false;
       this.pauseView.show = false;      
+
+
+      if (wasPaused != undefined && wasPaused){
+        self.state = self.STATE_TITLE;
+        self.oldRadialBlasts = 0;
+        self.player.radialBlasts = 0;
+        self.titleView.play();
+        return;
+      }
+
+
       this.state = self.STATE_GAME_OVER;
 
       setTimeout(function(){
 
         self.clearEntities();
+
         self.coquette.entities.create(GameOverView, { }, 
           function(view){
             view.onend(function(sender, result){
@@ -2583,7 +2596,6 @@
               self.titleView.play();
             });
         });
-
       }, 2000);
 
     },
