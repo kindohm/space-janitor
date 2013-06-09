@@ -1,6 +1,6 @@
 ;(function(exports){
 
-  var num = '0.3.0';
+  var num = '0.3.1';
 
   var Version = function(){
     this.number = num;
