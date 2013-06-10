@@ -19,7 +19,8 @@
         data: dtoString,
         type: 'POST'
       })
-      .always(function(result) { console.log("complete:"); console.log(result); callback(result); });
+      .done(function(result) { callback(result); })
+      .fail(function(result) { callback({ Success: false, Message: 'Error posting score.'}); });
     },
 
     getDto: function(game){

@@ -9,6 +9,18 @@
   <body>
     <div class="container game-container">
       <canvas id="canvas"></canvas>
+      <div id="post-score">
+        <h3>GAME OVER</h3>
+        <p>SCORE: <span id="score-value">0</span></p>
+        <p>Enter your name and submit your score:</p>
+        <p><input type="text" maxlength="16" id="input-player-name"/></p>
+        <p><button id="submit-button">Submit</button>&nbsp;<button id="no-thanks-button">No Thanks</button></p>
+        <div id="error-panel">
+          <p>There was an error sending your score. Sorry.</p>
+          <p><a href="mailto:i.sweep.space@gmail.com">Feedback: i.sweep.space@gmail.com</a></p>
+          <p><button id="error-close-button">Close and Play Again</button></p>
+        </div>
+      </div>
       <br/><br/>
       <div class="game-info">
         <p class="leaderboard text-center"><a href="leaderboard.html">Leaderboard</a></p>
@@ -19,6 +31,7 @@
     </div>
   </body>
   <script type="text/javascript" src="js/jquery-1.10.1.min.js"></script>
+  <script type="text/javascript" src="js/jquery.bpopup.min.js"></script>
   <script type="text/javascript" src="js/jshashtable-2.1.js"></script>
   <script type="text/javascript" src="js/howler.min.js"></script>
   <script type="text/javascript" src="js/sylvester.js"></script>

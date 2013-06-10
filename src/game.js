@@ -466,6 +466,7 @@
       this.soundBus.ufoSound.stop();
 
       var self = this;
+      var theThing = this;
       this.paused = false;
       this.pauseView.show = false;      
 
@@ -478,25 +479,80 @@
         return;
       }
 
-
       this.state = self.STATE_GAME_OVER;
 
       setTimeout(function(){
 
         self.clearEntities();
 
-        self.coquette.entities.create(GameOverView, { }, 
-          function(view){
-            view.onend(function(sender, result){
-              self.coquette.entities.destroy(view);
-              console.log(result);
-              self.state = self.STATE_TITLE;
-              self.oldRadialBlasts = 0;
-              self.player.radialBlasts = 0;
-              self.titleView.play();
-            });
+        $('#error-panel').hide();
+        $('#submit-button').removeAttr('disabled');
+        $('#no-thanks-button').removeAttr('disabled');
+        $('#input-player-name').removeAttr('disabled');
+        $('#submit-button').html('Submit');
+        $('#input-player-name').val('');
+
+        $('#score-value').html(self.score);
+        $('#post-score').bPopup({
+          escClose: false,
+          modalClose: false
         });
+
+        $('#input-player-name').focus();
+
+        $('#submit-button').click(function(){
+          $('#submit-button').off('click');
+          self.sendScore();
+        });
+
+        $('#no-thanks-button').click(function(){
+          $('#no-thanks-button').off('click');
+          $('#post-score').bPopup().close();
+          self.goBackToTitle();
+        });
+
       }, 2000);
+
+    },
+
+    goBackToTitle: function(){
+      this.state = this.STATE_TITLE;
+      this.oldRadialBlasts = 0;
+      this.player.radialBlasts = 0;
+      this.titleView.play();
+    },
+
+    sendScore: function(){
+      var name = $('#input-player-name').val();
+      if (name === undefined || name.trim().length === 0){
+        this.goBackToTitle();
+        return;
+      }
+
+      $('#submit-button').html('Submitting...');
+      $('#submit-button').attr('disabled', 'disabled');
+      $('#no-thanks-button').attr('disabled', 'disabled');
+      $('#input-player-name').attr('disabled', 'disabled');
+
+      this.playerName = name;
+
+      var self = this;
+      var poster = new ScorePoster();
+      poster.postScore(this, function(result){
+        
+        if (result.Success != true){
+          $('#error-panel').show();
+          $('#error-close-button').click(function(){
+            $('#error-close-button').off('click');
+            $('#post-score').bPopup().close();
+            self.goBackToTitle();
+          });
+        }
+        else {
+          $('#post-score').bPopup().close();
+          self.goBackToTitle();
+        }
+      });
 
     },
 
