@@ -35,13 +35,12 @@
         url: leaderboardUrl
       })
       .done(function(result){
-        console.log('leaderboard done');
-        console.log(result);
         for (var i = 0; i < result.length; i++){
           var dto = new Game(result[i]);
           dto.rank = i + 1;
           self.games.push(dto);
         }
+        $('#wait').hide();
       })
       .fail(function(){
         console.log('leaderboard data fail');
