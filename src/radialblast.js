@@ -46,7 +46,7 @@
       context.beginPath();
       context.arc(this.pos.x + this.size.x/2, this.pos.y + this.size.y/2, this.size.x/2, 0, Math.PI * 2, true);
       context.lineWidth = 5;
-      context.strokeStyle = 'rgba(' + this.game.settings.POWERUP_BASE_COLOR + ',' + sizeRatio + ')';
+      context.strokeStyle = 'rgba(' + this.game.settings.RADIAL_BLAST_BASE_COLOR + ',' + sizeRatio + ')';
       context.stroke();
       context.closePath();
     },

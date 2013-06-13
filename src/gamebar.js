@@ -35,10 +35,16 @@
       if (player !== null && player.rapidFire){
         var percent = player.rapidFireBulletsLeft / this.game.settings.RAPID_FIRE_CLIP_SIZE;
         var width = this.game.width * percent;
-        context.fillStyle = 'rgba(' + this.game.settings.RAPID_FIRE_BASE_COLOR + ', .25)';
+        context.fillStyle = 'rgba(' + this.game.settings.RAPID_FIRE_BASE_COLOR + ', .20)';
         context.fillRect(0,0,width,30);
       }
 
+      if (player !== null && player.spraying){
+        var percent = player.sprayBulletsLeft / this.game.settings.SPRAY_CLIP_SIZE;
+        var width = this.game.width * percent;
+        context.fillStyle = 'rgba(' + this.game.settings.SPRAY_BASE_COLOR + ', .20)';
+        context.fillRect(0,0,width,30);
+      }
 
       context.font = "10px 'Press Start 2P'";
       context.fillStyle = this.game.settings.FOREGROUND_COLOR;

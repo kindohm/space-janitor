@@ -43,7 +43,9 @@
 
     this.boundingBox = this.game.coquette.collider.CIRCLE;
     this.rapidFire = false;
+    this.spraying = false;
     this.rapidFireBulletsLeft = 0;
+    this.sprayBulletsLeft = 0;
 
   }
 
@@ -192,8 +194,29 @@
           }
         }
 
-        // get ship's direction vector
-        var vector = this.game.maths.angleToVector(this.angle);
+        if (this.spraying){
+          this.sprayBulletsLeft = Math.max(0, this.sprayBulletsLeft - 1);
+          if (this.sprayBulletsLeft === 0){
+            this.disableSpray();
+          }          
+        }
+
+        this.createBulletAtAngle(this.angle);
+
+        if (this.spraying){
+          this.createBulletAtAngle(this.angle - 5);          
+          this.createBulletAtAngle(this.angle + 5);          
+        }
+
+        this.game.soundBus.gunSound.play();
+        this.game.shotFired();
+        this.shotTicksLeft = this.bulletDelayTicks;
+      }
+    },
+
+    createBulletAtAngle: function(angle){
+        // get direction vector
+        var vector = this.game.maths.angleToVector(angle);
 
         // calculate bullet origin position relative to ship's center
         var bulletPos = {
@@ -215,12 +238,7 @@
               y: bulletPos.y
             }, 
             vel: bulletVel
-          });
-
-        this.game.soundBus.gunSound.play();
-        this.game.shotFired();
-        this.shotTicksLeft = this.bulletDelayTicks;
-      }
+          });      
     },
 
     deployRadialBlast: function(){
@@ -256,6 +274,16 @@
       this.bulletDelayTicks = Math.floor(this.game.settings.BULLET_DELAY_TICKS / 2);
       this.rapidFire = true;
       this.rapidFireBulletsLeft = this.game.settings.RAPID_FIRE_CLIP_SIZE;
+    },
+
+    enableSpray: function(){
+      this.spraying = true;
+      this.sprayBulletsLeft = this.game.settings.SPRAY_CLIP_SIZE;
+    },
+
+    disableSpray: function(){
+      this.spraying = false;
+      this.sprayBulletsLeft = 0;
     },
 
     disableRapidFire: function(){

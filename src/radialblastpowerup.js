@@ -16,14 +16,25 @@
     this.fadeTicks = this.fadeAmount = 60;
     this.growing = true;
     this.powerupType = settings.powerupType;
-    this.color = this.powerupType === this.TYPE_RADIAL_BLAST ? this.game.settings.RADIAL_BLAST_BASE_COLOR : this.game.settings.RAPID_FIRE_BASE_COLOR;
 
+
+    this.color = '200,200,200';
+
+    if (this.powerupType === this.TYPE_RADIAL_BLAST){
+      this.color = this.game.settings.RADIAL_BLAST_BASE_COLOR;
+    } else if (this.powerupType === this.TYPE_RAPID_FIRE){
+      this.color = this.game.settings.RAPID_FIRE_BASE_COLOR;
+    } else if (this.powerupType === this.TYPE_SPRAY){
+      this.color = this.game.settings.SPRAY_BASE_COLOR;
+    }
   };
 
   Powerup.prototype = {
 
     TYPE_RADIAL_BLAST: 0,
     TYPE_RAPID_FIRE: 1,
+    TYPE_SPRAY: 2,
+
     size: {x:40,y:40},
     halfSize: {x:20,y:20},
 

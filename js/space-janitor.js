@@ -1,6 +1,6 @@
 ;(function(exports){
 
-  var num = '0.3.3';
+  var num = '0.3.4';
 
   var Version = function(){
     this.number = num;
@@ -30,6 +30,7 @@
     ASTEROID_SIZE_MEDIUM: 50, 
     ASTEROID_SIZE_SMALL:  25,
     RAPID_FIRE_CLIP_SIZE: 100,
+    SPRAY_CLIP_SIZE: 60,
 
     /* DEFAULT THEME */
     
@@ -38,6 +39,8 @@
     RADIAL_BLAST_COLOR:   '#6666FF',
     RAPID_FIRE_COLOR:     '#FF6666',
     RAPID_FIRE_BASE_COLOR: '255,100,100',
+    SPRAY_BASE_COLOR:   '100,255,100',
+    SPRAY_COLOR:   '#66FF66',
     FOREGROUND_COLOR:     '#ccc',
     FOREGROUND_BASE_COLOR:'204,204,204',
     FLASH_BASE_COLOR:     '255,255,255', 
@@ -705,7 +708,9 @@
 
     this.boundingBox = this.game.coquette.collider.CIRCLE;
     this.rapidFire = false;
+    this.spraying = false;
     this.rapidFireBulletsLeft = 0;
+    this.sprayBulletsLeft = 0;
 
   }
 
@@ -854,8 +859,29 @@
           }
         }
 
-        // get ship's direction vector
-        var vector = this.game.maths.angleToVector(this.angle);
+        if (this.spraying){
+          this.sprayBulletsLeft = Math.max(0, this.sprayBulletsLeft - 1);
+          if (this.sprayBulletsLeft === 0){
+            this.disableSpray();
+          }          
+        }
+
+        this.createBulletAtAngle(this.angle);
+
+        if (this.spraying){
+          this.createBulletAtAngle(this.angle - 5);          
+          this.createBulletAtAngle(this.angle + 5);          
+        }
+
+        this.game.soundBus.gunSound.play();
+        this.game.shotFired();
+        this.shotTicksLeft = this.bulletDelayTicks;
+      }
+    },
+
+    createBulletAtAngle: function(angle){
+        // get direction vector
+        var vector = this.game.maths.angleToVector(angle);
 
         // calculate bullet origin position relative to ship's center
         var bulletPos = {
@@ -877,12 +903,7 @@
               y: bulletPos.y
             }, 
             vel: bulletVel
-          });
-
-        this.game.soundBus.gunSound.play();
-        this.game.shotFired();
-        this.shotTicksLeft = this.bulletDelayTicks;
-      }
+          });      
     },
 
     deployRadialBlast: function(){
@@ -918,6 +939,16 @@
       this.bulletDelayTicks = Math.floor(this.game.settings.BULLET_DELAY_TICKS / 2);
       this.rapidFire = true;
       this.rapidFireBulletsLeft = this.game.settings.RAPID_FIRE_CLIP_SIZE;
+    },
+
+    enableSpray: function(){
+      this.spraying = true;
+      this.sprayBulletsLeft = this.game.settings.SPRAY_CLIP_SIZE;
+    },
+
+    disableSpray: function(){
+      this.spraying = false;
+      this.sprayBulletsLeft = 0;
     },
 
     disableRapidFire: function(){
@@ -968,10 +999,16 @@
       if (player !== null && player.rapidFire){
         var percent = player.rapidFireBulletsLeft / this.game.settings.RAPID_FIRE_CLIP_SIZE;
         var width = this.game.width * percent;
-        context.fillStyle = 'rgba(' + this.game.settings.RAPID_FIRE_BASE_COLOR + ', .25)';
+        context.fillStyle = 'rgba(' + this.game.settings.RAPID_FIRE_BASE_COLOR + ', .20)';
         context.fillRect(0,0,width,30);
       }
 
+      if (player !== null && player.spraying){
+        var percent = player.sprayBulletsLeft / this.game.settings.SPRAY_CLIP_SIZE;
+        var width = this.game.width * percent;
+        context.fillStyle = 'rgba(' + this.game.settings.SPRAY_BASE_COLOR + ', .20)';
+        context.fillRect(0,0,width,30);
+      }
 
       context.font = "10px 'Press Start 2P'";
       context.fillStyle = this.game.settings.FOREGROUND_COLOR;
@@ -1018,12 +1055,13 @@
     this.thrustTicks = 0;
     this.ufoDeployed = false;
 
-    this.willDeployPowerup = number % 2 === 0;
+    this.willDeployPowerup = true;
     this.powerupTicks = game.maths.getRandomInt(500,1500);
     this.powerupTicksLeft = this.powerupTicks;
 
     this.score = 0;
     this.rapidFiresCaptured = 0;
+    this.spraysCaptured = 0;
     this.radialBlastsCaptured = 0;
     this.radialBlastsDeployed = 0;
     this.asteroidsKilledByBullet = 0;
@@ -1087,14 +1125,18 @@
         y: this.nextUfoVelY()
       };
 
-      var powerupType = this.game.maths.plusMinus() === 1 ? Powerup.prototype.TYPE_RADIAL_BLAST : Powerup.prototype.TYPE_RAPID_FIRE;
-
       this.game.coquette.entities.create(Powerup, {
         pos: pos,
         vel: vel,
-        powerupType: powerupType
+        powerupType: this.getPowerupType()
       });
 
+    },
+
+    getPowerupType: function(){
+      if (this.number % 2 === 0) return Powerup.prototype.TYPE_RADIAL_BLAST;
+      if (this.number % 3 === 0) return Powerup.prototype.TYPE_SPRAY;
+      return Powerup.prototype.TYPE_RAPID_FIRE;
     },
 
     deployAsteroid: function(size, pos){
@@ -1285,7 +1327,7 @@
       context.beginPath();
       context.arc(this.pos.x + this.size.x/2, this.pos.y + this.size.y/2, this.size.x/2, 0, Math.PI * 2, true);
       context.lineWidth = 5;
-      context.strokeStyle = 'rgba(' + this.game.settings.POWERUP_BASE_COLOR + ',' + sizeRatio + ')';
+      context.strokeStyle = 'rgba(' + this.game.settings.RADIAL_BLAST_BASE_COLOR + ',' + sizeRatio + ')';
       context.stroke();
       context.closePath();
     },
@@ -1325,14 +1367,25 @@
     this.fadeTicks = this.fadeAmount = 60;
     this.growing = true;
     this.powerupType = settings.powerupType;
-    this.color = this.powerupType === this.TYPE_RADIAL_BLAST ? this.game.settings.RADIAL_BLAST_BASE_COLOR : this.game.settings.RAPID_FIRE_BASE_COLOR;
 
+
+    this.color = '200,200,200';
+
+    if (this.powerupType === this.TYPE_RADIAL_BLAST){
+      this.color = this.game.settings.RADIAL_BLAST_BASE_COLOR;
+    } else if (this.powerupType === this.TYPE_RAPID_FIRE){
+      this.color = this.game.settings.RAPID_FIRE_BASE_COLOR;
+    } else if (this.powerupType === this.TYPE_SPRAY){
+      this.color = this.game.settings.SPRAY_BASE_COLOR;
+    }
   };
 
   Powerup.prototype = {
 
     TYPE_RADIAL_BLAST: 0,
     TYPE_RAPID_FIRE: 1,
+    TYPE_SPRAY: 2,
+
     size: {x:40,y:40},
     halfSize: {x:20,y:20},
 
@@ -2276,11 +2329,21 @@
     },
 
     spawnPowerupExplosion: function(pos, powerup){
+      var color = '200,200,200';
+
+      if (powerup.powerupType === powerup.TYPE_RADIAL_BLAST){
+        color = this.settings.RADIAL_BLAST_BASE_COLOR;
+      } else if (powerup.powerupType === powerup.TYPE_RAPID_FIRE){
+        color = this.settings.RAPID_FIRE_BASE_COLOR;
+      } else if (powerup.powerupType === powerup.TYPE_SPRAY){
+        color = this.settings.SPRAY_BASE_COLOR;
+      }
+
       var effect = new ExplosionEffect(this, {
         numParticles: 50,
         duration: 75,
         particleSize: 8,
-        baseColor: powerup.powerupType === powerup.TYPE_RADIAL_BLAST ? this.settings.RADIAL_BLAST_BASE_COLOR : this.settings.RAPID_FIRE_BASE_COLOR,
+        baseColor: color,
         pos: pos
       });
 
@@ -2495,6 +2558,8 @@
         this.radialBlastAcquired(powerup);
       } else if (powerup.powerupType === powerup.TYPE_RAPID_FIRE){
         this.rapidFireAcquired(powerup);
+      } else if (powerup.powerupType === powerup.TYPE_SPRAY){
+        this.sprayAcquired(powerup);
       }
     },
 
@@ -2503,6 +2568,13 @@
       this.spawnPowerupExplosion(powerup.pos, powerup);
       this.soundBus.playerExplosionSound.play();
       this.level.rapidFiresCaptured++;
+    },
+
+    sprayAcquired: function(powerup){
+      this.player.enableSpray();
+      this.spawnPowerupExplosion(powerup.pos, powerup);
+      this.soundBus.playerExplosionSound.play();
+      this.level.spraysCaptured++;
     },
 
     radialBlastAcquired: function(powerup){

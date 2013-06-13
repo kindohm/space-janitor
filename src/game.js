@@ -354,11 +354,21 @@
     },
 
     spawnPowerupExplosion: function(pos, powerup){
+      var color = '200,200,200';
+
+      if (powerup.powerupType === powerup.TYPE_RADIAL_BLAST){
+        color = this.settings.RADIAL_BLAST_BASE_COLOR;
+      } else if (powerup.powerupType === powerup.TYPE_RAPID_FIRE){
+        color = this.settings.RAPID_FIRE_BASE_COLOR;
+      } else if (powerup.powerupType === powerup.TYPE_SPRAY){
+        color = this.settings.SPRAY_BASE_COLOR;
+      }
+
       var effect = new ExplosionEffect(this, {
         numParticles: 50,
         duration: 75,
         particleSize: 8,
-        baseColor: powerup.powerupType === powerup.TYPE_RADIAL_BLAST ? this.settings.RADIAL_BLAST_BASE_COLOR : this.settings.RAPID_FIRE_BASE_COLOR,
+        baseColor: color,
         pos: pos
       });
 
@@ -573,6 +583,8 @@
         this.radialBlastAcquired(powerup);
       } else if (powerup.powerupType === powerup.TYPE_RAPID_FIRE){
         this.rapidFireAcquired(powerup);
+      } else if (powerup.powerupType === powerup.TYPE_SPRAY){
+        this.sprayAcquired(powerup);
       }
     },
 
@@ -581,6 +593,13 @@
       this.spawnPowerupExplosion(powerup.pos, powerup);
       this.soundBus.playerExplosionSound.play();
       this.level.rapidFiresCaptured++;
+    },
+
+    sprayAcquired: function(powerup){
+      this.player.enableSpray();
+      this.spawnPowerupExplosion(powerup.pos, powerup);
+      this.soundBus.playerExplosionSound.play();
+      this.level.spraysCaptured++;
     },
 
     radialBlastAcquired: function(powerup){

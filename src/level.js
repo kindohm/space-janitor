@@ -12,12 +12,13 @@
     this.thrustTicks = 0;
     this.ufoDeployed = false;
 
-    this.willDeployPowerup = number % 2 === 0;
+    this.willDeployPowerup = true;
     this.powerupTicks = game.maths.getRandomInt(500,1500);
     this.powerupTicksLeft = this.powerupTicks;
 
     this.score = 0;
     this.rapidFiresCaptured = 0;
+    this.spraysCaptured = 0;
     this.radialBlastsCaptured = 0;
     this.radialBlastsDeployed = 0;
     this.asteroidsKilledByBullet = 0;
@@ -81,14 +82,18 @@
         y: this.nextUfoVelY()
       };
 
-      var powerupType = this.game.maths.plusMinus() === 1 ? Powerup.prototype.TYPE_RADIAL_BLAST : Powerup.prototype.TYPE_RAPID_FIRE;
-
       this.game.coquette.entities.create(Powerup, {
         pos: pos,
         vel: vel,
-        powerupType: powerupType
+        powerupType: this.getPowerupType()
       });
 
+    },
+
+    getPowerupType: function(){
+      if (this.number % 2 === 0) return Powerup.prototype.TYPE_RADIAL_BLAST;
+      if (this.number % 3 === 0) return Powerup.prototype.TYPE_SPRAY;
+      return Powerup.prototype.TYPE_RAPID_FIRE;
     },
 
     deployAsteroid: function(size, pos){
