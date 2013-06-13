@@ -119,7 +119,7 @@
         (
           (other instanceof Bullet && !other.hostile) ||
           other instanceof RadialBlast ||
-          other instanceof Player
+          (other instanceof Player && !other.spawning)
         )){
           this.game.soundBus.ufoSound.stop();
           this.game.ufoKilled(this, other);

@@ -30,7 +30,8 @@
     ASTEROID_SIZE_MEDIUM: 50, 
     ASTEROID_SIZE_SMALL:  25,
     RAPID_FIRE_CLIP_SIZE: 100,
-    SPRAY_CLIP_SIZE: 60,
+    SPRAY_CLIP_SIZE:      60,
+    INVINCIBLE_SPAWN_TICKS: 200,
 
     /* DEFAULT THEME */
     
@@ -43,6 +44,7 @@
     SPRAY_COLOR:   '#66FF66',
     FOREGROUND_COLOR:     '#ccc',
     FOREGROUND_BASE_COLOR:'204,204,204',
+    SECONDARY_COLOR:    '#666',
     FLASH_BASE_COLOR:     '255,255,255', 
     MUTED_COLOR:     '#333',
     
@@ -517,7 +519,7 @@
 
     collision: function(other, type){
       if (type === this.game.coquette.collider.INITIAL){
-        if ((other instanceof Bullet && !other.hostile) || other instanceof Player){
+        if ((other instanceof Bullet && !other.hostile) || (other instanceof Player && !other.spawning)){
           this.game.coquette.entities.destroy(this);
           this.game.asteroidKilled(this, other);
         }
@@ -650,7 +652,7 @@
         (
           (other instanceof Bullet && !other.hostile) ||
           other instanceof RadialBlast ||
-          other instanceof Player
+          (other instanceof Player && !other.spawning)
         )){
           this.game.soundBus.ufoSound.stop();
           this.game.ufoKilled(this, other);
@@ -712,6 +714,10 @@
     this.rapidFireBulletsLeft = 0;
     this.sprayBulletsLeft = 0;
 
+    this.spawning = true;
+    this.spawnTicksLeft = this.game.settings.INVINCIBLE_SPAWN_TICKS;
+    this.spawningDrawOn = true;
+    this.spawnFlickerTicksLeft = 2;
   }
 
   Player.prototype = {
@@ -746,6 +752,19 @@
 
       this.shotTicksLeft = Math.max(0, this.shotTicksLeft - 1);
       this.thrustEffect.update(this);
+
+      if (this.spawning){
+        this.spawnFlickerTicksLeft--;
+        if (this.spawnFlickerTicksLeft === 0){
+          this.spawnFlickerTicksLeft = 2;
+          this.spawningDrawOn = !this.spawningDrawOn;
+        }
+        this.spawnTicksLeft--;
+        if (this.spawnTicksLeft === 0) {
+          this.spawning = false;
+          this.spawningDrawOn = false;
+        }
+      }
     },
 
     wrap: function(){
@@ -783,7 +802,7 @@
       context.lineTo(0,-this.halfSize.y/1.7);
       context.lineTo(-this.halfSize.x,-this.halfSize.y);
       context.closePath();
-      context.strokeStyle = this.game.settings.FOREGROUND_COLOR;
+      context.strokeStyle = !this.spawningDrawOn ? this.game.settings.FOREGROUND_COLOR : this.game.settings.SECONDARY_COLOR;
       context.lineWidth = this.game.settings.PLAYER_LINE_WIDTH;
       context.stroke();
 
@@ -921,6 +940,8 @@
     },
 
     collision: function(other, type){
+      if (this.spawning) return;
+
       this.colliding = true;
       if (type === this.game.coquette.collider.INITIAL){
         if (other instanceof Asteroid || (other instanceof Bullet && other.hostile || other instanceof Ufo)){
