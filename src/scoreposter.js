@@ -24,13 +24,15 @@
     },
 
     getDto: function(game){
+      var version = new Version();
       var gameDto = {
         start: game.start,
         end: game.end,
         player: game.playerName,
         cheating: game.cheating,
         difficulty: game.difficulty,
-        score: game.score
+        score: game.score,
+        version: version.number
       };
 
       gameDto.levels = [];
