@@ -53,7 +53,8 @@
           ufosKilledByRadialBlast: level.ufosKilledByRadialBlast,
           deathsByAsteroidCollision: level.deathsByAsteroidCollision,
           deathsByUfoCollision: level.deathsByUfoCollision,
-          deathsByUfoBullet: level.deathsByUfoBullet
+          deathsByUfoBullet: level.deathsByUfoBullet,
+          rapidFiresCaptured: level.rapidFiresCaptured
         });
 
       }

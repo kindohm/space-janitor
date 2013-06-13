@@ -1,6 +1,6 @@
 ;(function(exports){
 
-  var RadialBlastPowerup = function(game, settings){
+  var Powerup = function(game, settings){
     this.game = game;
     this.pos = {
       x: settings.pos.x,
@@ -15,10 +15,15 @@
 
     this.fadeTicks = this.fadeAmount = 60;
     this.growing = true;
+    this.powerupType = settings.powerupType;
+    this.color = this.powerupType === this.TYPE_RADIAL_BLAST ? this.game.settings.RADIAL_BLAST_BASE_COLOR : this.game.settings.RAPID_FIRE_BASE_COLOR;
+
   };
 
-  RadialBlastPowerup.prototype = {
+  Powerup.prototype = {
 
+    TYPE_RADIAL_BLAST: 0,
+    TYPE_RAPID_FIRE: 1,
     size: {x:40,y:40},
     halfSize: {x:20,y:20},
 
@@ -52,7 +57,7 @@
       context.arc(this.pos.x + this.halfSize.x, this.pos.y + this.halfSize.y, this.halfSize.x, 0, Math.PI * 2, true);
       context.lineWidth = 3;
       var ratio = (this.fadeTicks / this.fadeAmount).toString();
-      context.strokeStyle = 'rgba(' + this.game.settings.POWERUP_BASE_COLOR + ',' + ratio + ')';
+      context.strokeStyle = 'rgba(' + this.color + ',' + ratio + ')';
       context.stroke();
       context.closePath();
 
@@ -64,13 +69,13 @@
         this.game.coquette.entities.destroy(this);
         this.game.coquette.entities.destroy(other);
         this.game.soundBus.powerupHumSound.stop();
-        this.game.radialBlastAcquired(this);
+        this.game.powerupAcquired(this);
       }
     }
 
   };
 
-  exports.RadialBlastPowerup = RadialBlastPowerup;
+  exports.Powerup = Powerup;
 
 
 })(this);

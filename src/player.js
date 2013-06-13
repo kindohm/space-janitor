@@ -31,7 +31,8 @@
       y:0
     };
 
-    this.bulletTicksLeft = game.settings.BULLET_DELAY_TICKS;
+
+    this.bulletDelayTicks = game.settings.BULLET_DELAY_TICKS;
     
     if (settings.ThrustEffect != undefined){
       this.thrustEffect = new settings.ThrustEffect(game);
@@ -41,6 +42,8 @@
     }
 
     this.boundingBox = this.game.coquette.collider.CIRCLE;
+    this.rapidFire = false;
+    this.rapidFireBulletsLeft = 0;
 
   }
 
@@ -182,6 +185,13 @@
 
       if (this.shotTicksLeft === 0){
 
+        if (this.rapidFire){
+          this.rapidFireBulletsLeft = Math.max(0, this.rapidFireBulletsLeft - 1);
+          if (this.rapidFireBulletsLeft === 0){
+            this.disableRapidFire();
+          }
+        }
+
         // get ship's direction vector
         var vector = this.game.maths.angleToVector(this.angle);
 
@@ -209,7 +219,7 @@
 
         this.game.soundBus.gunSound.play();
         this.game.shotFired();
-        this.shotTicksLeft = this.game.settings.BULLET_DELAY_TICKS;
+        this.shotTicksLeft = this.bulletDelayTicks;
       }
     },
 
@@ -240,6 +250,18 @@
 
     uncollision: function(){
       this.colliding = false;
+    },
+
+    enableRapidFire: function(){
+      this.bulletDelayTicks = Math.floor(this.game.settings.BULLET_DELAY_TICKS / 2);
+      this.rapidFire = true;
+      this.rapidFireBulletsLeft = this.game.settings.RAPID_FIRE_CLIP_SIZE;
+    },
+
+    disableRapidFire: function(){
+      this.rapidFire = false;
+      this.bulletDelayTicks = this.game.settings.BULLET_DELAY_TICKS;
+      this.rapidFireBulletsLeft = 0;
     }
 
   };

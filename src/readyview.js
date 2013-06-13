@@ -45,7 +45,7 @@
 
     draw: function(context){
 
-      var baseHeight = 100;
+      var baseHeight = 80;
 
       context.font = "16px 'Press Start 2P'";
       context.textAlign = "center"
@@ -60,21 +60,29 @@
       context.fillText('Press LEFT, RIGHT, and UP arrows to move.', left, baseHeight + 50);
       context.fillText('Press SPACE to shoot. ESC to pause.', left, baseHeight + 90);
 
-      context.fillText('Shoot these:', left, baseHeight + 170);
+      context.fillText('Shoot powerups:', left, baseHeight + 160);
 
-      var x = 370;
-      var y = baseHeight + 160;
+      var x = left + 20;
+      var y = baseHeight + 200;
       context.beginPath();
       context.arc(x, y, 20, 0, Math.PI * 2, true);
       context.lineWidth = 3;
-      context.strokeStyle = this.game.settings.POWERUP_COLOR;
+      context.strokeStyle = this.game.settings.RADIAL_BLAST_COLOR;
       context.stroke();
       context.closePath();
 
-      context.fillText('and deploy them with DOWN arrow.', left, baseHeight + 210);
+      context.beginPath();
+      context.arc(x, y + 50, 20, 0, Math.PI * 2, true);
+      context.lineWidth = 3;
+      context.strokeStyle = this.game.settings.RAPID_FIRE_COLOR;
+      context.stroke();
+      context.closePath();
+
+      context.fillText('Radial Blast (deploy with DOWN arrow)', left + 55, baseHeight + 205);
+      context.fillText('Rapid Fire', left + 55, baseHeight + 255);
 
       context.fillStyle = 'rgba(' + this.game.settings.FOREGROUND_BASE_COLOR + ', ' + this.ratio.toString() + ')';
-      context.fillText('Press SPACE to play.', left, baseHeight + 290);
+      context.fillText('Press SPACE to play.', left, baseHeight + 320);
 
 
     }

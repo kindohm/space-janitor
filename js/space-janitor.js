@@ -29,12 +29,15 @@
     ASTEROID_SIZE_LARGE:  100,
     ASTEROID_SIZE_MEDIUM: 50, 
     ASTEROID_SIZE_SMALL:  25,
+    RAPID_FIRE_CLIP_SIZE: 100,
 
     /* DEFAULT THEME */
     
     BACKGROUND_COLOR:     '#000',
-    POWERUP_BASE_COLOR:   '100,100,255',
-    POWERUP_COLOR:        '#6666FF',
+    RADIAL_BLAST_BASE_COLOR:   '100,100,255',
+    RADIAL_BLAST_COLOR:   '#6666FF',
+    RAPID_FIRE_COLOR:     '#FF6666',
+    RAPID_FIRE_BASE_COLOR: '255,100,100',
     FOREGROUND_COLOR:     '#ccc',
     FOREGROUND_BASE_COLOR:'204,204,204',
     FLASH_BASE_COLOR:     '255,255,255', 
@@ -690,7 +693,8 @@
       y:0
     };
 
-    this.bulletTicksLeft = game.settings.BULLET_DELAY_TICKS;
+
+    this.bulletDelayTicks = game.settings.BULLET_DELAY_TICKS;
     
     if (settings.ThrustEffect != undefined){
       this.thrustEffect = new settings.ThrustEffect(game);
@@ -700,6 +704,8 @@
     }
 
     this.boundingBox = this.game.coquette.collider.CIRCLE;
+    this.rapidFire = false;
+    this.rapidFireBulletsLeft = 0;
 
   }
 
@@ -841,6 +847,13 @@
 
       if (this.shotTicksLeft === 0){
 
+        if (this.rapidFire){
+          this.rapidFireBulletsLeft = Math.max(0, this.rapidFireBulletsLeft - 1);
+          if (this.rapidFireBulletsLeft === 0){
+            this.disableRapidFire();
+          }
+        }
+
         // get ship's direction vector
         var vector = this.game.maths.angleToVector(this.angle);
 
@@ -868,7 +881,7 @@
 
         this.game.soundBus.gunSound.play();
         this.game.shotFired();
-        this.shotTicksLeft = this.game.settings.BULLET_DELAY_TICKS;
+        this.shotTicksLeft = this.bulletDelayTicks;
       }
     },
 
@@ -899,6 +912,18 @@
 
     uncollision: function(){
       this.colliding = false;
+    },
+
+    enableRapidFire: function(){
+      this.bulletDelayTicks = Math.floor(this.game.settings.BULLET_DELAY_TICKS / 2);
+      this.rapidFire = true;
+      this.rapidFireBulletsLeft = this.game.settings.RAPID_FIRE_CLIP_SIZE;
+    },
+
+    disableRapidFire: function(){
+      this.rapidFire = false;
+      this.bulletDelayTicks = this.game.settings.BULLET_DELAY_TICKS;
+      this.rapidFireBulletsLeft = 0;
     }
 
   };
@@ -935,8 +960,18 @@
 
       if (this.game.difficulty === this.game.DIFFICULTY_FREE) return;
 
+      var player = this.game.player;
+
       context.fillStyle = this.game.settings.BACKGROUND_COLOR;
       context.fillRect(0,0,this.game.width, 30);
+
+      if (player !== null && player.rapidFire){
+        var percent = player.rapidFireBulletsLeft / this.game.settings.RAPID_FIRE_CLIP_SIZE;
+        var width = this.game.width * percent;
+        context.fillStyle = 'rgba(' + this.game.settings.RAPID_FIRE_BASE_COLOR + ', .25)';
+        context.fillRect(0,0,width,30);
+      }
+
 
       context.font = "10px 'Press Start 2P'";
       context.fillStyle = this.game.settings.FOREGROUND_COLOR;
@@ -950,17 +985,18 @@
       context.textAlign = "right"
       context.fillText('Score: ' + Math.floor(this.game.score).toString(), this.game.width - 10, 20);
 
-      if (this.game.player !== null){
-        for(var i = 0; i < this.game.player.radialBlasts; i++){
+      if (player !== null){
+        for(var i = 0; i < player.radialBlasts; i++){
           var x = 280 + i * 20;
           var y = 15;
           context.beginPath();
           context.arc(x, y, 7, 0, Math.PI * 2, true);
           context.lineWidth = 2;
-          context.strokeStyle = this.game.settings.POWERUP_COLOR;
+          context.strokeStyle = this.game.settings.RADIAL_BLAST_COLOR;
           context.stroke();
           context.closePath();
         }
+
       }
     }
   };
@@ -987,6 +1023,7 @@
     this.powerupTicksLeft = this.powerupTicks;
 
     this.score = 0;
+    this.rapidFiresCaptured = 0;
     this.radialBlastsCaptured = 0;
     this.radialBlastsDeployed = 0;
     this.asteroidsKilledByBullet = 0;
@@ -1050,9 +1087,12 @@
         y: this.nextUfoVelY()
       };
 
-      this.game.coquette.entities.create(RadialBlastPowerup, {
+      var powerupType = this.game.maths.plusMinus() === 1 ? Powerup.prototype.TYPE_RADIAL_BLAST : Powerup.prototype.TYPE_RAPID_FIRE;
+
+      this.game.coquette.entities.create(Powerup, {
         pos: pos,
-        vel: vel
+        vel: vel,
+        powerupType: powerupType
       });
 
     },
@@ -1269,7 +1309,7 @@
 })(this);
 ;(function(exports){
 
-  var RadialBlastPowerup = function(game, settings){
+  var Powerup = function(game, settings){
     this.game = game;
     this.pos = {
       x: settings.pos.x,
@@ -1284,10 +1324,15 @@
 
     this.fadeTicks = this.fadeAmount = 60;
     this.growing = true;
+    this.powerupType = settings.powerupType;
+    this.color = this.powerupType === this.TYPE_RADIAL_BLAST ? this.game.settings.RADIAL_BLAST_BASE_COLOR : this.game.settings.RAPID_FIRE_BASE_COLOR;
+
   };
 
-  RadialBlastPowerup.prototype = {
+  Powerup.prototype = {
 
+    TYPE_RADIAL_BLAST: 0,
+    TYPE_RAPID_FIRE: 1,
     size: {x:40,y:40},
     halfSize: {x:20,y:20},
 
@@ -1321,7 +1366,7 @@
       context.arc(this.pos.x + this.halfSize.x, this.pos.y + this.halfSize.y, this.halfSize.x, 0, Math.PI * 2, true);
       context.lineWidth = 3;
       var ratio = (this.fadeTicks / this.fadeAmount).toString();
-      context.strokeStyle = 'rgba(' + this.game.settings.POWERUP_BASE_COLOR + ',' + ratio + ')';
+      context.strokeStyle = 'rgba(' + this.color + ',' + ratio + ')';
       context.stroke();
       context.closePath();
 
@@ -1333,13 +1378,13 @@
         this.game.coquette.entities.destroy(this);
         this.game.coquette.entities.destroy(other);
         this.game.soundBus.powerupHumSound.stop();
-        this.game.radialBlastAcquired(this);
+        this.game.powerupAcquired(this);
       }
     }
 
   };
 
-  exports.RadialBlastPowerup = RadialBlastPowerup;
+  exports.Powerup = Powerup;
 
 
 })(this);
@@ -1472,7 +1517,7 @@
 
     draw: function(context){
 
-      var baseHeight = 100;
+      var baseHeight = 80;
 
       context.font = "16px 'Press Start 2P'";
       context.textAlign = "center"
@@ -1487,21 +1532,29 @@
       context.fillText('Press LEFT, RIGHT, and UP arrows to move.', left, baseHeight + 50);
       context.fillText('Press SPACE to shoot. ESC to pause.', left, baseHeight + 90);
 
-      context.fillText('Shoot these:', left, baseHeight + 170);
+      context.fillText('Shoot powerups:', left, baseHeight + 160);
 
-      var x = 370;
-      var y = baseHeight + 160;
+      var x = left + 20;
+      var y = baseHeight + 200;
       context.beginPath();
       context.arc(x, y, 20, 0, Math.PI * 2, true);
       context.lineWidth = 3;
-      context.strokeStyle = this.game.settings.POWERUP_COLOR;
+      context.strokeStyle = this.game.settings.RADIAL_BLAST_COLOR;
       context.stroke();
       context.closePath();
 
-      context.fillText('and deploy them with DOWN arrow.', left, baseHeight + 210);
+      context.beginPath();
+      context.arc(x, y + 50, 20, 0, Math.PI * 2, true);
+      context.lineWidth = 3;
+      context.strokeStyle = this.game.settings.RAPID_FIRE_COLOR;
+      context.stroke();
+      context.closePath();
+
+      context.fillText('Radial Blast (deploy with DOWN arrow)', left + 55, baseHeight + 205);
+      context.fillText('Rapid Fire', left + 55, baseHeight + 255);
 
       context.fillStyle = 'rgba(' + this.game.settings.FOREGROUND_BASE_COLOR + ', ' + this.ratio.toString() + ')';
-      context.fillText('Press SPACE to play.', left, baseHeight + 290);
+      context.fillText('Press SPACE to play.', left, baseHeight + 320);
 
 
     }
@@ -1795,7 +1848,8 @@
           ufosKilledByRadialBlast: level.ufosKilledByRadialBlast,
           deathsByAsteroidCollision: level.deathsByAsteroidCollision,
           deathsByUfoCollision: level.deathsByUfoCollision,
-          deathsByUfoBullet: level.deathsByUfoBullet
+          deathsByUfoBullet: level.deathsByUfoBullet,
+          rapidFiresCaptured: level.rapidFiresCaptured
         });
 
       }
@@ -1886,8 +1940,7 @@
       function(view){
         self.pauseView = view;
       });
-
-
+    
     this.messageView = new MessageView(this);
     this.titleView = new TitleView(this);
     this.scoringRules = new ScoringRules(this);
@@ -1909,6 +1962,7 @@
     STATE_PLAYING: 3,
     STATE_BETWEEN_LEVELS: 4,
     STATE_GAME_OVER: 5,
+    STATE_READY: 6,
 
     DIFFICULTY_FREE: 0,
     DIFFICULTY_EASY: 1,
@@ -2219,12 +2273,12 @@
       this.explosions.push(effect);
     },
 
-    spawnPowerupExplosion: function(pos){
+    spawnPowerupExplosion: function(pos, powerup){
       var effect = new ExplosionEffect(this, {
         numParticles: 50,
         duration: 75,
         particleSize: 8,
-        baseColor: this.settings.POWERUP_BASE_COLOR,
+        baseColor: powerup.powerupType === powerup.TYPE_RADIAL_BLAST ? this.settings.RADIAL_BLAST_BASE_COLOR : this.settings.RAPID_FIRE_BASE_COLOR,
         pos: pos
       });
 
@@ -2330,6 +2384,7 @@
       this.level.end = new Date();
       this.playerName = 'DEV';
       this.soundBus.ufoSound.stop();
+      this.soundBus.powerupHumSound.stop();
 
       var self = this;
       var theThing = this;
@@ -2433,10 +2488,25 @@
       }
     },
 
+    powerupAcquired: function(powerup){
+      if (powerup.powerupType === powerup.TYPE_RADIAL_BLAST){
+        this.radialBlastAcquired(powerup);
+      } else if (powerup.powerupType === powerup.TYPE_RAPID_FIRE){
+        this.rapidFireAcquired(powerup);
+      }
+    },
+
+    rapidFireAcquired: function(powerup){
+      this.player.enableRapidFire();
+      this.spawnPowerupExplosion(powerup.pos, powerup);
+      this.soundBus.playerExplosionSound.play();
+      this.level.rapidFiresCaptured++;
+    },
+
     radialBlastAcquired: function(powerup){
       this.player.radialBlasts++;
       this.level.radialBlastsCaptured++;
-      this.spawnPowerupExplosion(powerup.pos);
+      this.spawnPowerupExplosion(powerup.pos, powerup);
       this.soundBus.playerExplosionSound.play();
     },
 

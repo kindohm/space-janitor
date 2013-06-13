@@ -20,8 +20,7 @@
       function(view){
         self.pauseView = view;
       });
-
-
+    
     this.messageView = new MessageView(this);
     this.titleView = new TitleView(this);
     this.scoringRules = new ScoringRules(this);
@@ -43,6 +42,7 @@
     STATE_PLAYING: 3,
     STATE_BETWEEN_LEVELS: 4,
     STATE_GAME_OVER: 5,
+    STATE_READY: 6,
 
     DIFFICULTY_FREE: 0,
     DIFFICULTY_EASY: 1,
@@ -353,12 +353,12 @@
       this.explosions.push(effect);
     },
 
-    spawnPowerupExplosion: function(pos){
+    spawnPowerupExplosion: function(pos, powerup){
       var effect = new ExplosionEffect(this, {
         numParticles: 50,
         duration: 75,
         particleSize: 8,
-        baseColor: this.settings.POWERUP_BASE_COLOR,
+        baseColor: powerup.powerupType === powerup.TYPE_RADIAL_BLAST ? this.settings.RADIAL_BLAST_BASE_COLOR : this.settings.RAPID_FIRE_BASE_COLOR,
         pos: pos
       });
 
@@ -464,6 +464,7 @@
       this.level.end = new Date();
       this.playerName = 'DEV';
       this.soundBus.ufoSound.stop();
+      this.soundBus.powerupHumSound.stop();
 
       var self = this;
       var theThing = this;
@@ -567,10 +568,25 @@
       }
     },
 
+    powerupAcquired: function(powerup){
+      if (powerup.powerupType === powerup.TYPE_RADIAL_BLAST){
+        this.radialBlastAcquired(powerup);
+      } else if (powerup.powerupType === powerup.TYPE_RAPID_FIRE){
+        this.rapidFireAcquired(powerup);
+      }
+    },
+
+    rapidFireAcquired: function(powerup){
+      this.player.enableRapidFire();
+      this.spawnPowerupExplosion(powerup.pos, powerup);
+      this.soundBus.playerExplosionSound.play();
+      this.level.rapidFiresCaptured++;
+    },
+
     radialBlastAcquired: function(powerup){
       this.player.radialBlasts++;
       this.level.radialBlastsCaptured++;
-      this.spawnPowerupExplosion(powerup.pos);
+      this.spawnPowerupExplosion(powerup.pos, powerup);
       this.soundBus.playerExplosionSound.play();
     },
 

@@ -17,6 +17,7 @@
     this.powerupTicksLeft = this.powerupTicks;
 
     this.score = 0;
+    this.rapidFiresCaptured = 0;
     this.radialBlastsCaptured = 0;
     this.radialBlastsDeployed = 0;
     this.asteroidsKilledByBullet = 0;
@@ -80,9 +81,12 @@
         y: this.nextUfoVelY()
       };
 
-      this.game.coquette.entities.create(RadialBlastPowerup, {
+      var powerupType = this.game.maths.plusMinus() === 1 ? Powerup.prototype.TYPE_RADIAL_BLAST : Powerup.prototype.TYPE_RAPID_FIRE;
+
+      this.game.coquette.entities.create(Powerup, {
         pos: pos,
-        vel: vel
+        vel: vel,
+        powerupType: powerupType
       });
 
     },
