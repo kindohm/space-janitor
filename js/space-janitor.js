@@ -1606,29 +1606,37 @@
       context.fillText('Press LEFT, RIGHT, and UP arrows to move.', left, baseHeight + 50);
       context.fillText('Press SPACE to shoot. ESC to pause.', left, baseHeight + 90);
 
-      context.fillText('Shoot powerups:', left, baseHeight + 160);
+      context.fillText('Shoot powerups:', left, baseHeight + 150);
 
       var x = left + 20;
-      var y = baseHeight + 200;
+      var y = baseHeight + 190;
       context.beginPath();
-      context.arc(x, y, 20, 0, Math.PI * 2, true);
+      context.arc(x, y, 15, 0, Math.PI * 2, true);
       context.lineWidth = 3;
       context.strokeStyle = this.game.settings.RADIAL_BLAST_COLOR;
       context.stroke();
       context.closePath();
 
       context.beginPath();
-      context.arc(x, y + 50, 20, 0, Math.PI * 2, true);
+      context.arc(x, y + 40, 15, 0, Math.PI * 2, true);
       context.lineWidth = 3;
       context.strokeStyle = this.game.settings.RAPID_FIRE_COLOR;
       context.stroke();
       context.closePath();
 
-      context.fillText('Radial Blast (deploy with DOWN arrow)', left + 55, baseHeight + 205);
-      context.fillText('Rapid Fire', left + 55, baseHeight + 255);
+      context.beginPath();
+      context.arc(x, y + 80, 15, 0, Math.PI * 2, true);
+      context.lineWidth = 3;
+      context.strokeStyle = this.game.settings.SPRAY_COLOR;
+      context.stroke();
+      context.closePath();
+
+      context.fillText('Radial Blast (deploy with DOWN arrow)', left + 55, baseHeight + 195);
+      context.fillText('Rapid Fire', left + 55, baseHeight + 235);
+      context.fillText('Bullet Spray', left + 55, baseHeight + 275);
 
       context.fillStyle = 'rgba(' + this.game.settings.FOREGROUND_BASE_COLOR + ', ' + this.ratio.toString() + ')';
-      context.fillText('Press SPACE to play.', left, baseHeight + 320);
+      context.fillText('Press SPACE to play.', left, baseHeight + 330);
 
 
     }
