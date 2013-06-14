@@ -1,6 +1,6 @@
 ;(function(exports){
 
-  var num = '0.4.0';
+  var num = '0.4.1';
 
   var Version = function(){
     this.number = num;
@@ -1945,34 +1945,61 @@
 
     exports.ScorePoster = ScorePoster;
 })(this, jQuery);
+;(function(exports){
+
+  var ViewModelUtils = function(){ };
+
+  ViewModelUtils.prototype = {
+
+    getParameterByName: function(name) {
+        name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+        var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+            results = regex.exec(location.search);
+        return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+    },
+
+    padDigit: function(digit){
+      return digit.toString().length === 1 ? '0' + digit.toString() : digit.toString();
+    },
+
+    mapDifficulty: function(diff){
+
+      if (diff === 0) return 'FREE';
+      else if (diff === 1) return 'EASY';
+      else if (diff === 2) return 'NORMAL';
+      else if (diff === 3) return 'HARD';
+      else if (diff === 4) return 'INSANE';
+
+    },
+
+    getDateDisplay: function(date){
+      var mins = this.padDigit(date.getMinutes());
+      var hrs = this.padDigit(date.getHours());
+      var month = this.padDigit(date.getMonth());
+      var day = this.padDigit(date.getDate());
+      return date.getFullYear() + "-" + month + "-" + day + " " + hrs + ":" + mins;
+    },
+
+    numberWithCommas: function(x) {
+        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+  };
+
+  exports.ViewModelUtils = ViewModelUtils;
+
+})(this);
 ;(function(exports, $){
 
   var allTimeLeaderboardUrl = 'http://orbital-janitor-api.azurewebsites.net/api/leaderboard/?type=alltime';
   var dailyLeaderboardUrl = 'http://orbital-janitor-api.azurewebsites.net/api/leaderboard/?type=day';
-
-  var mapDifficulty = function(diff){
-
-    if (diff === 0) return 'FREE';
-    else if (diff === 1) return 'EASY';
-    else if (diff === 2) return 'NORMAL';
-    else if (diff === 3) return 'HARD';
-    else if (diff === 4) return 'INSANE';
-
-  };
-
-  var padDigit = function(digit){
-    return digit.toString().length === 1 ? '0' + digit.toString() : digit.toString();
-  };
-
-  function numberWithCommas(x) {
-      return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  }
+  
+  var utils = new ViewModelUtils();
 
   var Game = function(gameDto){
     this.rank = gameDto.rank;
     this.playerName = gameDto.Player;
-    this.score = numberWithCommas(gameDto.Score);
-    this.difficulty = mapDifficulty(gameDto.Difficulty);
+    this.score = utils.numberWithCommas(gameDto.Score);
+    this.difficulty = utils.mapDifficulty(gameDto.Difficulty);
     this.level = gameDto.LevelReached;
     this.kills = gameDto.AsteroidsKilled +
       gameDto.UfosKilled;
@@ -1980,10 +2007,10 @@
     this.end = new Date(gameDto.End);
     this.dateDisplay = ko.computed(function() {
 
-        var mins = padDigit(this.end.getMinutes());
-        var hrs = padDigit(this.end.getHours());
-        var month = padDigit(this.end.getMonth());
-        var day = padDigit(this.end.getDate());
+        var mins = utils.padDigit(this.end.getMinutes());
+        var hrs = utils.padDigit(this.end.getHours());
+        var month = utils.padDigit(this.end.getMonth());
+        var day = utils.padDigit(this.end.getDate());
         return this.end.getFullYear() + "-" + month + "-" + day + " " + hrs + ":" + mins;
       }, this);      
 
@@ -2029,39 +2056,7 @@
 ;(function(exports, $){
 
   var gameUrl = 'http://orbital-janitor-api.azurewebsites.net/api/game/{0}';
-
-  function getParameterByName(name) {
-      name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
-      var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
-          results = regex.exec(location.search);
-      return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
-  }
-
-  var padDigit = function(digit){
-    return digit.toString().length === 1 ? '0' + digit.toString() : digit.toString();
-  };
-
-  var mapDifficulty = function(diff){
-
-    if (diff === 0) return 'FREE';
-    else if (diff === 1) return 'EASY';
-    else if (diff === 2) return 'NORMAL';
-    else if (diff === 3) return 'HARD';
-    else if (diff === 4) return 'INSANE';
-
-  };
-
-  var getDateDisplay = function(date){
-    var mins = padDigit(date.getMinutes());
-    var hrs = padDigit(date.getHours());
-    var month = padDigit(date.getMonth());
-    var day = padDigit(date.getDate());
-    return date.getFullYear() + "-" + month + "-" + day + " " + hrs + ":" + mins;
-  };
-
-  function numberWithCommas(x) {
-      return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  }
+  var utils = new ViewModelUtils();
 
   var LevelViewModel = function(levelDto){
     this.number = levelDto.Number;
@@ -2122,7 +2117,7 @@
     load: function(){
 
       var self = this;
-      var id = getParameterByName('id');
+      var id = utils.getParameterByName('id');
       var url = gameUrl.replace('{0}', id);
 
       // all time leaderboard
@@ -2131,8 +2126,8 @@
       })
       .done(function(result){
         self.playerName(result.Player);
-        self.score(numberWithCommas(result.Score));
-        self.date(getDateDisplay(new Date(result.End)));
+        self.score(utils.numberWithCommas(result.Score));
+        self.date(utils.getDateDisplay(new Date(result.End)));
         self.asteroidsKilled(result.AsteroidsKilled);
         self.asteroidsKilledByBullet(result.AsteroidsKilledByBullet);
         self.asteroidsKilledByRadialBlast(result.AsteroidsKilledByRadialBlast);
@@ -2141,7 +2136,7 @@
         self.ufosKilledByBullet(result.UfosKilledByBullet);
         self.ufosKilledByRadialBlast(result.UfosKilledByRadialBlast);
         self.ufosKilledByPlayerCollision(result.UfosKilledByPlayerCollision);
-        self.difficulty(mapDifficulty(result.Difficulty));
+        self.difficulty(utils.mapDifficulty(result.Difficulty));
         self.levelReached(result.LevelReached);
         self.shotsFired(result.ShotsFired);
         self.shotPercentage((result.ShotPercentage * 100).toFixed(0) + '%');

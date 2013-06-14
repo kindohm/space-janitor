@@ -27,6 +27,7 @@ var input = [
   src + 'titleview.js',
   src + 'scoringrules.js',
   src + 'scoreposter.js',
+  src + 'viewmodelutils.js',
   src + 'leaderboardviewmodel.js',
   src + 'gameviewmodel.js',
   src + 'game.js'

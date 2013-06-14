@@ -1,39 +1,7 @@
 ;(function(exports, $){
 
   var gameUrl = 'http://orbital-janitor-api.azurewebsites.net/api/game/{0}';
-
-  function getParameterByName(name) {
-      name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
-      var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
-          results = regex.exec(location.search);
-      return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
-  }
-
-  var padDigit = function(digit){
-    return digit.toString().length === 1 ? '0' + digit.toString() : digit.toString();
-  };
-
-  var mapDifficulty = function(diff){
-
-    if (diff === 0) return 'FREE';
-    else if (diff === 1) return 'EASY';
-    else if (diff === 2) return 'NORMAL';
-    else if (diff === 3) return 'HARD';
-    else if (diff === 4) return 'INSANE';
-
-  };
-
-  var getDateDisplay = function(date){
-    var mins = padDigit(date.getMinutes());
-    var hrs = padDigit(date.getHours());
-    var month = padDigit(date.getMonth());
-    var day = padDigit(date.getDate());
-    return date.getFullYear() + "-" + month + "-" + day + " " + hrs + ":" + mins;
-  };
-
-  function numberWithCommas(x) {
-      return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  }
+  var utils = new ViewModelUtils();
 
   var LevelViewModel = function(levelDto){
     this.number = levelDto.Number;
@@ -94,7 +62,7 @@
     load: function(){
 
       var self = this;
-      var id = getParameterByName('id');
+      var id = utils.getParameterByName('id');
       var url = gameUrl.replace('{0}', id);
 
       // all time leaderboard
@@ -103,8 +71,8 @@
       })
       .done(function(result){
         self.playerName(result.Player);
-        self.score(numberWithCommas(result.Score));
-        self.date(getDateDisplay(new Date(result.End)));
+        self.score(utils.numberWithCommas(result.Score));
+        self.date(utils.getDateDisplay(new Date(result.End)));
         self.asteroidsKilled(result.AsteroidsKilled);
         self.asteroidsKilledByBullet(result.AsteroidsKilledByBullet);
         self.asteroidsKilledByRadialBlast(result.AsteroidsKilledByRadialBlast);
@@ -113,7 +81,7 @@
         self.ufosKilledByBullet(result.UfosKilledByBullet);
         self.ufosKilledByRadialBlast(result.UfosKilledByRadialBlast);
         self.ufosKilledByPlayerCollision(result.UfosKilledByPlayerCollision);
-        self.difficulty(mapDifficulty(result.Difficulty));
+        self.difficulty(utils.mapDifficulty(result.Difficulty));
         self.levelReached(result.LevelReached);
         self.shotsFired(result.ShotsFired);
         self.shotPercentage((result.ShotPercentage * 100).toFixed(0) + '%');
