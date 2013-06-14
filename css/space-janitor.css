@@ -18,14 +18,10 @@ body{
 .game-info{
 	text-align: center;
 	color: #666;
-	font-size: 8px;
+	font-size: 10px;
 }
 
-.game-info p{
-
-}
-
-.leaderboard{
+.orbital-janitor-container{
 	font-size: 12px;
 }
 
@@ -65,6 +61,59 @@ td.num{
 	margin-bottom: 20px;
 }
 
-.leaderboard h4{
+h4.level-heading{
+	margin-top: 50px;
+}
+
+#wait{
 	margin-top: 30px;
+}
+#game-info{
+	display: none;
+}
+
+.orbital-janitor-container a{
+	color: #0088cc;
+	text-decoration: none;
+}
+
+.orbital-janitor-container a:hover,
+.orbital-janitor-container a:focus {
+  color: #005580;
+  text-decoration: underline;
+}
+
+.very-muted{
+	color: #333;
+}
+
+.navbar-inner {
+  background-color: #333;
+  background-image: none;
+  background-repeat: no-repeat;
+  filter: none;
+  border: solid 2px #666;
+}
+
+.navbar .nav>li>a{
+	color: #fff;
+	text-shadow: 0 1px 0 #000;
+}
+
+.navbar .nav>li>a:hover,
+.navbar .nav>li>a:active{
+	color: #ccc;
+	text-shadow: 0 1px 0 #000;
+}
+
+.header{
+	margin-bottom: 40px;
+}
+
+.game-info-row{
+	margin-bottom: 40px;
+}
+
+.orbital-janitor-container p{
+	margin-bottom: 20px;
 }

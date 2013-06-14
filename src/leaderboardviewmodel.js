@@ -17,10 +17,14 @@
     return digit.toString().length === 1 ? '0' + digit.toString() : digit.toString();
   };
 
+  function numberWithCommas(x) {
+      return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  }
+
   var Game = function(gameDto){
     this.rank = gameDto.rank;
     this.playerName = gameDto.Player;
-    this.score = gameDto.Score;
+    this.score = numberWithCommas(gameDto.Score);
     this.difficulty = mapDifficulty(gameDto.Difficulty);
     this.level = gameDto.LevelReached;
     this.kills = gameDto.AsteroidsKilled +
@@ -29,55 +33,40 @@
     this.end = new Date(gameDto.End);
     this.dateDisplay = ko.computed(function() {
 
-          var mins = padDigit(this.end.getMinutes());
-          var hrs = padDigit(this.end.getHours());
-          var month = padDigit(this.end.getMonth());
-          var day = padDigit(this.end.getDate());
-          return this.end.getFullYear() + "-" + month + "-" + day + " " + hrs + ":" + mins;
-        }, this);      
+        var mins = padDigit(this.end.getMinutes());
+        var hrs = padDigit(this.end.getHours());
+        var month = padDigit(this.end.getMonth());
+        var day = padDigit(this.end.getDate());
+        return this.end.getFullYear() + "-" + month + "-" + day + " " + hrs + ":" + mins;
+      }, this);      
+
+    this.detailLink = 'game.html?id=' + gameDto.Id;
   };
 
-  var LeaderboardViewModel = function(leaderboardType){
-    this.allTimeGames = ko.observableArray([]);
-    this.dailyGames = ko.observableArray([]);
-
-    this.load();
+  var LeaderboardViewModel = function(leaderboardType, waitId){
+    var url = leaderboardType === 'daily' ? dailyLeaderboardUrl : allTimeLeaderboardUrl
+    this.games = ko.observableArray([]);
+    this.waitId = waitId;
+    this.load(url);
 
   };
 
   LeaderboardViewModel.prototype = {
 
-    load: function(){
+    load: function(url){
 
       var self = this;
 
-      // all time leaderboard
       $.ajax({
-        url: allTimeLeaderboardUrl
+        url: url
       })
       .done(function(result){
         for (var i = 0; i < result.length; i++){
           var dto = new Game(result[i]);
           dto.rank = i + 1;
-          self.allTimeGames.push(dto);
+          self.games.push(dto);
         }
-        $('#allTimeWait').hide();
-      })
-      .fail(function(){
-        console.log('leaderboard data fail');
-      });
-
-      // daily leaderboard
-      $.ajax({
-        url: dailyLeaderboardUrl
-      })
-      .done(function(result){
-        for (var i = 0; i < result.length; i++){
-          var dto = new Game(result[i]);
-          dto.rank = i + 1;
-          self.dailyGames.push(dto);
-        }
-        $('#dailyWait').hide();
+        $(self.waitId).hide();
       })
       .fail(function(){
         console.log('leaderboard data fail');

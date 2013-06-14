@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Orbital Janitor All Time Leaderboard</title>    
+    <link href="http://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet" type="text/css" />
+    <link href="css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="css/space-janitor.css" rel="stylesheet" type="text/css" />
+  </head>
+  <body>
+    <div class="container game-container orbital-janitor-container">
+
+      <div class="header">
+        <h2>Orbital Janitor</h2>
+        <div class="navbar">
+          <div class="navbar-inner">
+            <ul class="nav">
+              <li><a href="index.html">Play</a></li>
+              <li><a href="all-time-leaderboard.html">All Time Leaders</a></li>
+              <li><a href="daily-leaderboard.html">Daily Leaders</a></li>
+            </ul>
+          </div>
+        </div>      
+      </div>
+
+
+      <h3>All-Time Leaders</h3>
+      <table class="table">
+        <tr>
+          <th>RANK</th>
+          <th>PLAYER</th>
+          <th>SCORE</th>
+          <th>DIFFICULTY</th>
+          <th>LEVEL</th>
+          <th>KILLS</th>
+          <th>DATE (GMT)</th>
+        </tr>
+        <tbody data-bind="foreach: games">
+            <tr>
+                <td data-bind="text: rank"></td>
+                <td data-bind="text: playerName"></td>
+                <td data-bind="text: score"></td>
+                <td data-bind="text: difficulty"></td>
+                <td data-bind="text: level"></td>
+                <td data-bind="text: kills"></td>
+                <td><a data-bind="attr: { href: detailLink, title: dateDisplay }"><span data-bind="text: dateDisplay"/></a></td>
+            </tr>    
+        </tbody>        
+      </table>
+
+      <div id="wait">
+        <p class="text-center">Loading all time leaders...</p></div>
+
+    </div>
+  </body>
+  <script type="text/javascript" src="js/spin.min.js"></script>
+  <script type="text/javascript" src="js/jquery-1.10.1.min.js"></script>
+  <script type="text/javascript" src="js/jshashtable-2.1.js"></script>
+  <script type="text/javascript" src="js/knockout-2.2.1.js"></script>
+  <script type="text/javascript" src="js/space-janitor-min.js"></script>
+  <script type="text/javascript">
+    window.addEventListener('load', function() {
+      var viewModel = new LeaderboardViewModel('alltime', '#wait');
+      ko.applyBindings(viewModel);
+
+      var opts = {
+        lines: 11, // The number of lines to draw
+        length: 5, // The length of each line
+        width: 5, // The line thickness
+        radius: 10, // The radius of the inner circle
+        corners: 1, // Corner roundness (0..1)
+        rotate: 0, // The rotation offset
+        direction: 1, // 1: clockwise, -1: counterclockwise
+        color: '#ccc', // #rgb or #rrggbb
+        speed: 1.5, // Rounds per second
+        trail: 60, // Afterglow percentage
+        shadow: false, // Whether to render a shadow
+        hwaccel: false, // Whether to use hardware acceleration
+        className: 'spinner', // The CSS class to assign to the spinner
+        zIndex: 2e9, // The z-index (defaults to 2000000000)
+        top: 'auto', // Top position relative to parent in px
+        left: '100' // Left position relative to parent in px
+      };
+
+      new Spinner(opts).spin(document.getElementById('wait'));
+    });
+  </script>
+</html>

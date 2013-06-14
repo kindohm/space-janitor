@@ -7,17 +7,112 @@
     <link href="css/space-janitor.css" rel="stylesheet" type="text/css" />
   </head>
   <body>
-    <div class="container game-container leaderboard">
+    <div class="container game-container orbital-janitor-container">
 
-      <h2><span data-bind="text: playerName"/></h2>
-      <h2><span data-bind="text: score"/></h2>
-      <h3><span data-bind="text: date"/></h3>
+      <div class="header">
+        <h2>Orbital Janitor</h2>
+        <div class="navbar">
+          <div class="navbar-inner">
+            <ul class="nav">
+              <li><a href="index.html">Play</a></li>
+              <li><a href="all-time-leaderboard.html">All Time Leaders</a></li>
+              <li><a href="daily-leaderboard.html">Daily Leaders</a></li>
+            </ul>
+          </div>
+        </div>      
+      </div>
 
-      <h4>Kills</h4>
-      <p>Asteroid hits: <span data-bind="text: asteroidKills"/></p>
+      <div id="game-info">
+        <h2><span data-bind="text: playerName"/></h2>
+        <h2><span data-bind="text: score"/></h2>        
+        <h3><span data-bind="text: date"/></h3>
+        <hr/>
+        <div class="row-fluid game-info-row">
+          <div class="span6">
+            <h4>General</h4>
+            <p>Difficulty: <span data-bind="text: difficulty"/></p>
+            <p>Level reached: <span data-bind="text: levelReached"/></p>
+            <p>Shots Fired: <span data-bind="text: shotsFired"></span> (<span data-bind="text: shotPercentage"></span>)</p>
+            <p>Kills: <span data-bind="text: totalKills"/></p>
+          </div>
+          <div class="span6">
+            <h4>Powerups</h4>
+            <p>Radial Blasts Captured: <span data-bind="text: radialBlastsCaptured"/></p>
+            <p>Radial Blasts Deployed: <span data-bind="text: radialBlastsDeployed"/></p>
+            <p>Bullet Sprays Captured: <span data-bind="text: spraysCaptured"/></p>
+            <p>Rapid Fires Captured: <span data-bind="text: rapidFiresCaptured"/></p>
+          </div>
+        </div>
+        <div class="row-fluid game-info-row">
+          <div class="span4">
+            <h4>Asteroids</h4>
+            <p>Asteroids hit: <span data-bind="text: asteroidsKilled"/></p>
+            <p>By bullet: <span data-bind="text: asteroidsKilledByBullet"/></p>
+            <p>By radial blast: <span data-bind="text: asteroidsKilledByRadialBlast"/></p>
+            <p>By collision: <span data-bind="text: asteroidsKilledByPlayerCollision"/></p>
+          </div>
+          <div class="span4">
+            <h4>UFOs</h4>
+            <p>UFOs hit: <span data-bind="text: ufosKilled"/></p>
+            <p>By bullet: <span data-bind="text: ufosKilledByBullet"/></p>
+            <p>By radial blast: <span data-bind="text: ufosKilledByRadialBlast"/></p>
+            <p>By collision: <span data-bind="text: ufosKilledByPlayerCollision"/></p>
+          </div>
+          <div class="span4">
+            <h4>Deaths</h4>
+            <p>Total: <span data-bind="text: totalDeaths"/></p>
+            <p>By asteroid: <span data-bind="text: deathsByAsteroid"/></p>
+            <p>By UFO bullet: <span data-bind="text: deathsByUfoBullet"/></p>
+            <p>By UFO collision: <span data-bind="text: deathsByUfoCollision"/></p>
+          </div>
+        </div>
+        <p class="very-muted"><br/>Game version: <span data-bind="text: version"/></p>
+        <div data-bind="foreach: levels">
+
+          <h4 class="level-heading">Level: <span data-bind="text: number"/></h4>
+          <hr/>
+          <div class="row-fluid game-info-row">
+            <div class="span6">
+              <h4>General</h4>
+              <p>Shots Fired: <span data-bind="text: shotsFired"></span> (<span data-bind="text: shotPercentage"></span>)</p>
+              <p>Kills: <span data-bind="text: totalKills"/></p>
+            </div>
+            <div class="span6">
+              <h4>Powerups</h4>
+              <p>Radial Blasts Captured: <span data-bind="text: radialBlastsCaptured"/></p>
+              <p>Radial Blasts Deployed: <span data-bind="text: radialBlastsDeployed"/></p>
+              <p>Bullet Sprays Captured: <span data-bind="text: spraysCaptured"/></p>
+              <p>Rapid Fires Captured: <span data-bind="text: rapidFiresCaptured"/></p>
+            </div>
+          </div>
+          <div class="row-fluid game-info-row">
+            <div class="span4">
+              <h4>Asteroids</h4>
+              <p>Asteroids hit: <span data-bind="text: asteroidsKilled"/></p>
+              <p>By bullet: <span data-bind="text: asteroidsKilledByBullet"/></p>
+              <p>By radial blast: <span data-bind="text: asteroidsKilledByRadialBlast"/></p>
+              <p>By collision: <span data-bind="text: asteroidsKilledByPlayerCollision"/></p>
+            </div>
+            <div class="span4">
+              <h4>UFOs</h4>
+              <p>UFOs hit: <span data-bind="text: ufosKilled"/></p>
+              <p>By bullet: <span data-bind="text: ufosKilledByBullet"/></p>
+              <p>By radial blast: <span data-bind="text: ufosKilledByRadialBlast"/></p>
+              <p>By collision: <span data-bind="text: ufosKilledByPlayerCollision"/></p>
+            </div>
+            <div class="span4">
+              <h4>Deaths</h4>
+              <p>Total: <span data-bind="text: totalDeaths"/></p>
+              <p>By asteroid: <span data-bind="text: deathsByAsteroid"/></p>
+              <p>By UFO bullet: <span data-bind="text: deathsByUfoBullet"/></p>
+              <p>By UFO collision: <span data-bind="text: deathsByUfoCollision"/></p>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div id="wait">
-        <p class="text-center">Loading..</p></div>
+        <p class="text-center">Loading game data...</p></div>
 
     </div>
   </body>
@@ -47,7 +142,7 @@
         className: 'spinner', // The CSS class to assign to the spinner
         zIndex: 2e9, // The z-index (defaults to 2000000000)
         top: 'auto', // Top position relative to parent in px
-        left: '100' // Left position relative to parent in px
+        left: '200' // Left position relative to parent in px
       };
 
       new Spinner(opts).spin(document.getElementById('wait'));
