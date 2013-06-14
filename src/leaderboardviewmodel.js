@@ -40,12 +40,14 @@
   var LeaderboardViewModel = function(leaderboardType){
     this.allTimeGames = ko.observableArray([]);
     this.dailyGames = ko.observableArray([]);
+
     this.load();
+
   };
 
   LeaderboardViewModel.prototype = {
 
-    load: function(url){
+    load: function(){
 
       var self = this;
 

@@ -28,6 +28,7 @@ var input = [
   src + 'scoringrules.js',
   src + 'scoreposter.js',
   src + 'leaderboardviewmodel.js',
+  src + 'gameviewmodel.js',
   src + 'game.js'
 ];
 

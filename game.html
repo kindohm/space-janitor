@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Orbital Janitor - Game Detail</title>    
+    <link href="http://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet" type="text/css" />
+    <link href="css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="css/space-janitor.css" rel="stylesheet" type="text/css" />
+  </head>
+  <body>
+    <div class="container game-container leaderboard">
+      <h3>Orbital Janitor Game</h3>
+
+      <p>Player: <span data-bind="text: playerName"/></p>
+      <p>Score: <span data-bind="text: score"/></p>
+      <p>Date: <span data-bind="text: date"/></p>
+
+      <div id="wait">
+        <p class="text-center">Loading..</p></div>
+
+    </div>
+  </body>
+  <script type="text/javascript" src="js/spin.min.js"></script>
+  <script type="text/javascript" src="js/jquery-1.10.1.min.js"></script>
+  <script type="text/javascript" src="js/jshashtable-2.1.js"></script>
+  <script type="text/javascript" src="js/knockout-2.2.1.js"></script>
+  <script type="text/javascript" src="js/space-janitor-min.js"></script>
+  <script type="text/javascript">
+    window.addEventListener('load', function() {
+      var viewModel = new GameViewModel();
+      ko.applyBindings(viewModel);
+
+      var opts = {
+        lines: 11, // The number of lines to draw
+        length: 5, // The length of each line
+        width: 5, // The line thickness
+        radius: 10, // The radius of the inner circle
+        corners: 1, // Corner roundness (0..1)
+        rotate: 0, // The rotation offset
+        direction: 1, // 1: clockwise, -1: counterclockwise
+        color: '#ccc', // #rgb or #rrggbb
+        speed: 1.5, // Rounds per second
+        trail: 60, // Afterglow percentage
+        shadow: false, // Whether to render a shadow
+        hwaccel: false, // Whether to use hardware acceleration
+        className: 'spinner', // The CSS class to assign to the spinner
+        zIndex: 2e9, // The z-index (defaults to 2000000000)
+        top: 'auto', // Top position relative to parent in px
+        left: '100' // Left position relative to parent in px
+      };
+
+      new Spinner(opts).spin(document.getElementById('wait'));
+    });
+  </script>
+</html>
