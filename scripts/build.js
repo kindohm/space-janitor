@@ -30,6 +30,7 @@ var input = [
   src + 'viewmodelutils.js',
   src + 'leaderboardviewmodel.js',
   src + 'gameviewmodel.js',
+  src + 'everythingviewmodel.js',
   src + 'game.js'
 ];
 
