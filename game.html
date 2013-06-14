@@ -8,11 +8,13 @@
   </head>
   <body>
     <div class="container game-container leaderboard">
-      <h3>Orbital Janitor Game</h3>
 
-      <p>Player: <span data-bind="text: playerName"/></p>
-      <p>Score: <span data-bind="text: score"/></p>
-      <p>Date: <span data-bind="text: date"/></p>
+      <h2><span data-bind="text: playerName"/></h2>
+      <h2><span data-bind="text: score"/></h2>
+      <h3><span data-bind="text: date"/></h3>
+
+      <h4>Kills</h4>
+      <p>Asteroid hits: <span data-bind="text: asteroidKills"/></p>
 
       <div id="wait">
         <p class="text-center">Loading..</p></div>

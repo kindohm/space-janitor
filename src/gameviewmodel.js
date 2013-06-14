@@ -25,7 +25,7 @@
     this.playerName = ko.observable('');
     this.score = ko.observable('');
     this.date = ko.observable('');
-
+    this.asteroidKills = ko.observable('');
     this.load();
   };
 
@@ -45,6 +45,7 @@
         self.playerName(result.Player);
         self.score(result.Score.toString());
         self.date(getDateDisplay(new Date(result.End)));
+        self.asteroidKills(result.AsteroidKills);
         $('#wait').hide();
       })
       .fail(function(){
