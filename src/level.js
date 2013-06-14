@@ -1,6 +1,6 @@
 ;(function(exports){
 
-  var Level = function(game, number, difficulty){
+  var Level = function(game, number, difficulty, powerupType){
     this.game = game;
     this.difficulty = difficulty;
     this.number = number;
@@ -32,6 +32,8 @@
     this.deathsByUfoBullet = 0;
     this.start = new Date();
     this.end = new Date();
+
+    this.powerupType = powerupType;
   };
 
   Level.prototype = {
@@ -85,15 +87,9 @@
       this.game.coquette.entities.create(Powerup, {
         pos: pos,
         vel: vel,
-        powerupType: this.getPowerupType()
+        powerupType: this.powerupType
       });
 
-    },
-
-    getPowerupType: function(){
-      if (this.number % 2 === 0) return Powerup.prototype.TYPE_RADIAL_BLAST;
-      if (this.number % 3 === 0) return Powerup.prototype.TYPE_SPRAY;
-      return Powerup.prototype.TYPE_RAPID_FIRE;
     },
 
     deployAsteroid: function(size, pos){

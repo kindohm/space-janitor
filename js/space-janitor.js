@@ -1064,7 +1064,7 @@
 })(this);
 ;(function(exports){
 
-  var Level = function(game, number, difficulty){
+  var Level = function(game, number, difficulty, powerupType){
     this.game = game;
     this.difficulty = difficulty;
     this.number = number;
@@ -1096,6 +1096,8 @@
     this.deathsByUfoBullet = 0;
     this.start = new Date();
     this.end = new Date();
+
+    this.powerupType = powerupType;
   };
 
   Level.prototype = {
@@ -1149,15 +1151,9 @@
       this.game.coquette.entities.create(Powerup, {
         pos: pos,
         vel: vel,
-        powerupType: this.getPowerupType()
+        powerupType: this.powerupType
       });
 
-    },
-
-    getPowerupType: function(){
-      if (this.number % 2 === 0) return Powerup.prototype.TYPE_RADIAL_BLAST;
-      if (this.number % 3 === 0) return Powerup.prototype.TYPE_SPRAY;
-      return Powerup.prototype.TYPE_RAPID_FIRE;
     },
 
     deployAsteroid: function(size, pos){
@@ -2280,6 +2276,8 @@
 
     this.coquette.inputter.supressedKeys.push(
       this.coquette.inputter.BACKSPACE);
+
+    this.powerupType = Powerup.prototype.TYPE_SPRAY;
   };
 
   Game.prototype = {
@@ -2380,13 +2378,25 @@
 
     },
 
+    getNextPowerupType: function(){
+      if (this.powerupType === Powerup.prototype.TYPE_SPRAY){
+        this.powerupType = Powerup.prototype.TYPE_RAPID_FIRE;
+      } else if (this.powerupType === Powerup.prototype.TYPE_RAPID_FIRE){
+        this.powerupType = Powerup.prototype.TYPE_RADIAL_BLAST;
+      } else {
+        this.powerupType = Powerup.prototype.TYPE_SPRAY;
+      }
+      return this.powerupType;
+    },
+
+
     initNextLevel: function(){
 
       this.ufoTicks = this.maths.getRandomInt(1000, 1500);
       this.ufoTicksLeft = this.ufoTicks;
       this.state = this.STATE_PLAYING;
       var number = this.level === null ? 1 : this.level.number + 1;
-      this.level = new Level(this, number, this.difficulty);
+      this.level = new Level(this, number, this.difficulty, this.getNextPowerupType());
       this.levels.push(this.level);
       if (this.gameBar != null) {
         this.gameBar.levelNumber = number;

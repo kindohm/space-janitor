@@ -31,6 +31,8 @@
 
     this.coquette.inputter.supressedKeys.push(
       this.coquette.inputter.BACKSPACE);
+
+    this.powerupType = Powerup.prototype.TYPE_SPRAY;
   };
 
   Game.prototype = {
@@ -131,13 +133,25 @@
 
     },
 
+    getNextPowerupType: function(){
+      if (this.powerupType === Powerup.prototype.TYPE_SPRAY){
+        this.powerupType = Powerup.prototype.TYPE_RAPID_FIRE;
+      } else if (this.powerupType === Powerup.prototype.TYPE_RAPID_FIRE){
+        this.powerupType = Powerup.prototype.TYPE_RADIAL_BLAST;
+      } else {
+        this.powerupType = Powerup.prototype.TYPE_SPRAY;
+      }
+      return this.powerupType;
+    },
+
+
     initNextLevel: function(){
 
       this.ufoTicks = this.maths.getRandomInt(1000, 1500);
       this.ufoTicksLeft = this.ufoTicks;
       this.state = this.STATE_PLAYING;
       var number = this.level === null ? 1 : this.level.number + 1;
-      this.level = new Level(this, number, this.difficulty);
+      this.level = new Level(this, number, this.difficulty, this.getNextPowerupType());
       this.levels.push(this.level);
       if (this.gameBar != null) {
         this.gameBar.levelNumber = number;
