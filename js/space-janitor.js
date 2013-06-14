@@ -1,6 +1,6 @@
 ;(function(exports){
 
-  var num = '0.3.4';
+  var num = '0.4.0';
 
   var Version = function(){
     this.number = num;
@@ -1933,15 +1933,12 @@
           deathsByAsteroidCollision: level.deathsByAsteroidCollision,
           deathsByUfoCollision: level.deathsByUfoCollision,
           deathsByUfoBullet: level.deathsByUfoBullet,
-          rapidFiresCaptured: level.rapidFiresCaptured
+          rapidFiresCaptured: level.rapidFiresCaptured,
+          spraysCaptured: level.spraysCaptured
         });
 
       }
-
       return gameDto;
-
-
-
     }
 
   };
