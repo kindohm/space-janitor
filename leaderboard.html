@@ -7,9 +7,9 @@
     <link href="css/space-janitor.css" rel="stylesheet" type="text/css" />
   </head>
   <body>
-    <div class="container game-container">
-      <h3>All-Time Space Janitor Leaders</h3>
-
+    <div class="container game-container leaderboard">
+      <h3>Orbital Janitor Leaderboards</h3>
+      <h4>All-Time Leaders</h4>
       <table class="table">
         <tr>
           <th>RANK</th>
@@ -18,8 +18,9 @@
           <th>DIFFICULTY</th>
           <th>LEVEL</th>
           <th>KILLS</th>
+          <th>DATE</th>
         </tr>
-        <tbody data-bind="foreach: games">
+        <tbody data-bind="foreach: allTimeGames">
             <tr>
                 <td data-bind="text: rank"></td>
                 <td data-bind="text: playerName"></td>
@@ -27,12 +28,40 @@
                 <td data-bind="text: difficulty"></td>
                 <td data-bind="text: level"></td>
                 <td data-bind="text: kills"></td>
+                <td data-bind="text: dateDisplay"></td>
             </tr>    
         </tbody>        
       </table>
 
-      <div id="wait">
-        <p class="text-center">Loading...</p></div>
+      <div id="allTimeWait">
+        <p class="text-center">Loading all time leaders...</p></div>
+
+      <h4>Daily Leaders</h4>
+      <table class="table">
+        <tr>
+          <th>RANK</th>
+          <th>PLAYER</th>
+          <th>SCORE</th>
+          <th>DIFFICULTY</th>
+          <th>LEVEL</th>
+          <th>KILLS</th>
+          <th>DATE</th>
+        </tr>
+        <tbody data-bind="foreach: dailyGames">
+            <tr>
+                <td data-bind="text: rank"></td>
+                <td data-bind="text: playerName"></td>
+                <td data-bind="text: score"></td>
+                <td data-bind="text: difficulty"></td>
+                <td data-bind="text: level"></td>
+                <td data-bind="text: kills"></td>
+                <td data-bind="text: dateDisplay"></td>
+            </tr>    
+        </tbody>        
+      </table>
+
+      <div id="dailyWait">
+        <p class="text-center">Loading daily leaders...</p></div>
 
     </div>
   </body>

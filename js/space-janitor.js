@@ -1947,7 +1947,8 @@
 })(this, jQuery);
 ;(function(exports, $){
 
-  var leaderboardUrl = 'http://orbital-janitor-api.azurewebsites.net/api/game/getTopGamesEver';
+  var allTimeLeaderboardUrl = 'http://orbital-janitor-api.azurewebsites.net/api/leaderboard/?type=alltime';
+  var dailyLeaderboardUrl = 'http://orbital-janitor-api.azurewebsites.net/api/leaderboard/?type=day';
 
   var mapDifficulty = function(diff){
 
@@ -1959,6 +1960,10 @@
 
   };
 
+  var padDigit = function(digit){
+    return digit.toString().length === 1 ? '0' + digit.toString() : digit.toString();
+  };
+
   var Game = function(gameDto){
     this.rank = gameDto.rank;
     this.playerName = gameDto.Player;
@@ -1967,31 +1972,62 @@
     this.level = gameDto.LevelReached;
     this.kills = gameDto.AsteroidsKilled +
       gameDto.UfosKilled;
+
+    this.end = new Date(gameDto.End);
+    this.dateDisplay = ko.computed(function() {
+
+          var mins = padDigit(this.end.getMinutes());
+          var hrs = padDigit(this.end.getHours());
+          var month = padDigit(this.end.getMonth());
+          var day = padDigit(this.end.getDate());
+          return this.end.getFullYear() + "-" + month + "-" + day + " " + hrs + ":" + mins;
+        }, this);      
   };
 
-  var LeaderboardViewModel = function(){
-    this.games = ko.observableArray([]);
+  var LeaderboardViewModel = function(leaderboardType){
+    this.allTimeGames = ko.observableArray([]);
+    this.dailyGames = ko.observableArray([]);
     this.load();
   };
 
   LeaderboardViewModel.prototype = {
 
-    load: function(){
+    load: function(url){
+
       var self = this;
+
+      // all time leaderboard
       $.ajax({
-        url: leaderboardUrl
+        url: allTimeLeaderboardUrl
       })
       .done(function(result){
         for (var i = 0; i < result.length; i++){
           var dto = new Game(result[i]);
           dto.rank = i + 1;
-          self.games.push(dto);
+          self.allTimeGames.push(dto);
         }
-        $('#wait').hide();
+        $('#allTimeWait').hide();
       })
       .fail(function(){
         console.log('leaderboard data fail');
       });
+
+      // daily leaderboard
+      $.ajax({
+        url: dailyLeaderboardUrl
+      })
+      .done(function(result){
+        for (var i = 0; i < result.length; i++){
+          var dto = new Game(result[i]);
+          dto.rank = i + 1;
+          self.dailyGames.push(dto);
+        }
+        $('#dailyWait').hide();
+      })
+      .fail(function(){
+        console.log('leaderboard data fail');
+      });
+
     }
 
   };
