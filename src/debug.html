@@ -9,18 +9,6 @@
   <body>
     <div class="container game-container">
       <canvas id="canvas"></canvas>
-      <div id="post-score">
-        <h3>GAME OVER</h3>
-        <p>SCORE: <span id="score-value">0</span></p>
-        <p>Enter your name and submit your score:</p>
-        <p><input type="text" maxlength="16" id="input-player-name"/></p>
-        <p><button id="submit-button">Submit</button>&nbsp;<button id="no-thanks-button">No Thanks</button></p>
-        <div id="error-panel">
-          <p>There was an error sending your score. Sorry.</p>
-          <p><a href="mailto:i.sweep.space@gmail.com">Feedback: i.sweep.space@gmail.com</a></p>
-          <p><button id="error-close-button">Close and Play Again</button></p>
-        </div>
-      </div>
     </div>
   </body>
 
@@ -54,7 +42,6 @@
   <script type="text/javascript" src="titleview.js"></script>
   <script type="text/javascript" src="storyview.js"></script>
   <script type="text/javascript" src="scoringrules.js"></script>
-  <script type="text/javascript" src="scoreposter.js"></script>
   <script type="text/javascript" src="game.js"></script>
   <script type="text/javascript">
     window.addEventListener('load', function() {

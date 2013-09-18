@@ -486,15 +486,12 @@
 
       this.end = new Date();
       this.level.end = new Date();
-      this.playerName = 'DEV';
       this.soundBus.ufoSound.stop();
       this.soundBus.powerupHumSound.stop();
 
       var self = this;
-      var theThing = this;
       this.paused = false;
       this.pauseView.show = false;      
-
 
       if (wasPaused != undefined && wasPaused){
         self.state = self.STATE_TITLE;
@@ -505,42 +502,19 @@
       }
 
       this.state = self.STATE_GAME_OVER;
+      this.messageView.text = 'Game Over';
+      this.messageView.show = true;
 
       setTimeout(function(){
-
         self.clearEntities();
-
-        $('#error-panel').hide();
-        $('#submit-button').removeAttr('disabled');
-        $('#no-thanks-button').removeAttr('disabled');
-        $('#input-player-name').removeAttr('disabled');
-        $('#submit-button').html('Submit');
-        $('#input-player-name').val('');
-
-        $('#score-value').html(self.score);
-        $('#post-score').bPopup({
-          escClose: false,
-          modalClose: false
-        });
-
-        $('#input-player-name').focus();
-
-        $('#submit-button').click(function(){
-          $('#submit-button').off('click');
-          self.sendScore();
-        });
-
-        $('#no-thanks-button').click(function(){
-          $('#no-thanks-button').off('click');
-          $('#post-score').bPopup().close();
-          self.goBackToTitle();
-        });
-
-      }, 2000);
+        self.goBackToTitle();
+      }, 3000);
 
     },
 
     goBackToTitle: function(){
+      this.messageView.text = '';
+      this.messageView.show = false;
       this.state = this.STATE_TITLE;
       this.oldRadialBlasts = 0;
       this.player.radialBlasts = 0;
