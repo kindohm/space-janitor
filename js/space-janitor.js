@@ -1,6 +1,6 @@
 ;(function(exports){
 
-  var num = '0.5.0';
+  var num = '0.6.0';
 
   var Version = function(){
     this.number = num;
@@ -110,10 +110,13 @@
   var Bullet = function(game, settings){
     var self = this;
     this.game = game;
-    this.pos = {
+    this.angle = 0;
+
+    this.center = {
       x: settings.pos.x,
       y: settings.pos.y
     };
+
     this.vel = {
       x: settings.vel.x,
       y: settings.vel.y
@@ -138,20 +141,20 @@
 
       if (this.game.paused) return;
 
-      this.pos.x += this.vel.x;
-      this.pos.y += this.vel.y;
+      this.center.x += this.vel.x;
+      this.center.y += this.vel.y;
 
       // destory the bullet if it reaches the screen bounds
-      if (this.pos.y <= 0 || this.pos.y >= this.game.height ||
-        this.pos.x <= 0 || this.pos.x >= this.game.width){
+      if (this.center.y <= 0 || this.center.y >= this.game.height ||
+        this.center.x <= 0 || this.center.x >= this.game.width){
         this.game.coquette.entities.destroy(this);
       }
     },
 
     draw: function(context) {
 
-      context.drawImage(this.sprite, this.pos.x, 
-        this.pos.y, this.size.x, this.size.y);
+      context.drawImage(this.sprite, this.center.x - this.size.x/2, 
+        this.center.y - this.size.y/2, this.size.x, this.size.y);
     },
 
     collision: function(other, type){
@@ -258,17 +261,17 @@
 })(this);
 ;(function(exports){
 
-  var ThrustBubble = function(game, pos, direction){
+  var ThrustBubble = function(game, settings){
 
     this.game = game;
-
-    this.pos = {
-      x: pos.x,
-      y: pos.y
+    this.angle = 0;
+    this.center = {
+      x: settings.pos.x,
+      y: settings.pos.y
     };
     this.vel = {
-      x: direction.x,
-      y: direction.y
+      x: settings.vel.x,
+      y: settings.vel.y
     };
 
     this.colorBase = game.settings.FOREGROUND_BASE_COLOR;
@@ -279,15 +282,20 @@
   ThrustBubble.prototype = {
 
     radiusGrowth: .2,
-    pos: null,
+    center: null,
     colorBase: '204,204,204',
+    angle: 0,
 
     update: function(){
       if (this.game.paused) return;
       this.radius += this.radiusGrowth;
       this.ticksLeft--;
-      this.pos.x += this.vel.x;
-      this.pos.y += this.vel.y;
+      this.center.x += this.vel.x;
+      this.center.y += this.vel.y;
+
+      if (this.ticksLeft === 0){
+        this.game.coquette.entities.destroy(this);
+      }
     },
 
     draw: function(context){
@@ -295,7 +303,7 @@
       var ratio = this.ticksLeft / this.totalTicks;
       var side = this.radius * 2;
       context.beginPath();
-      context.rect(this.pos.x - this.radius, this.pos.y - this.radius,
+      context.rect(this.center.x - this.radius, this.center.y - this.radius,
         side, side);
       context.strokeStyle = 'rgba(' + this.colorBase + ',' + ratio.toString() + ')';
       context.lineWidth = 1;
@@ -305,7 +313,6 @@
   };
 
   var ThrustEffect = function(game){
-    this.effects = [];
     this.game = game;
   };
 
@@ -314,8 +321,17 @@
     thrustEffectTicksLeft: 0,
 
     add: function(pos, direction){
-      var bubble = new ThrustBubble(this.game, pos, direction);
-      this.effects.push(bubble);
+       this.game.coquette.entities.create(ThrustBubble, 
+          {
+            pos: {
+              x: pos.x, 
+              y: pos.y
+            }, 
+            vel: {
+              x: direction.x,
+              y: direction.y
+            }
+          });     
     },
 
     update: function(player){
@@ -325,8 +341,8 @@
       if (this.thrustEffectTicksLeft === 0 && player.thrusting){
         var vector = this.game.maths.angleToVector(player.angle + 180);
         var effectPos = {
-          x: player.pos.x + player.halfSize.x + vector.x * player.halfSize.x,
-          y: player.pos.y + player.halfSize.y + vector.y * player.halfSize.y
+          x: player.center.x + vector.x * player.halfSize.x,
+          y: player.center.y + vector.y * player.halfSize.y
         };
         var vel = {
           x: vector.x * this.game.settings.THRUST_EFFECT_VEL,
@@ -336,22 +352,7 @@
         this.thrustEffectTicksLeft = this.game.settings.THRUST_EFFECT_TICKS;
       }
 
-      // remove old effects, update current effects
-      for(var i = this.effects.length - 1; i >= 0; i--){
-        if (this.effects[i].ticksLeft === 0){
-          this.effects.splice(i, 1);
-        } else {
-          this.effects[i].update();
-        }
-      }
     },
-
-    draw: function(context){
-      for(var i = 0; i < this.effects.length; i++){
-        this.effects[i].draw(context);
-      }
-    }
-
   };
 
   exports.ThrustEffect = ThrustEffect;
@@ -398,8 +399,8 @@
     for(var i = 0; i < this.numParticles; i++){
       var particle = new Particle(game, {
         pos: {
-          x: settings.pos.x,
-          y: settings.pos.y
+          x: settings.center.x,
+          y: settings.center.y
         },
         vel:{
           x: game.maths.getRandomInt(-10,10),
@@ -446,8 +447,10 @@
 
     this.game = game;
     this.boundingBox = settings.boundingBox;
-    
-    this.pos = {
+    this.angle = 0;
+    this.turnSpeed = 2 * Math.random() - 1;
+
+    this.center = {
       x: settings.pos.x,
       y: settings.pos.y
     };
@@ -480,36 +483,32 @@
 
       if (this.game.paused) return;
 
-      this.pos.x += this.vel.x;
-      this.pos.y += this.vel.y;
-
+      this.center.x += this.vel.x;
+      this.center.y += this.vel.y;
+      this.angle += this.turnSpeed;
       this.wrap();
+
     },
 
     wrap: function(){
-      if (this.pos.y > this.maxPos.y) {
-        this.pos.y = -this.size.y;
-      } else if (this.pos.y < -this.size.y) {
-        this.pos.y = this.maxPos.y;
+      if (this.center.y > this.maxPos.y) {
+        this.center.y = -this.size.y;
+      } else if (this.center.y < -this.size.y) {
+        this.center.y = this.maxPos.y;
       }
 
-      if (this.pos.x > this.maxPos.x) {
-        this.pos.x = -this.size.x;
-      } else if (this.pos.x < -this.size.x) {
-        this.pos.x = this.maxPos.x;
+      if (this.center.x > this.maxPos.x) {
+        this.center.x = -this.size.x;
+      } else if (this.center.x < -this.size.x) {
+        this.center.x = this.maxPos.x;
       }
     },
 
     draw: function(context){
 
       context.beginPath();
-      if (this.boundingBox == this.game.coquette.collider.RECTANGLE){
-        context.rect(this.pos.x, this.pos.y, this.size.x, this.size.y);
-      }
-      else{
-        context.arc(this.pos.x + this.size.x/2, this.pos.y + this.size.y/2,
-          this.size.x/2, 0, Math.PI * 2, false);
-       }
+      context.rect(this.center.x - this.size.x/2, this.center.y - this.size.y/2, 
+        this.size.x, this.size.y);
 
       context.lineWidth = this.game.settings.ASTEROID_LINE_WIDTH;
       context.strokeStyle = this.game.settings.FOREGROUND_COLOR;
@@ -518,6 +517,7 @@
     },
 
     collision: function(other, type){
+
       if (type === this.game.coquette.collider.INITIAL){
         if ((other instanceof Bullet && !other.hostile) || (other instanceof Player && !other.spawning)){
           this.game.coquette.entities.destroy(this);
@@ -536,7 +536,9 @@
   var Ufo = function(game, settings){
 
     this.game = game;
-    this.pos = {
+    this.angle = 0;
+
+    this.center = {
       x: settings.pos.x,
       y: settings.pos.y
     };
@@ -569,8 +571,8 @@
 
     update: function(){
       if (this.game.paused) return;
-      this.pos.x += this.vel.x;
-      this.pos.y += this.vel.y;
+      this.center.x += this.vel.x;
+      this.center.y += this.vel.y;
 
       this.checkBounds();
       this.checkShoot();
@@ -594,8 +596,8 @@
       };
 
       var bulletPos = {
-        x: vector.x * this.halfSize.x + this.halfSize.x + this.pos.x,
-        y: vector.y * this.halfSize.y + this.halfSize.y + this.pos.y
+        x: vector.x * this.halfSize.x + this.halfSize.x + this.center.x,
+        y: vector.y * this.halfSize.y + this.halfSize.y + this.center.y
       };
 
       this.game.coquette.entities.create(Bullet, 
@@ -609,7 +611,7 @@
 
     checkBounds: function(){
 
-      if (this.pos.x > this.game.width + this.size.x || this.pos.x < -this.size.x){
+      if (this.center.x > this.game.width + this.size.x || this.center.x < -this.size.x){
         this.selfKill();
       }
 
@@ -618,19 +620,19 @@
     draw: function(context){
 
       context.beginPath();
-      context.moveTo(this.pos.x, this.pos.y + this.size.y * .25);
-      context.lineTo(this.pos.x, this.pos.y + this.size.y * .75);
+      context.moveTo(this.center.x - this.halfSize.x, this.center.y - this.halfSize.y + this.size.y * .25);
+      context.lineTo(this.center.x - this.halfSize.x, this.center.y - this.halfSize.y + this.size.y * .75);
 
-      context.lineTo(this.pos.x + this.size.x * .25, this.pos.y + this.size.y);
-      context.lineTo(this.pos.x + this.size.x * .75, this.pos.y + this.size.y);
+      context.lineTo(this.center.x - this.halfSize.x + this.size.x * .25, this.center.y - this.halfSize.y + this.size.y);
+      context.lineTo(this.center.x - this.halfSize.x + this.size.x * .75, this.center.y - this.halfSize.y + this.size.y);
 
-      context.lineTo(this.pos.x + this.size.x, this.pos.y + this.size.y * .75);
-      context.lineTo(this.pos.x + this.size.x, this.pos.y + this.size.y * .25);
+      context.lineTo(this.center.x - this.halfSize.x + this.size.x, this.center.y - this.halfSize.y + this.size.y * .75);
+      context.lineTo(this.center.x - this.halfSize.x + this.size.x, this.center.y - this.halfSize.y + this.size.y * .25);
 
-      context.lineTo(this.pos.x + this.size.x * .75, this.pos.y);
-      context.lineTo(this.pos.x + this.size.x * .25, this.pos.y);
+      context.lineTo(this.center.x - this.halfSize.x + this.size.x * .75, this.center.y - this.halfSize.y);
+      context.lineTo(this.center.x - this.halfSize.x + this.size.x * .25, this.center.y - this.halfSize.y);
 
-      context.lineTo(this.pos.x, this.pos.y + this.size.y * .25);
+      context.lineTo(this.center.x - this.halfSize.x, this.center.y - this.halfSize.y + this.size.y * .25);
 
 
 
@@ -672,10 +674,11 @@
   function Player(game, settings){
 
     var self = this;
-    this.pos = { x: settings.pos.x, y: settings.pos.y };
+    this.center = { x: settings.pos.x, y: settings.pos.y };
     this.maxPos = { x: settings.maxPos.x, y: settings.maxPos.y };
     this.game = game;
-    
+    this.angle = 180;
+
     this.radialBlasts = settings.radialBlasts;
 
     this.size = { 
@@ -745,8 +748,8 @@
       this.vel.x += this.thrust.x;
       this.vel.y += this.thrust.y;
 
-      this.pos.x += this.vel.x;
-      this.pos.y += this.vel.y;
+      this.center.x += this.vel.x;
+      this.center.y += this.vel.y;
 
       this.wrap();
 
@@ -768,67 +771,58 @@
     },
 
     wrap: function(){
-      if (this.pos.y > this.maxPos.y) {
-        this.pos.y = -this.size.y;
-      } else if (this.pos.y < -this.size.y) {
-        this.pos.y = this.maxPos.y;
+      if (this.center.y > this.maxPos.y) {
+        this.center.y = -this.size.y;
+      } else if (this.center.y < -this.size.y) {
+        this.center.y = this.maxPos.y;
       }
 
-      if (this.pos.x > this.maxPos.x) {
-        this.pos.x = -this.size.x;
-      } else if (this.pos.x < -this.size.x) {
-        this.pos.x = this.maxPos.x;
+      if (this.center.x > this.maxPos.x) {
+        this.center.x = -this.size.x;
+      } else if (this.center.x < -this.size.x) {
+        this.center.x = this.maxPos.x;
       }
     },
 
     draw: function(context){
-
-      context.save();
-      context.translate(this.pos.x + this.halfSize.x, this.pos.y + this.halfSize.y);
-      context.rotate(this.rAngle);
       this.drawMainSprite(context);
-      context.rotate(-this.Angle);
-      context.translate(-(this.pos.x), -(this.pos.y));
-      context.restore();
-
-      this.thrustEffect.draw(context);
     },
 
     drawMainSprite: function(context){
       context.beginPath();
-      context.moveTo(-this.halfSize.x,-this.halfSize.y);
-      context.lineTo(0,this.halfSize.y);
-      context.lineTo(this.halfSize.x, -this.halfSize.y);
-      context.lineTo(0,-this.halfSize.y/1.7);
-      context.lineTo(-this.halfSize.x,-this.halfSize.y);
-      context.closePath();
+      context.moveTo(this.center.x - this.halfSize.x,this.center.y-this.halfSize.y);
+      context.lineTo(this.center.x, this.center.y+this.halfSize.y);
+      context.lineTo(this.center.x + this.halfSize.x, this.center.y-this.halfSize.y);
+      context.lineTo(this.center.x,this.center.y - this.halfSize.y/1.7);
+      context.lineTo(this.center.x - this.halfSize.x,this.center.y-this.halfSize.y);
+
+      //context.closePath();
       context.strokeStyle = !this.spawningDrawOn ? this.game.settings.FOREGROUND_COLOR : this.game.settings.SECONDARY_COLOR;
       context.lineWidth = this.game.settings.PLAYER_LINE_WIDTH;
       context.stroke();
-
     },
 
     handleKeyboard: function(){
 
-      if(this.game.coquette.inputter.state(this.game.coquette.inputter.UP_ARROW)) {        
+      if(this.game.coquette.inputter.isDown(this.game.coquette.inputter.UP_ARROW)) {        
         this.applyThrust();
       } else if (this.thrusting) {
         this.idleThrust();
       }
 
-      if(this.game.coquette.inputter.state(this.game.coquette.inputter.LEFT_ARROW)) {
+      if(this.game.coquette.inputter.isDown(this.game.coquette.inputter.LEFT_ARROW)) {
         this.rotate('left');
       }
 
-      if(this.game.coquette.inputter.state(this.game.coquette.inputter.RIGHT_ARROW)) {
+      if(this.game.coquette.inputter.isDown(this.game.coquette.inputter.RIGHT_ARROW)) {
         this.rotate('right');
       }
 
-      if(this.game.coquette.inputter.state(this.game.coquette.inputter.SPACE)) {
+      if(this.game.coquette.inputter.isDown(this.game.coquette.inputter.SPACE)) {
         this.shoot();
       }
 
-      if (this.game.coquette.inputter.state(this.game.coquette.inputter.DOWN_ARROW)){
+      if (this.game.coquette.inputter.isDown(this.game.coquette.inputter.DOWN_ARROW)){
 
         if (this.game.coquette.entities.all(RadialBlast).length === 0 && this.radialBlasts > 0){
         
@@ -904,8 +898,8 @@
 
         // calculate bullet origin position relative to ship's center
         var bulletPos = {
-          x: vector.x * this.halfSize.x + this.halfSize.x + this.pos.x,
-          y: vector.y * this.halfSize.y + this.halfSize.y + this.pos.y
+          x: vector.x * this.halfSize.x + this.center.x,
+          y: vector.y * this.halfSize.y + this.center.y
         };
 
         // calculate bullet velocity vector
@@ -929,8 +923,8 @@
       
       this.game.coquette.entities.create(RadialBlast,{
         pos: {
-          x: this.pos.x,
-          y: this.pos.y
+          x: this.center.x,
+          y: this.center.y
         }
       });
 
@@ -1301,8 +1295,9 @@
   var RadialBlast = function(game, settings){
 
     this.game = game;
+    this.angle = 0;
 
-    this.pos = {
+    this.center = {
       x: settings.pos.x,
       y: settings.pos.y
     };
@@ -1322,9 +1317,6 @@
     update: function(){
       this.size.x += this.growthRate;
       this.size.y += this.growthRate;
-      this.pos.x -= this.growthRate / 2;
-      this.pos.y -= this.growthRate / 2;
-
       this.flashTicksLeft = Math.max(0, this.flashTicksLeft - 1);
 
       if (this.size.x >= this.maxSize){
@@ -1342,7 +1334,7 @@
       }
 
       context.beginPath();
-      context.arc(this.pos.x + this.size.x/2, this.pos.y + this.size.y/2, this.size.x/2, 0, Math.PI * 2, true);
+      context.arc(this.center.x, this.center.y, this.size.x/2, 0, Math.PI * 2, true);
       context.lineWidth = 5;
       context.strokeStyle = 'rgba(' + this.game.settings.RADIAL_BLAST_BASE_COLOR + ',' + sizeRatio + ')';
       context.stroke();
@@ -1370,7 +1362,9 @@
 
   var Powerup = function(game, settings){
     this.game = game;
-    this.pos = {
+    this.angle = 0;
+
+    this.center = {
       x: settings.pos.x,
       y: settings.pos.y
     };
@@ -1407,8 +1401,8 @@
     halfSize: {x:20,y:20},
 
     update: function(){
-      this.pos.x += this.vel.x;
-      this.pos.y += this.vel.y;
+      this.center.x += this.vel.x;
+      this.center.y += this.vel.y;
 
       if (this.fadeTicks === this.fadeAmount){
         this.growing = false;
@@ -1418,10 +1412,10 @@
 
       this.fadeTicks += this.growing ? 1 : -1;
 
-      if (this.pos.x < -this.size.x || 
-        this.pos.x > (this.game.width + this.size.x) || 
-        this.pos.y < -this.size.y || 
-        this.pos.y > (this.game.height + this.size.y)){
+      if (this.center.x < -this.size.x || 
+        this.center.x > (this.game.width + this.size.x) || 
+        this.center.y < -this.size.y || 
+        this.center.y > (this.game.height + this.size.y)){
 
         this.game.soundBus.powerupHumSound.stop();
         this.game.coquette.entities.destroy(this);
@@ -1433,7 +1427,7 @@
     draw: function(context){
 
       context.beginPath();
-      context.arc(this.pos.x + this.halfSize.x, this.pos.y + this.halfSize.y, this.halfSize.x, 0, Math.PI * 2, true);
+      context.arc(this.center.x, this.center.y, this.halfSize.x, 0, Math.PI * 2, true);
       context.lineWidth = 3;
       var ratio = (this.fadeTicks / this.fadeAmount).toString();
       context.strokeStyle = 'rgba(' + this.color + ',' + ratio + ')';
@@ -1576,7 +1570,7 @@
       if (this.callback === undefined || this.callback === null) return;
 
       var inputter = this.game.coquette.inputter;
-      if (inputter.state(inputter.SPACE)){
+      if (inputter.isPressed(inputter.SPACE)){
         this.callback();
       }
     },
@@ -1663,11 +1657,11 @@
       if (this.callback === undefined || this.callback === null) return;    
       var inputter = this.game.coquette.inputter;
       var result = -1;
-      if (inputter.state(inputter.ONE)) result = this.game.DIFFICULTY_FREE;
-      if (inputter.state(inputter.TWO)) result = this.game.DIFFICULTY_EASY;
-      if (inputter.state(inputter.THREE)) result = this.game.DIFFICULTY_NORMAL;
-      if (inputter.state(inputter.FOUR)) result = this.game.DIFFICULTY_HARD;
-      if (inputter.state(inputter.FIVE)) result = this.game.DIFFICULTY_INSANE;
+      if (inputter.isPressed(inputter.ONE)) result = this.game.DIFFICULTY_FREE;
+      if (inputter.isPressed(inputter.TWO)) result = this.game.DIFFICULTY_EASY;
+      if (inputter.isPressed(inputter.THREE)) result = this.game.DIFFICULTY_NORMAL;
+      if (inputter.isPressed(inputter.FOUR)) result = this.game.DIFFICULTY_HARD;
+      if (inputter.isPressed(inputter.FIVE)) result = this.game.DIFFICULTY_INSANE;
 
       if (result === -1) return;
       this.callback(result);
@@ -2274,9 +2268,6 @@
     this.version = new Version();
     this.levels = [];
 
-    this.coquette.inputter.supressedKeys.push(
-      this.coquette.inputter.BACKSPACE);
-
     this.powerupType = Powerup.prototype.TYPE_SPRAY;
   };
 
@@ -2511,7 +2502,7 @@
 
       var inputter = this.coquette.inputter;
 
-      if (this.paused && inputter.state(inputter.Q)){
+      if (this.paused && inputter.isPressed(inputter.Q)){
         // quit!
         this.clearEntities();
         var paused = true;
@@ -2522,7 +2513,7 @@
       if (this.paused) return;
 
       if (this.state === this.STATE_TITLE){
-        if(inputter.state(inputter.SPACE)) {
+        if (inputter.isPressed(inputter.SPACE)) {
           this.chooseDifficulty();
         }
       }
@@ -2530,7 +2521,7 @@
     },
 
     checkPause: function(){
-      var esc = this.coquette.inputter.state(this.coquette.inputter.ESC);
+      var esc = this.coquette.inputter.isPressed(this.coquette.inputter.ESC);
 
       if (this.state === this.STATE_PLAYING && esc){
         if (!this.pausing){
@@ -2579,40 +2570,40 @@
 
     },
 
-    spawnAsteroidExplosion: function(pos){
+    spawnAsteroidExplosion: function(center){
       var effect = new ExplosionEffect(this, {
         numParticles: 20,
         duration: 50,
         particleSize: 3,
-        pos: pos
+        center: center
       });
 
       this.explosions.push(effect);
     },
 
-    spawnPlayerExplosion: function(pos){
+    spawnPlayerExplosion: function(center){
       var effect = new ExplosionEffect(this, {
         numParticles: 50,
         duration: 75,
         particleSize: 8,
-        pos: pos
+        center: center
       });
 
       this.explosions.push(effect);
     },
 
-    spawnUfoExplosion: function(pos){
+    spawnUfoExplosion: function(center){
       var effect = new ExplosionEffect(this, {
         numParticles: 50,
         duration: 75,
         particleSize: 8,
-        pos: pos
+        center: center
       });
 
       this.explosions.push(effect);
     },
 
-    spawnPowerupExplosion: function(pos, powerup){
+    spawnPowerupExplosion: function(center, powerup){
       var color = '200,200,200';
 
       if (powerup.powerupType === powerup.TYPE_RADIAL_BLAST){
@@ -2628,7 +2619,7 @@
         duration: 75,
         particleSize: 8,
         baseColor: color,
-        pos: pos
+        center: center
       });
 
       this.explosions.push(effect);
@@ -2643,7 +2634,7 @@
       this.soundBus.asteroidExplosionSound.play();
 
       // split up asteroid into two smaller ones
-      var newPos = {x: asteroid.pos.x + asteroid.size.x / 4, y: asteroid.pos.y + asteroid.size.y/4};
+      var newPos = {x: asteroid.center.x + asteroid.size.x / 4, y: asteroid.center.y + asteroid.size.y/4};
       if (asteroid.size.x === this.settings.ASTEROID_SIZE_LARGE){
         this.level.deployAsteroid(this.settings.ASTEROID_SIZE_MEDIUM, newPos);
         this.level.deployAsteroid(this.settings.ASTEROID_SIZE_MEDIUM, newPos);
@@ -2653,7 +2644,7 @@
       } 
       this.level.asteroidsShot++;
       this.appendScore(this.scoringRules.pointsForAsteroid(asteroid));
-      this.spawnAsteroidExplosion(asteroid.pos);
+      this.spawnAsteroidExplosion(asteroid.center);
     },
 
     shotFired: function(){
@@ -2667,7 +2658,7 @@
     playerKilled: function(player, other){
       this.lives--;
       this.soundBus.playerExplosionSound.play();
-      this.spawnPlayerExplosion(player.pos);
+      this.spawnPlayerExplosion(player.center);
       this.oldRadialBlasts = player.radialBlasts;
 
       if (other instanceof Bullet) this.level.deathsByUfoBullet++;
@@ -2687,7 +2678,7 @@
 
     ufoKilled: function(ufo, other){
       this.soundBus.playerExplosionSound.play();
-      this.spawnUfoExplosion(ufo.pos);
+      this.spawnUfoExplosion(ufo.center);
       this.appendScore(this.scoringRules.pointsForUfo(ufo));
 
       if (other instanceof Bullet) this.level.ufosKilledByBullet++;
@@ -2707,7 +2698,7 @@
 
       for (var i = 0; i < asteroids.length; i++){
 
-        if (this.maths.distance(desiredPosition, asteroids[i].pos) < this.settings.PLAYER_SIZE * 4){
+        if (this.maths.distance(desiredPosition, asteroids[i].center) < this.settings.PLAYER_SIZE * 4){
           spaceAvailable = false;
           break;
         }
@@ -2823,14 +2814,14 @@
 
     rapidFireAcquired: function(powerup){
       this.player.enableRapidFire();
-      this.spawnPowerupExplosion(powerup.pos, powerup);
+      this.spawnPowerupExplosion(powerup.center, powerup);
       this.soundBus.playerExplosionSound.play();
       this.level.rapidFiresCaptured++;
     },
 
     sprayAcquired: function(powerup){
       this.player.enableSpray();
-      this.spawnPowerupExplosion(powerup.pos, powerup);
+      this.spawnPowerupExplosion(powerup.center, powerup);
       this.soundBus.playerExplosionSound.play();
       this.level.spraysCaptured++;
     },
@@ -2838,7 +2829,7 @@
     radialBlastAcquired: function(powerup){
       this.player.radialBlasts++;
       this.level.radialBlastsCaptured++;
-      this.spawnPowerupExplosion(powerup.pos, powerup);
+      this.spawnPowerupExplosion(powerup.center, powerup);
       this.soundBus.playerExplosionSound.play();
     },
 
