@@ -46,6 +46,7 @@
   <script type="text/javascript">
     window.addEventListener('load', function() {
       var game = new Game("canvas", 800, 450);
+      window.game = game;
       game.soundsPath = '../sounds/';
       game.init();
     });

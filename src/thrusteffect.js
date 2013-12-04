@@ -67,8 +67,8 @@
       if (this.thrustEffectTicksLeft === 0 && player.thrusting){
         var vector = this.game.maths.angleToVector(player.angle + 180);
         var effectPos = {
-          x: player.pos.x + player.halfSize.x + vector.x * player.halfSize.x,
-          y: player.pos.y + player.halfSize.y + vector.y * player.halfSize.y
+          x: player.center.x + vector.x * player.halfSize.x,
+          y: player.center.y + vector.y * player.halfSize.y
         };
         var vel = {
           x: vector.x * this.game.settings.THRUST_EFFECT_VEL,

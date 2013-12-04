@@ -4,8 +4,10 @@
 
     this.game = game;
     this.boundingBox = settings.boundingBox;
-    
-    this.pos = {
+    this.angle = 0;
+    this.turnSpeed = 2 * Math.random() - 1;
+
+    this.center = {
       x: settings.pos.x,
       y: settings.pos.y
     };
@@ -38,36 +40,32 @@
 
       if (this.game.paused) return;
 
-      this.pos.x += this.vel.x;
-      this.pos.y += this.vel.y;
-
+      this.center.x += this.vel.x;
+      this.center.y += this.vel.y;
+      this.angle += this.turnSpeed;
       this.wrap();
+
     },
 
     wrap: function(){
-      if (this.pos.y > this.maxPos.y) {
-        this.pos.y = -this.size.y;
-      } else if (this.pos.y < -this.size.y) {
-        this.pos.y = this.maxPos.y;
+      if (this.center.y > this.maxPos.y) {
+        this.center.y = -this.size.y;
+      } else if (this.center.y < -this.size.y) {
+        this.center.y = this.maxPos.y;
       }
 
-      if (this.pos.x > this.maxPos.x) {
-        this.pos.x = -this.size.x;
-      } else if (this.pos.x < -this.size.x) {
-        this.pos.x = this.maxPos.x;
+      if (this.center.x > this.maxPos.x) {
+        this.center.x = -this.size.x;
+      } else if (this.center.x < -this.size.x) {
+        this.center.x = this.maxPos.x;
       }
     },
 
     draw: function(context){
 
       context.beginPath();
-      if (this.boundingBox == this.game.coquette.collider.RECTANGLE){
-        context.rect(this.pos.x, this.pos.y, this.size.x, this.size.y);
-      }
-      else{
-        context.arc(this.pos.x + this.size.x/2, this.pos.y + this.size.y/2,
-          this.size.x/2, 0, Math.PI * 2, false);
-       }
+      context.rect(this.center.x - this.size.x/2, this.center.y - this.size.y/2, 
+        this.size.x, this.size.y);
 
       context.lineWidth = this.game.settings.ASTEROID_LINE_WIDTH;
       context.strokeStyle = this.game.settings.FOREGROUND_COLOR;
@@ -76,6 +74,7 @@
     },
 
     collision: function(other, type){
+
       if (type === this.game.coquette.collider.INITIAL){
         if ((other instanceof Bullet && !other.hostile) || (other instanceof Player && !other.spawning)){
           this.game.coquette.entities.destroy(this);

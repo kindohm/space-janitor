@@ -29,9 +29,10 @@
     this.version = new Version();
     this.levels = [];
 
+/*
     this.coquette.inputter.supressedKeys.push(
       this.coquette.inputter.BACKSPACE);
-
+*/
     this.powerupType = Powerup.prototype.TYPE_SPRAY;
   };
 
@@ -277,7 +278,8 @@
       if (this.paused) return;
 
       if (this.state === this.STATE_TITLE){
-        if(inputter.state(inputter.SPACE)) {
+        //if(inputter.state(inputter.SPACE)) {
+        if (inputter.isPressed(inputter.SPACE)) {
           this.chooseDifficulty();
         }
       }
@@ -285,7 +287,8 @@
     },
 
     checkPause: function(){
-      var esc = this.coquette.inputter.state(this.coquette.inputter.ESC);
+      //var esc = this.coquette.inputter.state(this.coquette.inputter.ESC);
+      var esc = this.coquette.inputter.isPressed(this.coquette.inputter.ESC);
 
       if (this.state === this.STATE_PLAYING && esc){
         if (!this.pausing){
@@ -391,6 +394,8 @@
 
     asteroidKilled: function(asteroid, other){
 
+      console.log('asteroid killed');
+
       if (other instanceof Bullet) this.level.asteroidsKilledByBullet++;
       if (other instanceof RadialBlast) this.level.asteroidsKilledByRadialBlast++;
       if (other instanceof Player) this.level.asteroidsKilledByPlayerCollision++;
@@ -398,7 +403,7 @@
       this.soundBus.asteroidExplosionSound.play();
 
       // split up asteroid into two smaller ones
-      var newPos = {x: asteroid.pos.x + asteroid.size.x / 4, y: asteroid.pos.y + asteroid.size.y/4};
+      var newPos = {x: asteroid.center.x + asteroid.size.x / 4, y: asteroid.center.y + asteroid.size.y/4};
       if (asteroid.size.x === this.settings.ASTEROID_SIZE_LARGE){
         this.level.deployAsteroid(this.settings.ASTEROID_SIZE_MEDIUM, newPos);
         this.level.deployAsteroid(this.settings.ASTEROID_SIZE_MEDIUM, newPos);
@@ -408,7 +413,7 @@
       } 
       this.level.asteroidsShot++;
       this.appendScore(this.scoringRules.pointsForAsteroid(asteroid));
-      this.spawnAsteroidExplosion(asteroid.pos);
+      this.spawnAsteroidExplosion(asteroid.center);
     },
 
     shotFired: function(){
@@ -422,7 +427,7 @@
     playerKilled: function(player, other){
       this.lives--;
       this.soundBus.playerExplosionSound.play();
-      this.spawnPlayerExplosion(player.pos);
+      this.spawnPlayerExplosion(player.center);
       this.oldRadialBlasts = player.radialBlasts;
 
       if (other instanceof Bullet) this.level.deathsByUfoBullet++;
@@ -462,7 +467,7 @@
 
       for (var i = 0; i < asteroids.length; i++){
 
-        if (this.maths.distance(desiredPosition, asteroids[i].pos) < this.settings.PLAYER_SIZE * 4){
+        if (this.maths.distance(desiredPosition, asteroids[i].center) < this.settings.PLAYER_SIZE * 4){
           spaceAvailable = false;
           break;
         }

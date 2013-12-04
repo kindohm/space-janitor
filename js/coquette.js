@@ -1,14 +1,14 @@
 ;(function(exports) {
   var Coquette = function(game, canvasId, width, height, backgroundColor, autoFocus) {
     var canvas = document.getElementById(canvasId);
-    this.renderer = new Coquette.Renderer(this, game, canvas, width,height, backgroundColor);
+    this.renderer = new Coquette.Renderer(this, game, canvas, width, height, backgroundColor);
     this.inputter = new Coquette.Inputter(this, canvas, autoFocus);
     this.entities = new Coquette.Entities(this, game);
     this.runner = new Coquette.Runner(this);
     this.collider = new Coquette.Collider(this);
 
     var self = this;
-    new Coquette.Ticker(this, function(interval) {
+    this.ticker = new Coquette.Ticker(this, function(interval) {
       self.collider.update(interval);
       self.runner.update(interval);
       if (game.update !== undefined) {
@@ -17,6 +17,7 @@
 
       self.entities.update(interval)
       self.renderer.update(interval);
+      self.inputter.update();
     });
   };
 
@@ -28,78 +29,108 @@
     this.coquette = coquette;
   };
 
+  // if no entities have uncollision(), skip expensive record keeping for uncollisions
+  var isUncollisionOn = function(entities) {
+    for (var i = 0, len = entities.length; i < len; i++) {
+      if (entities[i].uncollision !== undefined) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  var isSetupForCollisions = function(obj) {
+    return obj.center !== undefined && obj.size !== undefined;
+  };
+
   Collider.prototype = {
-    collideRecords: [],
+    _collideRecords: [],
 
     update: function() {
       var ent = this.coquette.entities.all();
       for (var i = 0, len = ent.length; i < len; i++) {
-        for (var j = i; j < len; j++) {
-          if (ent[i] !== ent[j]) {
-            if (this.isIntersecting(ent[i], ent[j])) {
-              this.collision(ent[i], ent[j]);
-            } else {
-              this.removeOldCollision(ent[i], ent[j]);
-            }
+        for (var j = i + 1; j < len; j++) {
+          if (this.isColliding(ent[i], ent[j])) {
+            this.collision(ent[i], ent[j]);
+          } else {
+            this.removeOldCollision(this.getCollideRecordIds(ent[i], ent[j])[0]);
           }
         }
       }
     },
 
     collision: function(entity1, entity2) {
-      if (this.getCollideRecord(entity1, entity2) === undefined) {
-        this.collideRecords.push([entity1, entity2]);
-        notifyEntityOfCollision(entity1, entity2, this.INITIAL);
-        notifyEntityOfCollision(entity2, entity1, this.INITIAL);
+      var collisionType;
+      if (!isUncollisionOn(this.coquette.entities.all())) {
+        collisionType = this.INITIAL;
+      } else if (this.getCollideRecordIds(entity1, entity2).length === 0) {
+        this._collideRecords.push([entity1, entity2]);
+        collisionType = this.INITIAL;
       } else {
-        notifyEntityOfCollision(entity1, entity2, this.SUSTAINED);
-        notifyEntityOfCollision(entity2, entity1, this.SUSTAINED);
+        collisionType = this.SUSTAINED;
+      }
+
+      notifyEntityOfCollision(entity1, entity2, collisionType);
+      notifyEntityOfCollision(entity2, entity1, collisionType);
+    },
+
+    destroyEntity: function(entity) {
+      var recordIds = this.getCollideRecordIds(entity);
+      for (var i = 0; i < recordIds.length; i++) {
+        this.removeOldCollision(recordIds[i]);
       }
     },
 
-    removeEntity: function(entity) {
-      this.removeOldCollision(entity);
-    },
-
-    // if passed entities recorded as colliding in history record, remove that record
-    removeOldCollision: function(entity1, entity2) {
-      var recordId = this.getCollideRecord(entity1, entity2);
-      if (recordId !== undefined) {
-        var record = this.collideRecords[recordId];
+    // remove collision at passed index
+    removeOldCollision: function(recordId) {
+      var record = this._collideRecords[recordId];
+      if (record !== undefined) {
         notifyEntityOfUncollision(record[0], record[1])
         notifyEntityOfUncollision(record[1], record[0])
-        this.collideRecords.splice(recordId, 1);
+        this._collideRecords.splice(recordId, 1);
       }
     },
 
-    getCollideRecord: function(entity1, entity2) {
-      for (var i = 0, len = this.collideRecords.length; i < len; i++) {
-        // looking for coll where one entity appears
-        if (entity2 === undefined &&
-            (this.collideRecords[i][0] === entity1 ||
-             this.collideRecords[i][1] === entity1)) {
-          return i;
-        // looking for coll between two specific entities
-        } else if (this.collideRecords[i][0] === entity1 &&
-                   this.collideRecords[i][1] === entity2) {
-          return i;
+    getCollideRecordIds: function(entity1, entity2) {
+      if (entity1 !== undefined && entity2 !== undefined) {
+        var recordIds = [];
+        for (var i = 0, len = this._collideRecords.length; i < len; i++) {
+          if (this._collideRecords[i][0] === entity1 &&
+              this._collideRecords[i][1] === entity2) {
+            recordIds.push(i);
+          }
         }
+        return recordIds;
+      } else if (entity1 !== undefined) {
+        for (var i = 0, len = this._collideRecords.length; i < len; i++) {
+          if (this._collideRecords[i][0] === entity1 ||
+              this._collideRecords[i][1] === entity1) {
+            return [i];
+          }
+        }
+        return [];
+      } else {
+        throw "You must pass at least one entity when searching collision records."
       }
+    },
+
+    isColliding: function(obj1, obj2) {
+      return isSetupForCollisions(obj1) && isSetupForCollisions(obj2) &&
+        this.isIntersecting(obj1, obj2);
     },
 
     isIntersecting: function(obj1, obj2) {
-      var obj1BoundingBox = obj1.boundingBox || this.RECTANGLE;
-      var obj2BoundingBox = obj2.boundingBox || this.RECTANGLE;
-      if (obj1BoundingBox === this.RECTANGLE &&
-          obj2BoundingBox === this.RECTANGLE) {
+      var obj1BoundingBox = getBoundingBox(obj1);
+      var obj2BoundingBox = getBoundingBox(obj2);
+
+      if (obj1BoundingBox === this.RECTANGLE && obj2BoundingBox === this.RECTANGLE) {
         return Maths.rectanglesIntersecting(obj1, obj2);
-      } else if (obj1BoundingBox === this.CIRCLE &&
-                 obj2BoundingBox === this.CIRCLE) {
-        return Maths.circlesIntersecting(obj1, obj2);
-      } else if (obj1BoundingBox === this.CIRCLE) {
+      } else if (obj1BoundingBox === this.CIRCLE && obj2BoundingBox === this.RECTANGLE) {
         return Maths.circleAndRectangleIntersecting(obj1, obj2);
-      } else if (obj1BoundingBox === this.RECTANGLE) {
+      } else if (obj1BoundingBox === this.RECTANGLE && obj2BoundingBox === this.CIRCLE) {
         return Maths.circleAndRectangleIntersecting(obj2, obj1);
+      } else if (obj1BoundingBox === this.CIRCLE && obj2BoundingBox === this.CIRCLE) {
+        return Maths.circlesIntersecting(obj1, obj2);
       } else {
         throw "Objects being collision tested have unsupported bounding box types."
       }
@@ -110,6 +141,10 @@
 
     RECTANGLE: 0,
     CIRCLE: 1
+  };
+
+  var getBoundingBox = function(obj) {
+    return obj.boundingBox || Collider.prototype.RECTANGLE;
   };
 
   var notifyEntityOfCollision = function(entity, other, type) {
@@ -124,58 +159,143 @@
     }
   };
 
-  var Maths = {
-    center: function(obj) {
-      if(obj.pos !== undefined) {
-        return {
-          x: obj.pos.x + (obj.size.x / 2),
-          y: obj.pos.y + (obj.size.y / 2),
-        };
-      }
-    },
+  var rotated = function(obj) {
+    return obj.angle !== undefined && obj.angle !== 0;
+  };
 
+  var getAngle = function(obj) {
+    return obj.angle === undefined ? 0 : obj.angle;
+  };
+
+  var Maths = {
     circlesIntersecting: function(obj1, obj2) {
-      return Maths.distance(Maths.center(obj1), Maths.center(obj2)) <
+      return Maths.distance(obj1.center, obj2.center) <
         obj1.size.x / 2 + obj2.size.x / 2;
     },
 
-    pointInsideObj: function(point, obj) {
-      return point.x >= obj.pos.x
-        && point.y >= obj.pos.y
-        && point.x <= obj.pos.x + obj.size.x
-        && point.y <= obj.pos.y + obj.size.y;
+    rectanglesIntersecting: function(obj1, obj2) {
+      if (!rotated(obj1) && !rotated(obj2)) {
+        return this.unrotatedRectanglesIntersecting(obj1, obj2); // faster
+      } else {
+        return this.rotatedRectanglesIntersecting(obj1, obj2); // slower
+      }
     },
 
-    rectanglesIntersecting: function(obj1, obj2) {
-      if(obj1.pos.x + obj1.size.x < obj2.pos.x) {
+    circleAndRectangleIntersecting: function(circleObj, rectangleObj) {
+      var rectangleObjAngleRad = -getAngle(rectangleObj) * Maths.RADIANS_TO_DEGREES;
+
+      var unrotatedCircleCenter = {
+        x: Math.cos(rectangleObjAngleRad) *
+          (circleObj.center.x - rectangleObj.center.x) -
+          Math.sin(rectangleObjAngleRad) *
+          (circleObj.center.y - rectangleObj.center.y) + rectangleObj.center.x,
+        y: Math.sin(rectangleObjAngleRad) *
+          (circleObj.center.x - rectangleObj.center.x) +
+          Math.cos(rectangleObjAngleRad) *
+          (circleObj.center.y - rectangleObj.center.y) + rectangleObj.center.y
+      };
+
+      var closest = { x: 0, y: 0 };
+
+      if (unrotatedCircleCenter.x < rectangleObj.center.x - rectangleObj.size.x / 2) {
+        closest.x = rectangleObj.center.x - rectangleObj.size.x / 2;
+      } else if (unrotatedCircleCenter.x > rectangleObj.center.x + rectangleObj.size.x / 2) {
+        closest.x = rectangleObj.center.x + rectangleObj.size.x / 2;
+      } else {
+        closest.x = unrotatedCircleCenter.x;
+      }
+
+      if (unrotatedCircleCenter.y < rectangleObj.center.y - rectangleObj.size.y / 2) {
+        closest.y = rectangleObj.center.y - rectangleObj.size.y / 2;
+      } else if (unrotatedCircleCenter.y > rectangleObj.center.y + rectangleObj.size.y / 2) {
+        closest.y = rectangleObj.center.y + rectangleObj.size.y / 2;
+      } else {
+        closest.y = unrotatedCircleCenter.y;
+      }
+
+      return this.distance(unrotatedCircleCenter, closest) < circleObj.size.x / 2;
+    },
+
+    unrotatedRectanglesIntersecting: function(obj1, obj2) {
+      if(obj1.center.x + obj1.size.x / 2 < obj2.center.x - obj2.size.x / 2) {
         return false;
-      } else if(obj1.pos.x > obj2.pos.x + obj2.size.x) {
+      } else if(obj1.center.x - obj1.size.x / 2 > obj2.center.x + obj2.size.x / 2) {
         return false;
-      } else if(obj1.pos.y > obj2.pos.y + obj2.size.y) {
+      } else if(obj1.center.y - obj1.size.y / 2 > obj2.center.y + obj2.size.y / 2) {
         return false;
-      } else if(obj1.pos.y + obj1.size.y < obj2.pos.y) {
+      } else if(obj1.center.y + obj1.size.y / 2 < obj2.center.y - obj2.size.y / 2) {
         return false
       } else {
         return true;
       }
     },
 
+    rotatedRectanglesIntersecting: function(obj1, obj2) {
+      var obj1Normals = this.rectanglePerpendicularNormals(obj1);
+      var obj2Normals = this.rectanglePerpendicularNormals(obj2);
+
+      var obj1Corners = this.rectangleCorners(obj1);
+      var obj2Corners = this.rectangleCorners(obj2);
+
+      if (this.projectionsSeparate(
+        this.getMinMaxProjection(obj1Corners, obj1Normals[1]),
+        this.getMinMaxProjection(obj2Corners, obj1Normals[1]))) {
+        return false;
+      } else if (this.projectionsSeparate(
+        this.getMinMaxProjection(obj1Corners, obj1Normals[0]),
+        this.getMinMaxProjection(obj2Corners, obj1Normals[0]))) {
+        return false;
+      } else if (this.projectionsSeparate(
+        this.getMinMaxProjection(obj1Corners, obj2Normals[1]),
+        this.getMinMaxProjection(obj2Corners, obj2Normals[1]))) {
+        return false;
+      } else if (this.projectionsSeparate(
+        this.getMinMaxProjection(obj1Corners, obj2Normals[0]),
+        this.getMinMaxProjection(obj2Corners, obj2Normals[0]))) {
+        return false;
+      } else {
+        return true;
+      }
+    },
+
+    pointInsideObj: function(point, obj) {
+      var objBoundingBox = getBoundingBox(obj);
+
+      if (objBoundingBox === Collider.prototype.RECTANGLE) {
+        return this.pointInsideRectangle(point, obj);
+      } else if (objBoundingBox === Collider.prototype.CIRCLE) {
+        return this.pointInsideCircle(point, obj);
+      } else {
+        throw "Tried to see if point inside object with unsupported bounding box.";
+      }
+    },
+
+    pointInsideRectangle: function(point, obj) {
+      var c = Math.cos(-getAngle(obj) * Maths.RADIANS_TO_DEGREES);
+      var s = Math.sin(-getAngle(obj) * Maths.RADIANS_TO_DEGREES);
+
+      var rotatedX = obj.center.x + c *
+          (point.x - obj.center.x) - s * (point.y - obj.center.y);
+      var rotatedY = obj.center.y + s *
+          (point.x - obj.center.x) + c * (point.y - obj.center.y);
+
+      var leftX = obj.center.x - obj.size.x / 2;
+      var rightX = obj.center.x + obj.size.x / 2;
+      var topY = obj.center.y - obj.size.y / 2;
+      var bottomY = obj.center.y + obj.size.y / 2;
+
+      return leftX <= rotatedX && rotatedX <= rightX &&
+        topY <= rotatedY && rotatedY <= bottomY;
+    },
+
+    pointInsideCircle: function(point, obj) {
+      return this.distance(point, obj.center) <= obj.size.x / 2;
+    },
+
     distance: function(point1, point2) {
       var x = point1.x - point2.x;
       var y = point1.y - point2.y;
       return Math.sqrt((x * x) + (y * y));
-    },
-
-    rectangleCorners: function(rectangleObj) {
-      var corners = [];
-      corners.push({ x:rectangleObj.pos.x, y: rectangleObj.pos.y });
-      corners.push({ x:rectangleObj.pos.x + rectangleObj.size.x, y:rectangleObj.pos.y });
-      corners.push({
-        x:rectangleObj.pos.x + rectangleObj.size.x,
-        y:rectangleObj.pos.y + rectangleObj.size.y
-      });
-      corners.push({ x:rectangleObj.pos.x, y: rectangleObj.pos.y + rectangleObj.size.y });
-      return corners;
     },
 
     vectorTo: function(start, end) {
@@ -189,6 +309,13 @@
       return Math.sqrt(vector.x * vector.x + vector.y * vector.y);
     },
 
+    leftNormalizedNormal: function(vector) {
+      return {
+        x: -vector.y,
+        y: vector.x
+      };
+    },
+
     dotProduct: function(vector1, vector2) {
       return vector1.x * vector2.x + vector1.y * vector2.y;
     },
@@ -200,104 +327,115 @@
       };
     },
 
-    closestPointOnSeg: function(linePointA, linePointB, circ_pos) {
-      var seg_v = Maths.vectorTo(linePointA, linePointB);
-      var pt_v = Maths.vectorTo(linePointA, circ_pos);
-      if (Maths.magnitude(seg_v) <= 0) {
-        throw "Invalid segment length";
+    projectionsSeparate: function(proj1, proj2) {
+      return proj1.max < proj2.min || proj2.max < proj1.min;
+    },
+
+    getMinMaxProjection: function(objCorners, normal) {
+      var min = Maths.dotProduct(objCorners[0], normal);
+      var max = Maths.dotProduct(objCorners[0], normal);
+
+      for (var i = 1; i < objCorners.length; i++) {
+        var current = Maths.dotProduct(objCorners[i], normal);
+        if (min > current) {
+          min = current;
+        }
+
+        if (current > max) {
+          max = current;
+        }
       }
 
-      var seg_v_unit = Maths.unitVector(seg_v);
-      var proj = Maths.dotProduct(pt_v, seg_v_unit);
-      if (proj <= 0) {
-        return linePointA;
-      } else if (proj >= Maths.magnitude(seg_v)) {
-        return linePointB;
-      } else {
-        return {
-          x: linePointA.x + seg_v_unit.x * proj,
-          y: linePointA.y + seg_v_unit.y * proj
-        };
-      }
+      return { min: min, max: max };
     },
 
-    isLineIntersectingCircle: function(circleObj, linePointA, linePointB) {
-      var circ_pos = {
-        x: circleObj.pos.x + circleObj.size.x / 2,
-        y: circleObj.pos.y + circleObj.size.y / 2
-      };
+    rectangleCorners: function(obj) {
+      var corners = [ // unrotated
+        { x:obj.center.x - obj.size.x / 2, y: obj.center.y - obj.size.y / 2 },
+        { x:obj.center.x + obj.size.x / 2, y: obj.center.y - obj.size.y / 2 },
+        { x:obj.center.x + obj.size.x / 2, y: obj.center.y + obj.size.y / 2 },
+        { x:obj.center.x - obj.size.x / 2, y: obj.center.y + obj.size.y / 2 }
+      ];
 
-      var closest = Maths.closestPointOnSeg(linePointA, linePointB, circ_pos);
-      var dist_v = Maths.vectorTo(closest, circ_pos);
-      return Maths.magnitude(dist_v) < circleObj.size.x / 2;
+      var angle = getAngle(obj) * Maths.RADIANS_TO_DEGREES;
+
+			for (var i = 0; i < corners.length; i++) {
+				var xOffset = corners[i].x - obj.center.x;
+				var yOffset = corners[i].y - obj.center.y;
+				corners[i].x = obj.center.x +
+          xOffset * Math.cos(angle) - yOffset * Math.sin(angle);
+				corners[i].y = obj.center.y +
+          xOffset * Math.sin(angle) + yOffset * Math.cos(angle);
+			}
+
+      return corners;
     },
 
-    circleAndRectangleIntersecting: function(circleObj, rectangleObj) {
-      var corners = Maths.rectangleCorners(rectangleObj);
-      return Maths.pointInsideObj(Maths.center(circleObj), rectangleObj) ||
-        Maths.isLineIntersectingCircle(circleObj, corners[0], corners[1]) ||
-        Maths.isLineIntersectingCircle(circleObj, corners[1], corners[2]) ||
-        Maths.isLineIntersectingCircle(circleObj, corners[2], corners[3]) ||
-        Maths.isLineIntersectingCircle(circleObj, corners[3], corners[0]);
+    rectangleSideVectors: function(obj) {
+      var corners = this.rectangleCorners(obj);
+      return [
+        { x: corners[0].x - corners[1].x, y: corners[0].y - corners[1].y },
+        { x: corners[1].x - corners[2].x, y: corners[1].y - corners[2].y },
+        { x: corners[2].x - corners[3].x, y: corners[2].y - corners[3].y },
+        { x: corners[3].x - corners[0].x, y: corners[3].y - corners[0].y }
+      ];
     },
+
+    rectanglePerpendicularNormals: function(obj) {
+      var sides = this.rectangleSideVectors(obj);
+      return [
+        Maths.leftNormalizedNormal(sides[0]),
+        Maths.leftNormalizedNormal(sides[1])
+      ];
+    },
+
+    RADIANS_TO_DEGREES: 0.01745
   };
 
   exports.Collider = Collider;
   exports.Collider.Maths = Maths;
 })(typeof exports === 'undefined' ? this.Coquette : exports);
 
- ;(function(exports) {
+;(function(exports) {
   var Inputter = function(coquette, canvas, autoFocus) {
-    this.coquette = coquette;
-    if (autoFocus === undefined) {
-      autoFocus = true;
-    }
+    var keyboardReceiver = autoFocus === false ? canvas : window;
+    connectReceiverToKeyboard(keyboardReceiver, window, autoFocus);
 
-    var self = this;
-    var inputReceiverElement = window;
-    if (!autoFocus) {
-      inputReceiverElement = canvas;
-      inputReceiverElement.contentEditable = true; // lets canvas get focus and get key events
-    } else {
-      // suppress scrolling
-      window.addEventListener("keydown", function(e) {
-        // space and arrow keys
-        if(self.supressedKeys.indexOf(e.keyCode) > -1) {
-          e.preventDefault();
-        }
-      }, false);
-    }
-
-    inputReceiverElement.addEventListener('keydown', this.keydown.bind(this), false);
-    inputReceiverElement.addEventListener('keyup', this.keyup.bind(this), false);
+    this._buttonListener = new ButtonListener(canvas, keyboardReceiver);
+    this._mouseMoveListener = new MouseMoveListener(canvas);
   };
 
   Inputter.prototype = {
-    _state: {},
-    bindings: {},
-    supressedKeys: [
-      this.SPACE,
-      this.LEFT_ARROW,
-      this.UP_ARROW,
-      this.RIGHT_ARROW,
-      this.DOWN_ARROW
-    ],
-
-    state: function(keyCode, state) {
-      if (state !== undefined) {
-        this._state[keyCode] = state;
-      } else {
-        return this._state[keyCode] || false;
-      }
+    update: function() {
+      this._buttonListener.update();
     },
 
-    keydown: function(e) {
-      this.state(e.keyCode, true);
+    // Returns true if passed button currently down
+    isDown: function(button) {
+      return this._buttonListener.isDown(button);
     },
 
-    keyup: function(e) {
-      this.state(e.keyCode, false);
+    // Returns true if passed button just gone down. true once per keypress.
+    isPressed: function(button) {
+      return this._buttonListener.isPressed(button);
     },
+
+    getMousePosition: function() {
+      return this._mouseMoveListener.getMousePosition();
+    },
+
+    // Returns true if passed button currently down
+    bindMouseMove: function(fn) {
+      return this._mouseMoveListener.bind(fn);
+    },
+
+    // Stops calling passed fn on mouse move
+    unbindMouseMove: function(fn) {
+      return this._mouseMoveListener.unbind(fn);
+    },
+
+    LEFT_MOUSE: "LEFT_MOUSE",
+    RIGHT_MOUSE: "RIGHT_MOUSE",
 
     BACKSPACE: 8,
     TAB: 9,
@@ -380,15 +518,156 @@
     BACK_SLASH: 220,
     CLOSE_SQUARE_BRACKET: 221,
     SINGLE_QUOTE: 222
-
   };
+
+  var ButtonListener = function(canvas, keyboardReceiver) {
+    var self = this;
+    this._buttonDownState = {};
+    this._buttonPressedState = {};
+
+    keyboardReceiver.addEventListener('keydown', function(e) {
+      self._down(e.keyCode);
+    }, false);
+
+    keyboardReceiver.addEventListener('keyup', function(e) {
+      self._up(e.keyCode);
+    }, false);
+
+    canvas.addEventListener('mousedown', function(e) {
+      self._down(self._getMouseButton(e));
+    }, false);
+
+    canvas.addEventListener('mouseup', function(e) {
+      self._up(self._getMouseButton(e));
+    }, false);
+  };
+
+  ButtonListener.prototype = {
+    update: function() {
+      for (var i in this._buttonPressedState) {
+        if (this._buttonPressedState[i] === true) { // tick passed and press event in progress
+          this._buttonPressedState[i] = false; // end key press
+        }
+      }
+    },
+
+    _down: function(buttonId) {
+      this._buttonDownState[buttonId] = true;
+      if (this._buttonPressedState[buttonId] === undefined) { // start of new keypress
+        this._buttonPressedState[buttonId] = true; // register keypress in progress
+      }
+    },
+
+    _up: function(buttonId) {
+      this._buttonDownState[buttonId] = false;
+      if (this._buttonPressedState[buttonId] === false) { // prev keypress over
+        this._buttonPressedState[buttonId] = undefined; // prep for keydown to start next press
+      }
+    },
+
+    isDown: function(button) {
+      return this._buttonDownState[button] || false;
+    },
+
+    isPressed: function(button) {
+      return this._buttonPressedState[button] || false;
+    },
+
+    _getMouseButton: function(e) {
+      if (e.which !== undefined || e.button !== undefined) {
+        if (e.which === 3 || e.button === 2) {
+          return Inputter.prototype.RIGHT_MOUSE;
+        } else if (e.which === 1 || e.button === 0 || e.button === 1) {
+          return Inputter.prototype.LEFT_MOUSE;
+        }
+      }
+
+      throw "Cannot judge button pressed on passed mouse button event";
+    }
+  };
+
+  var MouseMoveListener = function(canvas) {
+    this._bindings = [];
+    this._mousePosition;
+    var self = this;
+
+    var elementPosition = { x: canvas.offsetLeft, y: canvas.offsetTop };
+
+    canvas.addEventListener('mousemove', function(e) {
+      var absoluteMousePosition = self._getAbsoluteMousePosition(e);
+      self._mousePosition = {
+        x: absoluteMousePosition.x - elementPosition.x,
+        y: absoluteMousePosition.y - elementPosition.y
+      };
+    }, false);
+
+    canvas.addEventListener('mousemove', function(e) {
+      for (var i = 0; i < self._bindings.length; i++) {
+        self._bindings[i](self.getMousePosition());
+      }
+    }, false);
+  };
+
+  MouseMoveListener.prototype = {
+    bind: function(fn) {
+      this._bindings.push(fn);
+    },
+
+    unbind: function(fn) {
+      for (var i = 0; i < this._bindings.length; i++) {
+        if (this._bindings[i] === fn) {
+          this._bindings.splice(i, 1);
+          return;
+        }
+      }
+
+      throw "Function to unbind from mouse moves was never bound";
+    },
+
+    getMousePosition: function() {
+      return this._mousePosition;
+    },
+
+    _getAbsoluteMousePosition: function(e) {
+	    if (e.pageX) 	{
+        return { x: e.pageX, y: e.pageY };
+	    } else if (e.clientX) {
+        return { x: e.clientX, y: e.clientY };
+      }
+    }
+  };
+
+  var connectReceiverToKeyboard = function(keyboardReceiver, window, autoFocus) {
+    if (autoFocus === false) {
+      keyboardReceiver.contentEditable = true; // lets canvas get focus and get key events
+    } else {
+      var suppressedKeys = [
+        Inputter.prototype.SPACE,
+        Inputter.prototype.LEFT_ARROW,
+        Inputter.prototype.UP_ARROW,
+        Inputter.prototype.RIGHT_ARROW,
+        Inputter.prototype.DOWN_ARROW
+      ];
+
+      // suppress scrolling
+      window.addEventListener("keydown", function(e) {
+        for (var i = 0; i < suppressedKeys.length; i++) {
+          if(suppressedKeys[i] === e.keyCode) {
+            e.preventDefault();
+            return;
+          }
+        }
+      }, false);
+    }
+  };
+
   exports.Inputter = Inputter;
 })(typeof exports === 'undefined' ? this.Coquette : exports);
 
 ;(function(exports) {
   function Runner(coquette) {
     this.coquette = coquette;
-    this.runs = [];
+    this._runs = [];
   };
 
   Runner.prototype = {
@@ -397,14 +676,14 @@
     },
 
     run: function() {
-      while(this.runs.length > 0) {
-        var run = this.runs.pop();
+      while(this._runs.length > 0) {
+        var run = this._runs.shift();
         run.fn(run.obj);
       }
     },
 
     add: function(obj, fn) {
-      this.runs.push({
+      this._runs.push({
         obj: obj,
         fn: fn
       });
@@ -419,18 +698,27 @@
 
   function Ticker(coquette, gameLoop) {
     setupRequestAnimationFrame();
-    var prev = new Date().getTime();
 
-    var self = this;
-    var tick = function() {
-      var now = new Date().getTime();
-      var interval = now - prev;
-      prev = now;
-      gameLoop(interval);
-      requestAnimationFrame(tick);
+    var nextTickFn;
+    this.stop = function() {
+      nextTickFn = function() {};
     };
 
-    requestAnimationFrame(tick);
+    this.start = function() {
+      var prev = new Date().getTime();
+      var tick = function() {
+        var now = new Date().getTime();
+        var interval = now - prev;
+        prev = now;
+        gameLoop(interval);
+        requestAnimationFrame(nextTickFn);
+      };
+
+      nextTickFn = tick;
+      requestAnimationFrame(nextTickFn);
+    };
+
+    this.start();
   };
 
   // From: https://gist.github.com/paulirish/1579671
@@ -466,49 +754,103 @@
 })(typeof exports === 'undefined' ? this.Coquette : exports);
 
 ;(function(exports) {
-  var Renderer = function(coquette, game, canvas, width, height, backgroundColor) {
+  var Maths;
+  if(typeof module !== 'undefined' && module.exports) { // node
+    Maths = require('./collider').Collider.Maths;
+  } else { // browser
+    Maths = Coquette.Collider.Maths;
+  }
+
+  var Renderer = function(coquette, game, canvas, wView, hView, backgroundColor) {
     this.coquette = coquette;
     this.game = game;
     canvas.style.outline = "none"; // stop browser outlining canvas when it has focus
     canvas.style.cursor = "default"; // keep pointer normal when hovering over canvas
-    this.ctx = canvas.getContext('2d');
-    this.backgroundColor = backgroundColor;
-    canvas.width = this.width = width;
-    canvas.height = this.height = height;
+    this._ctx = canvas.getContext('2d');
+    this._backgroundColor = backgroundColor;
+
+    canvas.width = wView;
+    canvas.height = hView;
+    this._viewSize = { x:wView, y:hView };
+    this._viewCenter = { x: this._viewSize.x / 2, y: this._viewSize.y / 2 };
   };
 
   Renderer.prototype = {
     getCtx: function() {
-      return this.ctx;
+      return this._ctx;
+    },
+
+    getViewSize: function() {
+      return this._viewSize;
+    },
+
+    getViewCenter: function() {
+      return this._viewCenter;
+    },
+
+    setViewCenter: function(pos) {
+      this._viewCenter = { x:pos.x, y:pos.y };
     },
 
     update: function(interval) {
       var ctx = this.getCtx();
+      var viewTranslate = viewOffset(this._viewCenter, this._viewSize);
+
+      ctx.translate(viewTranslate.x, viewTranslate.y);
 
       // draw background
-      ctx.fillStyle = this.backgroundColor;
-      ctx.fillRect(0, 0, this.width, this.height);
+      ctx.fillStyle = this._backgroundColor;
+      ctx.fillRect(this._viewCenter.x - this._viewSize.x / 2,
+                   this._viewCenter.y - this._viewSize.y / 2,
+                   this._viewSize.x,
+                   this._viewSize.y);
 
       // draw game and entities
-      var drawables = [this.game].concat(this.coquette.entities.all());
+      var drawables = [this.game]
+        .concat(this.coquette.entities.all().concat().sort(zindexSort));
       for (var i = 0, len = drawables.length; i < len; i++) {
         if (drawables[i].draw !== undefined) {
+          var drawable = drawables[i];
+
+          ctx.save();
+
+          if (drawable.center !== undefined && drawable.angle !== undefined) {
+            ctx.translate(drawable.center.x, drawable.center.y);
+            ctx.rotate(drawable.angle * Maths.RADIANS_TO_DEGREES);
+            ctx.translate(-drawable.center.x, -drawable.center.y);
+          }
+
           drawables[i].draw(ctx);
+
+          ctx.restore();
         }
       }
-    },
 
-    center: function() {
-      return {
-        x: this.width / 2,
-        y: this.height / 2
-      };
+      ctx.translate(-viewTranslate.x, -viewTranslate.y);
     },
 
     onScreen: function(obj) {
-      return obj.pos.x > 0 && obj.pos.x < this.coquette.renderer.width &&
-        obj.pos.y > 0 && obj.pos.y < this.coquette.renderer.height;
+      return Maths.rectanglesIntersecting(obj, {
+        size: this._viewSize,
+        center: {
+          x: this._viewCenter.x,
+          y: this._viewCenter.y
+        }
+      });
     }
+  };
+
+  var viewOffset = function(viewCenter, viewSize) {
+    return {
+      x: -(viewCenter.x - viewSize.x / 2),
+      y: -(viewCenter.y - viewSize.y / 2)
+    }
+  };
+
+  // sorts passed array by zindex
+  // elements with a higher zindex are drawn on top of those with a lower zindex
+  var zindexSort = function(a, b) {
+    return (a.zindex || 0) < (b.zindex || 0) ? -1 : 1;
   };
 
   exports.Renderer = Renderer;
@@ -551,7 +893,6 @@
       this.coquette.runner.add(this, function(entities) {
         var entity = new clazz(self.game, settings || {});
         entities._entities.push(entity);
-        zindexSort(self.all());
         if (callback !== undefined) {
           callback(entity);
         }
@@ -563,6 +904,7 @@
       this.coquette.runner.add(this, function(entities) {
         for(var i = 0; i < entities._entities.length; i++) {
           if(entities._entities[i] === entity) {
+            self.coquette.collider.destroyEntity(entity);
             entities._entities.splice(i, 1);
             if (callback !== undefined) {
               callback();
@@ -572,16 +914,6 @@
         }
       });
     }
-  };
-
-  // sorts passed array by zindex
-  // elements with a higher zindex are drawn on top of those with a lower zindex
-  var zindexSort = function(arr) {
-    arr.sort(function(a, b) {
-      var aSort = (a.zindex || 0);
-      var bSort = (b.zindex || 0);
-      return aSort < bSort ? -1 : 1;
-    });
   };
 
   exports.Entities = Entities;

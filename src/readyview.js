@@ -34,7 +34,7 @@
       if (this.callback === undefined || this.callback === null) return;
 
       var inputter = this.game.coquette.inputter;
-      if (inputter.state(inputter.SPACE)){
+      if (inputter.isPressed(inputter.SPACE)){
         this.callback();
       }
     },

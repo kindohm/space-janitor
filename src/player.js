@@ -5,10 +5,11 @@
   function Player(game, settings){
 
     var self = this;
-    this.pos = { x: settings.pos.x, y: settings.pos.y };
+    this.center = { x: settings.pos.x, y: settings.pos.y };
     this.maxPos = { x: settings.maxPos.x, y: settings.maxPos.y };
     this.game = game;
-    
+    this.angle = 180;
+
     this.radialBlasts = settings.radialBlasts;
 
     this.size = { 
@@ -78,8 +79,8 @@
       this.vel.x += this.thrust.x;
       this.vel.y += this.thrust.y;
 
-      this.pos.x += this.vel.x;
-      this.pos.y += this.vel.y;
+      this.center.x += this.vel.x;
+      this.center.y += this.vel.y;
 
       this.wrap();
 
@@ -101,40 +102,55 @@
     },
 
     wrap: function(){
-      if (this.pos.y > this.maxPos.y) {
-        this.pos.y = -this.size.y;
-      } else if (this.pos.y < -this.size.y) {
-        this.pos.y = this.maxPos.y;
+      if (this.center.y > this.maxPos.y) {
+        this.center.y = -this.size.y;
+      } else if (this.center.y < -this.size.y) {
+        this.center.y = this.maxPos.y;
       }
 
-      if (this.pos.x > this.maxPos.x) {
-        this.pos.x = -this.size.x;
-      } else if (this.pos.x < -this.size.x) {
-        this.pos.x = this.maxPos.x;
+      if (this.center.x > this.maxPos.x) {
+        this.center.x = -this.size.x;
+      } else if (this.center.x < -this.size.x) {
+        this.center.x = this.maxPos.x;
       }
     },
 
     draw: function(context){
 
+/*
       context.save();
-      context.translate(this.pos.x + this.halfSize.x, this.pos.y + this.halfSize.y);
+      context.translate(this.center.x + this.halfSize.x, this.center.y + this.halfSize.y);
       context.rotate(this.rAngle);
       this.drawMainSprite(context);
-      context.rotate(-this.Angle);
-      context.translate(-(this.pos.x), -(this.pos.y));
+      context.rotate(-this.rAngle);
+      context.translate(-(this.center.x), -(this.center.y));
       context.restore();
-
+*/
+this.drawMainSprite(context);
       this.thrustEffect.draw(context);
     },
 
     drawMainSprite: function(context){
       context.beginPath();
+      /*context.rect(this.center.x - this.halfSize.x, this.center.y - this.halfSize.y,
+        this.size.x, this.size.y);
+      */
+
+/*
       context.moveTo(-this.halfSize.x,-this.halfSize.y);
       context.lineTo(0,this.halfSize.y);
       context.lineTo(this.halfSize.x, -this.halfSize.y);
       context.lineTo(0,-this.halfSize.y/1.7);
       context.lineTo(-this.halfSize.x,-this.halfSize.y);
-      context.closePath();
+  */    
+      context.moveTo(this.center.x - this.halfSize.x,this.center.y-this.halfSize.y);
+      context.lineTo(this.center.x, this.center.y+this.halfSize.y);
+      context.lineTo(this.center.x + this.halfSize.x, this.center.y-this.halfSize.y);
+      context.lineTo(this.center.x,this.center.y - this.halfSize.y/1.7);
+      context.lineTo(this.center.x - this.halfSize.x,this.center.y-this.halfSize.y);
+
+
+      //context.closePath();
       context.strokeStyle = !this.spawningDrawOn ? this.game.settings.FOREGROUND_COLOR : this.game.settings.SECONDARY_COLOR;
       context.lineWidth = this.game.settings.PLAYER_LINE_WIDTH;
       context.stroke();
@@ -143,25 +159,25 @@
 
     handleKeyboard: function(){
 
-      if(this.game.coquette.inputter.state(this.game.coquette.inputter.UP_ARROW)) {        
+      if(this.game.coquette.inputter.isDown(this.game.coquette.inputter.UP_ARROW)) {        
         this.applyThrust();
       } else if (this.thrusting) {
         this.idleThrust();
       }
 
-      if(this.game.coquette.inputter.state(this.game.coquette.inputter.LEFT_ARROW)) {
+      if(this.game.coquette.inputter.isDown(this.game.coquette.inputter.LEFT_ARROW)) {
         this.rotate('left');
       }
 
-      if(this.game.coquette.inputter.state(this.game.coquette.inputter.RIGHT_ARROW)) {
+      if(this.game.coquette.inputter.isDown(this.game.coquette.inputter.RIGHT_ARROW)) {
         this.rotate('right');
       }
 
-      if(this.game.coquette.inputter.state(this.game.coquette.inputter.SPACE)) {
+      if(this.game.coquette.inputter.isDown(this.game.coquette.inputter.SPACE)) {
         this.shoot();
       }
 
-      if (this.game.coquette.inputter.state(this.game.coquette.inputter.DOWN_ARROW)){
+      if (this.game.coquette.inputter.isDown(this.game.coquette.inputter.DOWN_ARROW)){
 
         if (this.game.coquette.entities.all(RadialBlast).length === 0 && this.radialBlasts > 0){
         
@@ -237,8 +253,8 @@
 
         // calculate bullet origin position relative to ship's center
         var bulletPos = {
-          x: vector.x * this.halfSize.x + this.halfSize.x + this.pos.x,
-          y: vector.y * this.halfSize.y + this.halfSize.y + this.pos.y
+          x: vector.x * this.halfSize.x + this.center.x,
+          y: vector.y * this.halfSize.y + this.center.y
         };
 
         // calculate bullet velocity vector
@@ -262,8 +278,8 @@
       
       this.game.coquette.entities.create(RadialBlast,{
         pos: {
-          x: this.pos.x,
-          y: this.pos.y
+          x: this.center.x,
+          y: this.center.y
         }
       });
 

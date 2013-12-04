@@ -19,11 +19,11 @@
       if (this.callback === undefined || this.callback === null) return;    
       var inputter = this.game.coquette.inputter;
       var result = -1;
-      if (inputter.state(inputter.ONE)) result = this.game.DIFFICULTY_FREE;
-      if (inputter.state(inputter.TWO)) result = this.game.DIFFICULTY_EASY;
-      if (inputter.state(inputter.THREE)) result = this.game.DIFFICULTY_NORMAL;
-      if (inputter.state(inputter.FOUR)) result = this.game.DIFFICULTY_HARD;
-      if (inputter.state(inputter.FIVE)) result = this.game.DIFFICULTY_INSANE;
+      if (inputter.isPressed(inputter.ONE)) result = this.game.DIFFICULTY_FREE;
+      if (inputter.isPressed(inputter.TWO)) result = this.game.DIFFICULTY_EASY;
+      if (inputter.isPressed(inputter.THREE)) result = this.game.DIFFICULTY_NORMAL;
+      if (inputter.isPressed(inputter.FOUR)) result = this.game.DIFFICULTY_HARD;
+      if (inputter.isPressed(inputter.FIVE)) result = this.game.DIFFICULTY_INSANE;
 
       if (result === -1) return;
       this.callback(result);

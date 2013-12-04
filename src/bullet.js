@@ -3,10 +3,13 @@
   var Bullet = function(game, settings){
     var self = this;
     this.game = game;
-    this.pos = {
+    this.angle = 0;
+
+    this.center = {
       x: settings.pos.x,
       y: settings.pos.y
     };
+
     this.vel = {
       x: settings.vel.x,
       y: settings.vel.y
@@ -31,20 +34,20 @@
 
       if (this.game.paused) return;
 
-      this.pos.x += this.vel.x;
-      this.pos.y += this.vel.y;
+      this.center.x += this.vel.x;
+      this.center.y += this.vel.y;
 
       // destory the bullet if it reaches the screen bounds
-      if (this.pos.y <= 0 || this.pos.y >= this.game.height ||
-        this.pos.x <= 0 || this.pos.x >= this.game.width){
+      if (this.center.y <= 0 || this.center.y >= this.game.height ||
+        this.center.x <= 0 || this.center.x >= this.game.width){
         this.game.coquette.entities.destroy(this);
       }
     },
 
     draw: function(context) {
 
-      context.drawImage(this.sprite, this.pos.x, 
-        this.pos.y, this.size.x, this.size.y);
+      context.drawImage(this.sprite, this.center.x - this.size.x/2, 
+        this.center.y - this.size.y/2, this.size.x, this.size.y);
     },
 
     collision: function(other, type){
