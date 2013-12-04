@@ -3,8 +3,9 @@
   var RadialBlast = function(game, settings){
 
     this.game = game;
+    this.angle = 0;
 
-    this.pos = {
+    this.center = {
       x: settings.pos.x,
       y: settings.pos.y
     };
@@ -24,9 +25,6 @@
     update: function(){
       this.size.x += this.growthRate;
       this.size.y += this.growthRate;
-      this.pos.x -= this.growthRate / 2;
-      this.pos.y -= this.growthRate / 2;
-
       this.flashTicksLeft = Math.max(0, this.flashTicksLeft - 1);
 
       if (this.size.x >= this.maxSize){
@@ -44,7 +42,7 @@
       }
 
       context.beginPath();
-      context.arc(this.pos.x + this.size.x/2, this.pos.y + this.size.y/2, this.size.x/2, 0, Math.PI * 2, true);
+      context.arc(this.center.x, this.center.y, this.size.x/2, 0, Math.PI * 2, true);
       context.lineWidth = 5;
       context.strokeStyle = 'rgba(' + this.game.settings.RADIAL_BLAST_BASE_COLOR + ',' + sizeRatio + ')';
       context.stroke();

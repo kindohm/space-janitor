@@ -38,8 +38,8 @@
     for(var i = 0; i < this.numParticles; i++){
       var particle = new Particle(game, {
         pos: {
-          x: settings.pos.x,
-          y: settings.pos.y
+          x: settings.center.x,
+          y: settings.center.y
         },
         vel:{
           x: game.maths.getRandomInt(-10,10),

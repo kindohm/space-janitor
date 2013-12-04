@@ -29,10 +29,6 @@
     this.version = new Version();
     this.levels = [];
 
-/*
-    this.coquette.inputter.supressedKeys.push(
-      this.coquette.inputter.BACKSPACE);
-*/
     this.powerupType = Powerup.prototype.TYPE_SPRAY;
   };
 
@@ -267,7 +263,7 @@
 
       var inputter = this.coquette.inputter;
 
-      if (this.paused && inputter.state(inputter.Q)){
+      if (this.paused && inputter.isPressed(inputter.Q)){
         // quit!
         this.clearEntities();
         var paused = true;
@@ -278,7 +274,6 @@
       if (this.paused) return;
 
       if (this.state === this.STATE_TITLE){
-        //if(inputter.state(inputter.SPACE)) {
         if (inputter.isPressed(inputter.SPACE)) {
           this.chooseDifficulty();
         }
@@ -287,7 +282,6 @@
     },
 
     checkPause: function(){
-      //var esc = this.coquette.inputter.state(this.coquette.inputter.ESC);
       var esc = this.coquette.inputter.isPressed(this.coquette.inputter.ESC);
 
       if (this.state === this.STATE_PLAYING && esc){
@@ -337,40 +331,40 @@
 
     },
 
-    spawnAsteroidExplosion: function(pos){
+    spawnAsteroidExplosion: function(center){
       var effect = new ExplosionEffect(this, {
         numParticles: 20,
         duration: 50,
         particleSize: 3,
-        pos: pos
+        center: center
       });
 
       this.explosions.push(effect);
     },
 
-    spawnPlayerExplosion: function(pos){
+    spawnPlayerExplosion: function(center){
       var effect = new ExplosionEffect(this, {
         numParticles: 50,
         duration: 75,
         particleSize: 8,
-        pos: pos
+        center: center
       });
 
       this.explosions.push(effect);
     },
 
-    spawnUfoExplosion: function(pos){
+    spawnUfoExplosion: function(center){
       var effect = new ExplosionEffect(this, {
         numParticles: 50,
         duration: 75,
         particleSize: 8,
-        pos: pos
+        center: center
       });
 
       this.explosions.push(effect);
     },
 
-    spawnPowerupExplosion: function(pos, powerup){
+    spawnPowerupExplosion: function(center, powerup){
       var color = '200,200,200';
 
       if (powerup.powerupType === powerup.TYPE_RADIAL_BLAST){
@@ -386,15 +380,13 @@
         duration: 75,
         particleSize: 8,
         baseColor: color,
-        pos: pos
+        center: center
       });
 
       this.explosions.push(effect);
     },
 
     asteroidKilled: function(asteroid, other){
-
-      console.log('asteroid killed');
 
       if (other instanceof Bullet) this.level.asteroidsKilledByBullet++;
       if (other instanceof RadialBlast) this.level.asteroidsKilledByRadialBlast++;
@@ -447,7 +439,7 @@
 
     ufoKilled: function(ufo, other){
       this.soundBus.playerExplosionSound.play();
-      this.spawnUfoExplosion(ufo.pos);
+      this.spawnUfoExplosion(ufo.center);
       this.appendScore(this.scoringRules.pointsForUfo(ufo));
 
       if (other instanceof Bullet) this.level.ufosKilledByBullet++;
@@ -583,14 +575,14 @@
 
     rapidFireAcquired: function(powerup){
       this.player.enableRapidFire();
-      this.spawnPowerupExplosion(powerup.pos, powerup);
+      this.spawnPowerupExplosion(powerup.center, powerup);
       this.soundBus.playerExplosionSound.play();
       this.level.rapidFiresCaptured++;
     },
 
     sprayAcquired: function(powerup){
       this.player.enableSpray();
-      this.spawnPowerupExplosion(powerup.pos, powerup);
+      this.spawnPowerupExplosion(powerup.center, powerup);
       this.soundBus.playerExplosionSound.play();
       this.level.spraysCaptured++;
     },
@@ -598,7 +590,7 @@
     radialBlastAcquired: function(powerup){
       this.player.radialBlasts++;
       this.level.radialBlastsCaptured++;
-      this.spawnPowerupExplosion(powerup.pos, powerup);
+      this.spawnPowerupExplosion(powerup.center, powerup);
       this.soundBus.playerExplosionSound.play();
     },
 

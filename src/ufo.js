@@ -3,7 +3,9 @@
   var Ufo = function(game, settings){
 
     this.game = game;
-    this.pos = {
+    this.angle = 0;
+
+    this.center = {
       x: settings.pos.x,
       y: settings.pos.y
     };
@@ -36,8 +38,8 @@
 
     update: function(){
       if (this.game.paused) return;
-      this.pos.x += this.vel.x;
-      this.pos.y += this.vel.y;
+      this.center.x += this.vel.x;
+      this.center.y += this.vel.y;
 
       this.checkBounds();
       this.checkShoot();
@@ -61,8 +63,8 @@
       };
 
       var bulletPos = {
-        x: vector.x * this.halfSize.x + this.halfSize.x + this.pos.x,
-        y: vector.y * this.halfSize.y + this.halfSize.y + this.pos.y
+        x: vector.x * this.halfSize.x + this.halfSize.x + this.center.x,
+        y: vector.y * this.halfSize.y + this.halfSize.y + this.center.y
       };
 
       this.game.coquette.entities.create(Bullet, 
@@ -76,7 +78,7 @@
 
     checkBounds: function(){
 
-      if (this.pos.x > this.game.width + this.size.x || this.pos.x < -this.size.x){
+      if (this.center.x > this.game.width + this.size.x || this.center.x < -this.size.x){
         this.selfKill();
       }
 
@@ -85,19 +87,19 @@
     draw: function(context){
 
       context.beginPath();
-      context.moveTo(this.pos.x, this.pos.y + this.size.y * .25);
-      context.lineTo(this.pos.x, this.pos.y + this.size.y * .75);
+      context.moveTo(this.center.x - this.halfSize.x, this.center.y - this.halfSize.y + this.size.y * .25);
+      context.lineTo(this.center.x - this.halfSize.x, this.center.y - this.halfSize.y + this.size.y * .75);
 
-      context.lineTo(this.pos.x + this.size.x * .25, this.pos.y + this.size.y);
-      context.lineTo(this.pos.x + this.size.x * .75, this.pos.y + this.size.y);
+      context.lineTo(this.center.x - this.halfSize.x + this.size.x * .25, this.center.y - this.halfSize.y + this.size.y);
+      context.lineTo(this.center.x - this.halfSize.x + this.size.x * .75, this.center.y - this.halfSize.y + this.size.y);
 
-      context.lineTo(this.pos.x + this.size.x, this.pos.y + this.size.y * .75);
-      context.lineTo(this.pos.x + this.size.x, this.pos.y + this.size.y * .25);
+      context.lineTo(this.center.x - this.halfSize.x + this.size.x, this.center.y - this.halfSize.y + this.size.y * .75);
+      context.lineTo(this.center.x - this.halfSize.x + this.size.x, this.center.y - this.halfSize.y + this.size.y * .25);
 
-      context.lineTo(this.pos.x + this.size.x * .75, this.pos.y);
-      context.lineTo(this.pos.x + this.size.x * .25, this.pos.y);
+      context.lineTo(this.center.x - this.halfSize.x + this.size.x * .75, this.center.y - this.halfSize.y);
+      context.lineTo(this.center.x - this.halfSize.x + this.size.x * .25, this.center.y - this.halfSize.y);
 
-      context.lineTo(this.pos.x, this.pos.y + this.size.y * .25);
+      context.lineTo(this.center.x - this.halfSize.x, this.center.y - this.halfSize.y + this.size.y * .25);
 
 
 

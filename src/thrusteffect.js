@@ -1,16 +1,16 @@
 ;(function(exports){
 
-  var ThrustBubble = function(game, pos, direction){
+  var ThrustBubble = function(game, settings){
 
     this.game = game;
-
-    this.pos = {
-      x: pos.x,
-      y: pos.y
+    this.angle = 0;
+    this.center = {
+      x: settings.pos.x,
+      y: settings.pos.y
     };
     this.vel = {
-      x: direction.x,
-      y: direction.y
+      x: settings.vel.x,
+      y: settings.vel.y
     };
 
     this.colorBase = game.settings.FOREGROUND_BASE_COLOR;
@@ -21,15 +21,20 @@
   ThrustBubble.prototype = {
 
     radiusGrowth: .2,
-    pos: null,
+    center: null,
     colorBase: '204,204,204',
+    angle: 0,
 
     update: function(){
       if (this.game.paused) return;
       this.radius += this.radiusGrowth;
       this.ticksLeft--;
-      this.pos.x += this.vel.x;
-      this.pos.y += this.vel.y;
+      this.center.x += this.vel.x;
+      this.center.y += this.vel.y;
+
+      if (this.ticksLeft === 0){
+        this.game.coquette.entities.destroy(this);
+      }
     },
 
     draw: function(context){
@@ -37,7 +42,7 @@
       var ratio = this.ticksLeft / this.totalTicks;
       var side = this.radius * 2;
       context.beginPath();
-      context.rect(this.pos.x - this.radius, this.pos.y - this.radius,
+      context.rect(this.center.x - this.radius, this.center.y - this.radius,
         side, side);
       context.strokeStyle = 'rgba(' + this.colorBase + ',' + ratio.toString() + ')';
       context.lineWidth = 1;
@@ -47,7 +52,6 @@
   };
 
   var ThrustEffect = function(game){
-    this.effects = [];
     this.game = game;
   };
 
@@ -56,8 +60,17 @@
     thrustEffectTicksLeft: 0,
 
     add: function(pos, direction){
-      var bubble = new ThrustBubble(this.game, pos, direction);
-      this.effects.push(bubble);
+       this.game.coquette.entities.create(ThrustBubble, 
+          {
+            pos: {
+              x: pos.x, 
+              y: pos.y
+            }, 
+            vel: {
+              x: direction.x,
+              y: direction.y
+            }
+          });     
     },
 
     update: function(player){
@@ -78,22 +91,7 @@
         this.thrustEffectTicksLeft = this.game.settings.THRUST_EFFECT_TICKS;
       }
 
-      // remove old effects, update current effects
-      for(var i = this.effects.length - 1; i >= 0; i--){
-        if (this.effects[i].ticksLeft === 0){
-          this.effects.splice(i, 1);
-        } else {
-          this.effects[i].update();
-        }
-      }
     },
-
-    draw: function(context){
-      for(var i = 0; i < this.effects.length; i++){
-        this.effects[i].draw(context);
-      }
-    }
-
   };
 
   exports.ThrustEffect = ThrustEffect;

@@ -116,45 +116,21 @@
     },
 
     draw: function(context){
-
-/*
-      context.save();
-      context.translate(this.center.x + this.halfSize.x, this.center.y + this.halfSize.y);
-      context.rotate(this.rAngle);
       this.drawMainSprite(context);
-      context.rotate(-this.rAngle);
-      context.translate(-(this.center.x), -(this.center.y));
-      context.restore();
-*/
-this.drawMainSprite(context);
-      this.thrustEffect.draw(context);
     },
 
     drawMainSprite: function(context){
       context.beginPath();
-      /*context.rect(this.center.x - this.halfSize.x, this.center.y - this.halfSize.y,
-        this.size.x, this.size.y);
-      */
-
-/*
-      context.moveTo(-this.halfSize.x,-this.halfSize.y);
-      context.lineTo(0,this.halfSize.y);
-      context.lineTo(this.halfSize.x, -this.halfSize.y);
-      context.lineTo(0,-this.halfSize.y/1.7);
-      context.lineTo(-this.halfSize.x,-this.halfSize.y);
-  */    
       context.moveTo(this.center.x - this.halfSize.x,this.center.y-this.halfSize.y);
       context.lineTo(this.center.x, this.center.y+this.halfSize.y);
       context.lineTo(this.center.x + this.halfSize.x, this.center.y-this.halfSize.y);
       context.lineTo(this.center.x,this.center.y - this.halfSize.y/1.7);
       context.lineTo(this.center.x - this.halfSize.x,this.center.y-this.halfSize.y);
 
-
       //context.closePath();
       context.strokeStyle = !this.spawningDrawOn ? this.game.settings.FOREGROUND_COLOR : this.game.settings.SECONDARY_COLOR;
       context.lineWidth = this.game.settings.PLAYER_LINE_WIDTH;
       context.stroke();
-
     },
 
     handleKeyboard: function(){

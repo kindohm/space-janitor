@@ -2,7 +2,9 @@
 
   var Powerup = function(game, settings){
     this.game = game;
-    this.pos = {
+    this.angle = 0;
+
+    this.center = {
       x: settings.pos.x,
       y: settings.pos.y
     };
@@ -39,8 +41,8 @@
     halfSize: {x:20,y:20},
 
     update: function(){
-      this.pos.x += this.vel.x;
-      this.pos.y += this.vel.y;
+      this.center.x += this.vel.x;
+      this.center.y += this.vel.y;
 
       if (this.fadeTicks === this.fadeAmount){
         this.growing = false;
@@ -50,10 +52,10 @@
 
       this.fadeTicks += this.growing ? 1 : -1;
 
-      if (this.pos.x < -this.size.x || 
-        this.pos.x > (this.game.width + this.size.x) || 
-        this.pos.y < -this.size.y || 
-        this.pos.y > (this.game.height + this.size.y)){
+      if (this.center.x < -this.size.x || 
+        this.center.x > (this.game.width + this.size.x) || 
+        this.center.y < -this.size.y || 
+        this.center.y > (this.game.height + this.size.y)){
 
         this.game.soundBus.powerupHumSound.stop();
         this.game.coquette.entities.destroy(this);
@@ -65,7 +67,7 @@
     draw: function(context){
 
       context.beginPath();
-      context.arc(this.pos.x + this.halfSize.x, this.pos.y + this.halfSize.y, this.halfSize.x, 0, Math.PI * 2, true);
+      context.arc(this.center.x, this.center.y, this.halfSize.x, 0, Math.PI * 2, true);
       context.lineWidth = 3;
       var ratio = (this.fadeTicks / this.fadeAmount).toString();
       context.strokeStyle = 'rgba(' + this.color + ',' + ratio + ')';
